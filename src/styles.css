@@ -528,10 +528,10 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
 @media (min-width: 900px) {
   :root { --gutter: 32px; --header-h: 72px; }
   .builder { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(24px, 4vw, 64px); width: min(100% - 64px, 1320px); margin-inline: auto; }
-  .stage { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--header-h) + var(--space-6)); height: calc(100svh - var(--header-h) - var(--buybar-h) - var(--space-9)); min-height: 520px; margin-block-start: var(--space-6); border-radius: var(--radius-xl); overflow: hidden; box-shadow: none; }
+  .stage { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--header-h) + var(--space-6)); height: max(340px, calc(100svh - var(--header-h) - var(--buybar-h) - var(--space-9))); margin-block-start: var(--space-6); border-radius: var(--radius-xl); overflow: hidden; box-shadow: none; }
   .stage__canvas { display: grid; place-items: center; }
   .stage__canvas::before { content: ''; position: absolute; inset: 4% 2%; background: radial-gradient(closest-side, var(--ember-glow), transparent); pointer-events: none; }
-  .stage__pizza { position: relative; top: 0; left: 0; width: min(90%, 68svh, 500px); transform: none !important; }
+  .stage__pizza { position: relative; top: 0; left: 0; width: min(90%, clamp(220px, calc(100svh - 300px), 500px)); transform: none !important; }
   .stage__summary { min-height: 0; padding: 0 var(--space-6) var(--space-6); text-align: center; justify-items: center; }
   .stage__title { font-size: var(--fs-h2); }
   .stage__detail { max-width: 46ch; font-size: var(--fs-small); -webkit-line-clamp: 3; }
