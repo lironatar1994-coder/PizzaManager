@@ -369,7 +369,7 @@ legend.field-group__head { float: inline-start; }
 .placement__option input:focus-visible + span { outline: 2px solid var(--ember); outline-offset: 1px; }
 
 /* הגדלת הפיצה שומרת על הבחירות ועל מיקום הגלילה */
-.pizza-preview { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--stage); color: var(--text); overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--line-strong) var(--stage); scrollbar-width: thin; }
+.pizza-preview { position: fixed; inset-block: 0; inset-inline-start: auto; inset-inline-end: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--stage); color: var(--text); overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--line-strong) var(--stage); scrollbar-width: thin; }
 .pizza-preview::backdrop { background: rgba(17, 12, 9, .78); backdrop-filter: blur(5px); }
 .pizza-preview__shell { min-height: 100%; display: flex; flex-direction: column; align-items: center; padding: max(16px, env(safe-area-inset-top)) var(--space-5) max(24px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse 75% 60% at 50% 42%, var(--ember-glow), transparent 75%); animation: preview-in .35s var(--ease-out); }
 .pizza-preview__head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
@@ -384,7 +384,7 @@ legend.field-group__head { float: inline-start; }
 .pizza-preview__return:hover { background: var(--surface-2); }
 @keyframes preview-in { from { opacity: .7; transform: translateY(12px); } }
 @media (min-width: 700px) {
-  .pizza-preview { width: min(540px, calc(100% - 48px)); height: auto; max-height: calc(100svh - 48px); margin: auto; border-radius: var(--radius-xl); }
+  .pizza-preview { inset-inline: 0; width: min(540px, calc(100% - 48px)); height: auto; max-height: calc(100svh - 48px); margin: auto; border-radius: var(--radius-xl); }
   .pizza-preview__shell { padding: var(--space-6); }
   .pizza-preview__art { width: min(100%, 440px, calc(100svh - 260px)); margin-block: var(--space-3); }
 }
