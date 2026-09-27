@@ -187,9 +187,29 @@ bdi, output, .stepper, .buybar__total strong { font-variant-numeric: tabular-num
 .hero__body { width: min(100% - 96px, 1480px); margin: auto; padding-block: 40px 72px; }
 .hero h1 { max-width: 700px; margin: 0 0 24px; font-weight: 900; font-size: clamp(3.8rem, 6.4vw, 6rem); line-height: 1.03; letter-spacing: -.03em; text-wrap: balance; }
 .hero__lead { max-width: 490px; margin: 0 0 30px; font-size: clamp(1.08rem, 1.6vw, 1.35rem); line-height: 1.55; color: var(--hero-copy); text-wrap: pretty; }
-.hero__cta { width: min(100%, 340px); min-height: 64px; justify-content: space-between; padding-inline: 24px; font-size: var(--fs-lead); }
-.hero__cta .icon { width: 24px; height: 24px; }
-.hero__support { display: block; width: fit-content; margin-block-start: 16px; padding: 6px 10px; border-radius: 999px; background: rgba(11, 9, 8, .7); box-shadow: inset 0 0 0 1px rgba(255, 244, 230, .14); color: var(--hero-copy); font-size: var(--fs-small); }
+.hero__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; width: min(100%, 470px); }
+.hero__cta { width: 100%; min-height: 64px; justify-content: space-between; padding-inline: 18px; font-size: var(--fs-body); }
+.hero__cta .icon { width: 23px; height: 23px; }
+.hero__cta--pickup { color: var(--text); background: linear-gradient(135deg, rgba(39, 28, 20, .8), rgba(15, 11, 9, .78)); box-shadow: inset 0 0 0 1px rgba(232, 180, 106, .7), 0 10px 26px rgba(0, 0, 0, .24); backdrop-filter: blur(10px); }
+@media (hover: hover) { .hero__cta--pickup:hover { background: rgba(67, 45, 28, .88); transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(232, 180, 106, .9), 0 14px 30px rgba(0, 0, 0, .28); } }
+.hero__utilities { position: relative; display: flex; gap: 12px; width: fit-content; margin-block-start: 20px; }
+.hero__utility { display: grid; place-items: center; width: 50px; height: 50px; border: 0; border-radius: 50%; color: var(--select); background: rgba(17, 12, 9, .72); box-shadow: inset 0 0 0 1px rgba(232, 180, 106, .58), 0 8px 22px rgba(0, 0, 0, .22); backdrop-filter: blur(10px); transition: transform .24s var(--ease-out), background .24s, box-shadow .24s; }
+.hero__utility .icon { width: 21px; height: 21px; }
+.hero__utility[aria-expanded="true"], .hero__utility:hover { background: rgba(73, 47, 28, .92); box-shadow: inset 0 0 0 1.5px var(--select), 0 10px 28px rgba(0, 0, 0, .28); transform: translateY(-2px); }
+.hero__contact-panel { position: absolute; z-index: 4; inset-block-start: calc(100% + 12px); inset-inline-start: 0; width: min(320px, calc(100vw - 40px)); padding: 16px; border-radius: 18px; background: rgba(25, 17, 12, .94); box-shadow: inset 0 0 0 1px rgba(232, 180, 106, .43), 0 22px 48px rgba(0, 0, 0, .45); backdrop-filter: blur(18px); opacity: 0; visibility: hidden; transform: translateY(-8px) scale(.98); transform-origin: top right; pointer-events: none; transition: opacity .22s ease, transform .28s var(--ease-out), visibility .22s; }
+.hero__contact-panel.is-up { inset-block-start: auto; inset-block-end: calc(100% + 12px); transform-origin: bottom right; }
+.hero__contact-panel.is-side { inset-block-start: var(--hero-panel-shift, 0px); inset-block-end: auto; inset-inline-start: calc(100% + 12px); inset-inline-end: auto; transform-origin: top right; }
+.hero__contact-panel.is-open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
+.hero__contact-panel > * { animation: hero-reveal .24s var(--ease-out) both; }
+@keyframes hero-reveal { from { opacity: 0; transform: translateY(5px); } }
+.hero__contact-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--select); font-size: var(--fs-small); font-weight: 700; }
+.hero__contact-head button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255, 244, 230, .09); color: var(--text); }
+.hero__contact-head button .icon { width: 18px; height: 18px; }
+.hero__contact-value, .hero__contact-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; margin-block-start: 8px; color: var(--text); font-size: var(--fs-lead); font-weight: 800; text-decoration: none; }
+.hero__contact-value .icon, .hero__contact-nav .icon { width: 20px; height: 20px; color: var(--select); }
+.hero__contact-address { margin-block-start: 10px; color: var(--text); font-size: var(--fs-body); font-weight: 700; }
+.hero__contact-nav { font-size: var(--fs-body); color: var(--select); }
+.hero__contact-value:hover, .hero__contact-nav:hover { text-decoration: underline; }
 .hero__closed { display: flex; gap: 8px; align-items: center; max-width: 490px; margin-block-start: 16px; color: var(--warm-text); font-size: var(--fs-small); }
 
 /* ---------- עמודים כלליים ---------- */
@@ -469,8 +489,8 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
   .hero__body { width: calc(100% - 40px); margin: 0 auto auto; padding-block: clamp(42px, 8svh, 86px) 0; }
   .hero h1 { max-width: 390px; margin-block-end: 17px; font-size: clamp(2.85rem, 10.6vw, 4.1rem); line-height: 1.05; }
   .hero__lead { max-width: 310px; margin-block-end: 24px; font-size: 1rem; line-height: 1.5; }
-  .hero__cta { width: 100%; min-height: 60px; }
-  .hero__support { margin-block-start: 14px; font-size: var(--fs-small); }
+  .hero__cta { min-height: 60px; padding-inline: 14px; }
+  .hero__utilities { margin-block-start: 18px; }
   .back-link span { display: none; }
   .menu-item { grid-template-columns: 84px minmax(0, 1fr) auto; grid-template-areas: 'art text go' 'art price go'; gap: var(--space-1) var(--space-3); padding: var(--space-3); }
   .menu-item__art { grid-area: art; width: 84px; }
@@ -495,6 +515,9 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
 
 @media (max-width: 380px) {
   .hero h1 { font-size: clamp(2.55rem, 10.6vw, 2.85rem); }
+  .hero__cta { gap: 6px; padding-inline: 10px; font-size: .94rem; }
+  .hero__cta span { white-space: nowrap; }
+  .hero__cta .icon { width: 20px; height: 20px; }
   .tile__surface { padding: 11px; }
   .topping__main { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'art name' 'art price'; padding-inline-end: 34px; position: relative; }
   .topping__check { position: absolute; inset-block-start: 8px; inset-inline-end: 8px; width: 22px; height: 22px; }
@@ -509,7 +532,8 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
   .hero h1 { font-size: clamp(2.4rem, 9.5vw, 3.1rem); margin-block-end: 10px; }
   .hero__lead { margin-block-end: 18px; font-size: .9rem; }
   .hero__cta { min-height: 52px; }
-  .hero__support { margin-block-start: 10px; font-size: var(--fs-tiny); }
+  .hero__utilities { margin-block-start: 12px; }
+  .hero__utility { width: 44px; height: 44px; }
 }
 
 /* ---------- דסקטופ ---------- */

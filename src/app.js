@@ -96,7 +96,6 @@ function home() {
   const unavailable = list.length === 0;
   const title = unavailable ? 'אין מוצרים זמינים\nכרגע.' : list.length === 1 ? shop.heroTitle : shop.multiHeroTitle;
   const description = unavailable ? 'אפשר לחזור לכאן בהמשך.' : list.length === 1 ? shop.heroDescription : shop.multiHeroDescription;
-  const action = list.length === 1 && list[0].visual === 'pizza' ? 'מרכיבים את הפיצה' : list.length === 1 ? 'מרכיבים את ההזמנה' : 'פותחים את התפריט';
   const closed = !isOpen();
   app.innerHTML = `<main class="hero" aria-labelledby="hero-title">
     <picture class="hero__media"><source media="(max-width: 700px)" srcset="./assets/pizza-hero-mobile.jpg" /><img src="./assets/pizza-hero-desktop.jpg" alt="פיצה להמחשה על רקע כהה" fetchpriority="high" /></picture>
@@ -105,11 +104,56 @@ function home() {
     <div class="hero__body">
       <h1 id="hero-title">${safe(title).replace(/\n/g, '<br />')}</h1>
       <p class="hero__lead">${safe(description)}</p>
-      ${unavailable ? '' : `<a class="button button--primary hero__cta" href="${productHref()}"><span>${action}</span>${icon('forward')}</a>
-      <p class="hero__support">משלוח או איסוף עצמי בוחרים בקופה</p>`}
+      ${unavailable ? '' : `<div class="hero__actions" role="group" aria-label="איך תרצו לקבל את ההזמנה?">
+        <a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery"><span>משלוח</span>${icon('delivery')}</a>
+        <a class="button hero__cta hero__cta--pickup" href="${productHref()}" data-mode="pickup"><span>איסוף עצמי</span>${icon('pickup')}</a>
+      </div>`}
       ${closed ? `<p class="hero__closed">${icon('alert')}<span>לפי שעות הדוגמה, הפיצרייה סגורה כרגע. ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
+      <div class="hero__utilities" role="group" aria-label="טלפון ומיקום">
+        <button type="button" class="hero__utility" data-hero-contact="phone" aria-label="הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel">${icon('phone')}</button>
+        <button type="button" class="hero__utility" data-hero-contact="location" aria-label="הצגת הכתובת והניווט" aria-expanded="false" aria-controls="hero-contact-panel">${icon('pin')}</button>
+        <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
+      </div>
     </div>
   </main>`;
+}
+
+function heroContactContent(kind) {
+  const heading = kind === 'phone' ? 'טלפון לדוגמה' : 'כתובת לדוגמה';
+  const detail = kind === 'phone'
+    ? `<a class="hero__contact-value" href="${phoneHref()}"><bdi>${safe(shop.phone)}</bdi>${icon('phone')}</a>`
+    : `<p class="hero__contact-address">${safe(shop.location.address)}</p><a class="hero__contact-nav" href="${safe(wazeHref())}" target="_blank" rel="noopener">ניווט ב־Waze ${icon('forward')}</a>`;
+  return `<div class="hero__contact-head"><span>${heading}</span><button type="button" data-hero-contact-close aria-label="סגירה">${icon('close')}</button></div>${detail}`;
+}
+
+function closeHeroContact() {
+  const utilities = document.querySelector('.hero__utilities');
+  if (!utilities) return;
+  const panel = utilities.querySelector('.hero__contact-panel');
+  panel.classList.remove('is-open');
+  panel.setAttribute('aria-hidden', 'true');
+  panel.inert = true;
+  utilities.querySelectorAll('[data-hero-contact]').forEach((button) => button.setAttribute('aria-expanded', 'false'));
+}
+
+function toggleHeroContact(kind) {
+  const utilities = document.querySelector('.hero__utilities');
+  if (!utilities) return;
+  const panel = utilities.querySelector('.hero__contact-panel');
+  if (panel.classList.contains('is-open') && panel.dataset.kind === kind) { closeHeroContact(); return; }
+  panel.innerHTML = heroContactContent(kind);
+  panel.dataset.kind = kind;
+  const utilityBox = utilities.getBoundingClientRect();
+  const panelBox = panel.getBoundingClientRect();
+  const roomBelow = window.innerHeight - utilityBox.bottom;
+  const side = window.innerWidth >= 900 && utilityBox.left > panelBox.width + 28;
+  panel.classList.toggle('is-side', side);
+  panel.classList.toggle('is-up', !side && roomBelow < panelBox.height + 20);
+  panel.style.setProperty('--hero-panel-shift', `${Math.min(0, window.innerHeight - utilityBox.top - panelBox.height - 16)}px`);
+  panel.classList.add('is-open');
+  panel.setAttribute('aria-hidden', 'false');
+  panel.inert = false;
+  utilities.querySelectorAll('[data-hero-contact]').forEach((button) => button.setAttribute('aria-expanded', String(button.dataset.heroContact === kind)));
 }
 
 /* ---------- תפריט ---------- */
@@ -387,7 +431,7 @@ function renderCart() {
     ${cart.length ? `<ul class="cart-lines">${cart.map(cartLineMarkup).join('')}</ul>
       <footer class="sheet__foot">
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
-        <p class="sheet__hint">בשלב הבא בוחרים משלוח או איסוף עצמי.</p>
+        <p class="sheet__hint">${checkout.mode === 'pickup' ? 'איסוף עצמי נבחר. אפשר לשנות בקופה.' : 'משלוח נבחר. דמי המשלוח ייקבעו לפי הכתובת בקופה.'}</p>
         <a class="button button--primary" href="#/checkout" data-close-sheet><span>להמשך ההזמנה</span>${icon('forward')}</a>
         <a class="button button--quiet" href="${productHref()}" data-close-sheet>להוסיף עוד</a>
       </footer>`
@@ -421,9 +465,21 @@ sheet.addEventListener('click', (event) => {
 });
 
 document.addEventListener('click', (event) => {
+  const heroContact = event.target.closest('[data-hero-contact]');
+  if (heroContact) { toggleHeroContact(heroContact.dataset.heroContact); return; }
+  if (event.target.closest('[data-hero-contact-close]')) {
+    const kind = document.querySelector('.hero__contact-panel')?.dataset.kind;
+    closeHeroContact();
+    document.querySelector(`[data-hero-contact="${kind}"]`)?.focus();
+    return;
+  }
+  if (!event.target.closest('.hero__utilities')) closeHeroContact();
   if (event.target.closest('[data-open-cart]')) openCart();
   if (event.target.closest('[data-open-info]')) openInfo();
+  const modeLink = event.target.closest('[data-mode]');
+  if (modeLink) rememberMode(modeLink.dataset.mode);
 });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeHeroContact(); });
 
 /* ---------- מיקום ושעות ---------- */
 
@@ -587,7 +643,7 @@ function checkoutPage(focusId) {
   app.innerHTML = `${topbar(productHref())}
     <main class="page checkout"><div class="wrap checkout__layout">
       <form class="checkout__form" id="checkout-form" novalidate>
-        <header class="page-head"><h1>קופה לדוגמה</h1><p>בוחרים משלוח או איסוף, ואז ממלאים פרטי קשר.</p></header>
+        <header class="page-head"><h1>קופה לדוגמה</h1><p>אפשר לשנות כאן את אופן הקבלה ולמלא פרטי קשר.</p></header>
         <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>הדגמה בלבד:</strong> הפרטים נשמרים בדפדפן. לא נשלחת הזמנה ולא מתבצע חיוב.</span></div>
         ${!open ? `<div class="notice notice--warn" role="alert">${icon('alert')}<span><strong>הפיצרייה סגורה כרגע.</strong> ההזמנות נפתחות ב־${shop.hours.opensAt} (שעות לדוגמה). הסל נשמר בינתיים.</span></div>` : ''}
         ${checkout.failure ? `<div class="notice notice--error" role="alert" tabindex="-1" id="failure">${icon('alert')}<span><strong>בהדגמה דימינו תשלום שנכשל.</strong> לא בוצע חיוב ואפשר לנסות שוב.</span></div>` : ''}
