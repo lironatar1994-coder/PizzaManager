@@ -250,7 +250,7 @@ function productPage(product, editLine) {
       <section class="stage" aria-label="התצוגה של ${safe(product.name)}">
         ${isPizza ? `<span class="stage__live"><span class="stage__live-dot" aria-hidden="true"></span>תצוגה חיה</span>` : ''}
         <div class="stage__canvas">${isPizza ? '<span class="stage__flare" aria-hidden="true"></span>' : ''}<div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
-        <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p></div>
+        <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
         <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p></header>
@@ -283,6 +283,11 @@ function productPage(product, editLine) {
     document.querySelector('#stage-detail').textContent = isPizza && !drawn.toppings.length
       ? `${details ? `${details} · ` : ''}תוספות שתבחרו יופיעו כאן`
       : details || 'בלי תוספות';
+    if (isPizza) {
+      const toppingCount = info.extras.length;
+      const toppingSummary = toppingCount === 0 ? 'בלי תוספות' : toppingCount === 1 ? 'תוספת אחת' : `${toppingCount} תוספות`;
+      document.querySelector('#stage-compact').textContent = [info.singles[0], toppingSummary].filter(Boolean).join(' · ');
+    }
     document.querySelector('#bar-total').textContent = money(total);
     document.querySelector('#add-label').textContent = `${editLine ? 'עדכון בסל' : 'הוספה לסל'} · ${money(total)}`;
     form.querySelector('output').textContent = quantity;
@@ -388,8 +393,8 @@ function setupStage(stage) {
   let frame = 0;
   const measure = () => {
     pizza.style.transform = '';
-    if (!mobile.matches) { metrics = null; stage.style.setProperty('--p', 0); return; }
-    const band = parseFloat(getComputedStyle(stage).getPropertyValue('--band')) || 112;
+    if (!mobile.matches) { metrics = null; stage.classList.remove('is-compact'); stage.style.setProperty('--p', 0); return; }
+    const band = parseFloat(getComputedStyle(stage).getPropertyValue('--band')) || 72;
     const height = stage.offsetHeight;
     const width = stage.clientWidth;
     const size = pizza.offsetWidth;
@@ -402,6 +407,7 @@ function setupStage(stage) {
     if (!metrics) return;
     const p = Math.min(1, Math.max(0, window.scrollY / metrics.travel));
     stage.style.setProperty('--p', p.toFixed(3));
+    stage.classList.toggle('is-compact', p >= .92);
     pizza.style.transform = `translate(${(metrics.dx * p).toFixed(1)}px, ${(metrics.dy * p).toFixed(1)}px) scale(${(1 - (1 - metrics.k) * p).toFixed(3)})`;
   };
   const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
