@@ -122,7 +122,7 @@
   color: var(--text);
 }
 html { scroll-behavior: smooth; }
-html:has(.sheet[open], .pizza-preview[open]) { overflow: hidden; }
+html:has(.sheet[open]) { overflow: hidden; }
 body { margin: 0; min-height: 100svh; background: var(--ground); line-height: 1.5; }
 button, input, textarea { font: inherit; color: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
