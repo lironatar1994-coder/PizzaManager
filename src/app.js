@@ -104,17 +104,12 @@ function home() {
     <div class="hero__body">
       <h1 id="hero-title">${safe(title).replace(/\n/g, '<br />')}</h1>
       <p>${safe(description)}</p>
-      ${unavailable ? '' : `<div class="hero__actions" role="group" aria-label="איך מקבלים את ההזמנה?">
-        <a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery">${icon('delivery')}<span>משלוח</span></a>
-        <a class="button button--glass hero__cta" href="${productHref()}" data-mode="pickup">${icon('pickup')}<span>איסוף עצמי</span></a>
+      ${unavailable ? '' : `<div class="hero__actions">
+        <a class="button button--primary hero__cta" href="${productHref()}"><span>${list.length === 1 ? 'מרכיבים את הפיצה' : 'בוחרים מוצר'}</span>${icon('forward')}</a>
       </div>`}
-      ${closed ? `<p class="hero__closed">${icon('alert')}<span>הפיצרייה סגורה כרגע. ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
-      <div class="hero__contact">
-        ${shop.demoOnly ? `<span class="contact-link">${icon('phone')}<span>טלפון לדוגמה: <bdi>${safe(shop.phone)}</bdi></span></span>` : `<a class="contact-link" href="${phoneHref()}">${icon('phone')}<span><bdi>${safe(shop.phone)}</bdi></span></a>`}
-        <button type="button" class="contact-link" data-open-info>${icon('pin')}<span>מיקום ושעות</span></button>
-      </div>
+      ${closed ? `<p class="hero__closed">${icon('alert')}<span>${shop.demoOnly ? 'לפי שעות הדוגמה, הפיצרייה סגורה כרגע.' : 'הפיצרייה סגורה כרגע.'} ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
     </div>
-    <p class="hero__foot">${icon('clock')}<span>שעות לדוגמה · <bdi>${shop.hours.opensAt}–${shop.hours.closesAt}</bdi></span></p>
+    <p class="hero__foot">${icon('delivery')}<span>משלוח או איסוף עצמי · לבחירה בהמשך</span></p>
   </main>`;
 }
 
@@ -429,8 +424,6 @@ sheet.addEventListener('click', (event) => {
 document.addEventListener('click', (event) => {
   if (event.target.closest('[data-open-cart]')) openCart();
   if (event.target.closest('[data-open-info]')) openInfo();
-  const modeLink = event.target.closest('[data-mode]');
-  if (modeLink) rememberMode(modeLink.dataset.mode);
 });
 
 /* ---------- מיקום ושעות ---------- */

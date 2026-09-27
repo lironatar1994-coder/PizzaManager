@@ -22,12 +22,12 @@ atomic_link() {
 
 verify_web() {
     local expected=$1 actual
-    actual=$(curl -fsS --max-time 20 "$url/version.txt" | tr -d '\r\n')
-    test "$actual" = "$expected" || { echo "Live revision mismatch: $actual" >&2; return 1; }
-    curl -fsS --max-time 20 "$url/" | grep -q 'noindex,nofollow'
-    curl -fsS --max-time 20 -o /dev/null "$url/src/app.js"
-    curl -fsS --max-time 20 -o /dev/null "$url/src/styles.css"
-    curl -fsS --max-time 20 -o /dev/null "$url/assets/pizza-hero-mobile.jpg"
+    actual=$(curl -fs --max-time 20 "$url/version.txt" | tr -d '\r\n') || return 1
+    test "$actual" = "$expected" || return 1
+    curl -fs --max-time 20 "$url/" | grep -q 'noindex,nofollow'
+    curl -fs --max-time 20 -o /dev/null "$url/src/app.js"
+    curl -fs --max-time 20 -o /dev/null "$url/src/styles.css"
+    curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-hero-mobile.jpg"
 }
 
 verify_with_retries() {
@@ -76,6 +76,7 @@ site_backup=
 snippet_backup=
 snippet_created=0
 switched=0
+release_tmp=
 
 recover() {
     local status=$?
@@ -89,6 +90,9 @@ recover() {
         if [[ -n "$snippet_backup" ]]; then cp -p -- "$snippet_backup" "$snippet"; fi
         if (( snippet_created )); then rm -f -- "$snippet"; fi
         nginx -t && systemctl reload nginx || true
+    fi
+    if [[ -n "$release_tmp" ]]; then
+        case "$release_tmp" in "$base"/releases/.*.next.*) rm -rf -- "$release_tmp" ;; esac
     fi
     case "$stage" in "$base"/.stage.*) rm -rf -- "$stage" ;; esac
     exit "$status"
@@ -104,12 +108,15 @@ grep -q 'demoOnly: true' "$stage/src/data.js" || { echo 'Demo-only safeguard mis
 
 release="$base/releases/$revision"
 if [[ ! -e "$release" ]]; then
-    install -d -m 755 "$release"
-    install -m 644 "$stage/index.html" "$release/index.html"
-    cp -a -- "$stage/src" "$release/src"
-    cp -a -- "$stage/assets" "$release/assets"
-    printf '%s\n' "$revision" > "$release/version.txt"
-    chmod -R a+rX "$release"
+    release_tmp="$base/releases/.${revision}.next.$$"
+    install -d -m 755 "$release_tmp"
+    install -m 644 "$stage/index.html" "$release_tmp/index.html"
+    cp -a -- "$stage/src" "$release_tmp/src"
+    cp -a -- "$stage/assets" "$release_tmp/assets"
+    printf '%s\n' "$revision" > "$release_tmp/version.txt"
+    chmod -R a+rX "$release_tmp"
+    mv -T -- "$release_tmp" "$release"
+    release_tmp=
 else
     test "$(cat "$release/version.txt")" = "$revision" || { echo 'Existing release is incomplete' >&2; exit 1; }
 fi
