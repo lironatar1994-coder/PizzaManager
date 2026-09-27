@@ -189,7 +189,7 @@ bdi, output, .stepper, .buybar__total strong { font-variant-numeric: tabular-num
 .hero__body > * { max-width: 575px; }
 .hero h1 { margin: 0 0 24px; font-weight: 900; font-size: clamp(3.8rem, 6.4vw, 6rem); line-height: .98; letter-spacing: -.03em; text-wrap: balance; }
 .hero__body p { margin: 0 0 36px; font-size: clamp(1.08rem, 1.6vw, 1.35rem); line-height: 1.6; color: var(--hero-copy); text-wrap: pretty; }
-.hero__actions { display: grid; max-width: 360px !important; }
+.hero__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); max-width: 480px !important; }
 .hero__cta { width: 100%; gap: var(--space-3); }
 .button--glass { color: var(--text); background: var(--glass-light); backdrop-filter: blur(8px); box-shadow: inset 0 0 0 1.5px var(--hairline-light); }
 @media (hover: hover) { .button--glass:hover { background: rgba(16, 12, 10, .8); box-shadow: inset 0 0 0 1.5px var(--text); } }

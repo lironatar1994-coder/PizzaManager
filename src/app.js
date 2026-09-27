@@ -65,7 +65,7 @@ const wazeHref = () => `https://waze.com/ul?q=${encodeURIComponent(shop.location
 const mapsHref = () => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.location.address)}`;
 
 function contactButtons(className) {
-  return `${shop.demoOnly ? `<span class="${className}" title="טלפון לדוגמה" aria-label="טלפון לדוגמה">${icon('phone')}</span>` : `<a class="${className}" href="${phoneHref()}" aria-label="התקשרות לפיצרייה">${icon('phone')}</a>`}<button type="button" class="${className}" data-open-info aria-label="מיקום ושעות">${icon('pin')}</button>`;
+  return `<a class="${className}" href="${phoneHref()}" aria-label="התקשרות לפיצרייה">${icon('phone')}</a><button type="button" class="${className}" data-open-info aria-label="מיקום ושעות">${icon('pin')}</button>`;
 }
 
 function productArt(product, config, label = '') {
@@ -104,12 +104,17 @@ function home() {
     <div class="hero__body">
       <h1 id="hero-title">${safe(title).replace(/\n/g, '<br />')}</h1>
       <p>${safe(description)}</p>
-      ${unavailable ? '' : `<div class="hero__actions">
-        <a class="button button--primary hero__cta" href="${productHref()}"><span>${list.length === 1 ? 'מרכיבים את הפיצה' : 'בוחרים מוצר'}</span>${icon('forward')}</a>
+      ${unavailable ? '' : `<div class="hero__actions" role="group" aria-label="איך מקבלים את ההזמנה?">
+        <a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery">${icon('delivery')}<span>משלוח</span></a>
+        <a class="button button--glass hero__cta" href="${productHref()}" data-mode="pickup">${icon('pickup')}<span>איסוף עצמי</span></a>
       </div>`}
-      ${closed ? `<p class="hero__closed">${icon('alert')}<span>${shop.demoOnly ? 'לפי שעות הדוגמה, הפיצרייה סגורה כרגע.' : 'הפיצרייה סגורה כרגע.'} ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
+      ${closed ? `<p class="hero__closed">${icon('alert')}<span>הפיצרייה סגורה כרגע. ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
+      <div class="hero__contact">
+        <a class="contact-link" href="${phoneHref()}">${icon('phone')}<span><bdi>${safe(shop.phone)}</bdi></span></a>
+        <button type="button" class="contact-link" data-open-info>${icon('pin')}<span>מיקום ושעות</span></button>
+      </div>
     </div>
-    <p class="hero__foot">${icon('delivery')}<span>משלוח או איסוף עצמי · לבחירה בהמשך</span></p>
+    <p class="hero__foot">${icon('clock')}<span>שעות לדוגמה · <bdi>${shop.hours.opensAt}–${shop.hours.closesAt}</bdi></span></p>
   </main>`;
 }
 
@@ -424,6 +429,8 @@ sheet.addEventListener('click', (event) => {
 document.addEventListener('click', (event) => {
   if (event.target.closest('[data-open-cart]')) openCart();
   if (event.target.closest('[data-open-info]')) openInfo();
+  const modeLink = event.target.closest('[data-mode]');
+  if (modeLink) rememberMode(modeLink.dataset.mode);
 });
 
 /* ---------- מיקום ושעות ---------- */
@@ -441,7 +448,7 @@ function openInfo() {
       <p class="info__row">${icon('pin')}<span><strong>${safe(shop.location.address)}</strong><small>כתובת לדוגמה</small></span></p>
       <p class="info__row">${icon('clock')}<span><strong>${closed ? 'סגור עכשיו' : 'פתוח היום'} · <bdi>${shop.hours.opensAt}–${shop.hours.closesAt}</bdi></strong><small>שעות לדוגמה</small></span></p>
       <div class="info__actions">
-        ${shop.demoOnly ? '<p>ניווט וחיוג יהיו זמינים לאחר הזנת פרטי העסק האמיתיים.</p>' : `<a class="button button--quiet" href="${wazeHref()}" target="_blank" rel="noopener">ניווט ב־Waze</a><a class="button button--quiet" href="${mapsHref()}" target="_blank" rel="noopener">Google Maps</a><a class="button button--quiet info__call" href="${phoneHref()}">${icon('phone')}<span>התקשרות · <bdi>${safe(shop.phone)}</bdi></span></a>`}
+        <a class="button button--quiet" href="${wazeHref()}" target="_blank" rel="noopener">ניווט ב־Waze</a><a class="button button--quiet" href="${mapsHref()}" target="_blank" rel="noopener">Google Maps</a><a class="button button--quiet info__call" href="${phoneHref()}">${icon('phone')}<span>התקשרות · <bdi>${safe(shop.phone)}</bdi></span></a>
       </div>
     </div>
   </div>`;
@@ -627,7 +634,7 @@ function checkoutPage(focusId) {
           </div>
         </fieldset>` : `<section class="field-group pickup-card">
           ${icon('pin', 'pickup-card__icon')}<div><h2 class="field-group__title">איסוף מהפיצרייה</h2><p>${safe(shop.location.address)}</p><small>${safe(shop.pickup.readyHint)}</small>
-            ${shop.demoOnly ? '<small>ניווט יופעל לאחר הזנת כתובת העסק האמיתית.</small>' : `<div class="pickup-card__actions"><a class="button button--quiet button--small" href="${wazeHref()}" target="_blank" rel="noopener">ניווט ב־Waze</a><a class="button button--quiet button--small" href="${mapsHref()}" target="_blank" rel="noopener">Google Maps</a></div>`}</div>
+            <div class="pickup-card__actions"><a class="button button--quiet button--small" href="${wazeHref()}" target="_blank" rel="noopener">ניווט ב־Waze</a><a class="button button--quiet button--small" href="${mapsHref()}" target="_blank" rel="noopener">Google Maps</a></div></div>
         </section>`}
         <fieldset class="field-group">
           <legend class="field-group__head"><span class="field-group__title">איך נשיג אתכם?</span></legend>
