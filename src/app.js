@@ -1,4 +1,4 @@
-import { shop, activeProducts, findProduct } from './data.js?v=20260927-ux4';
+import { shop, activeProducts, findProduct } from './data.js?v=20260927-hero';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, describe, lineTotal } from './order.js';
 import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260927-ux4';
 import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder } from './store.js';
@@ -96,6 +96,7 @@ function home() {
   const unavailable = list.length === 0;
   const title = unavailable ? 'אין מוצרים זמינים\nכרגע.' : list.length === 1 ? shop.heroTitle : shop.multiHeroTitle;
   const description = unavailable ? 'אפשר לחזור לכאן בהמשך.' : list.length === 1 ? shop.heroDescription : shop.multiHeroDescription;
+  const action = list.length === 1 && list[0].visual === 'pizza' ? 'מרכיבים את הפיצה' : list.length === 1 ? 'מרכיבים את ההזמנה' : 'פותחים את התפריט';
   const closed = !isOpen();
   app.innerHTML = `<main class="hero" aria-labelledby="hero-title">
     <picture class="hero__media"><source media="(max-width: 700px)" srcset="./assets/pizza-hero-mobile.jpg" /><img src="./assets/pizza-hero-desktop.jpg" alt="פיצה להמחשה על רקע כהה" fetchpriority="high" /></picture>
@@ -103,18 +104,11 @@ function home() {
     <header class="hero__top">${brand()}<div class="topbar__end"><span class="demo-pill demo-pill--hero">אתר הדגמה<span class="demo-pill__more"> · תמונות ומחירים להמחשה</span></span><span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span></div></header>
     <div class="hero__body">
       <h1 id="hero-title">${safe(title).replace(/\n/g, '<br />')}</h1>
-      <p>${safe(description)}</p>
-      ${unavailable ? '' : `<div class="hero__actions" role="group" aria-label="איך מקבלים את ההזמנה?">
-        <a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery">${icon('delivery')}<span>משלוח</span></a>
-        <a class="button button--glass hero__cta" href="${productHref()}" data-mode="pickup">${icon('pickup')}<span>איסוף עצמי</span></a>
-      </div>`}
+      <p class="hero__lead">${safe(description)}</p>
+      ${unavailable ? '' : `<a class="button button--primary hero__cta" href="${productHref()}"><span>${action}</span>${icon('forward')}</a>
+      <p class="hero__support">משלוח או איסוף עצמי בוחרים בקופה</p>`}
       ${closed ? `<p class="hero__closed">${icon('alert')}<span>לפי שעות הדוגמה, הפיצרייה סגורה כרגע. ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
-      <div class="hero__contact">
-        <a class="contact-link" href="${phoneHref()}">${icon('phone')}<span><bdi>${safe(shop.phone)}</bdi></span></a>
-        <button type="button" class="contact-link" data-open-info>${icon('pin')}<span>מיקום ושעות</span></button>
-      </div>
     </div>
-    <p class="hero__foot">${icon('clock')}<span>שעות לדוגמה · <bdi>${shop.hours.opensAt}–${shop.hours.closesAt}</bdi></span></p>
   </main>`;
 }
 
@@ -393,7 +387,7 @@ function renderCart() {
     ${cart.length ? `<ul class="cart-lines">${cart.map(cartLineMarkup).join('')}</ul>
       <footer class="sheet__foot">
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
-        <p class="sheet__hint">${checkout.mode === 'pickup' ? 'איסוף עצמי מהפיצרייה, ללא דמי משלוח.' : 'משלוח: דמי המשלוח נקבעים לפי הכתובת בשלב הבא.'}</p>
+        <p class="sheet__hint">בשלב הבא בוחרים משלוח או איסוף עצמי.</p>
         <a class="button button--primary" href="#/checkout" data-close-sheet><span>להמשך ההזמנה</span>${icon('forward')}</a>
         <a class="button button--quiet" href="${productHref()}" data-close-sheet>להוסיף עוד</a>
       </footer>`
@@ -429,8 +423,6 @@ sheet.addEventListener('click', (event) => {
 document.addEventListener('click', (event) => {
   if (event.target.closest('[data-open-cart]')) openCart();
   if (event.target.closest('[data-open-info]')) openInfo();
-  const modeLink = event.target.closest('[data-mode]');
-  if (modeLink) rememberMode(modeLink.dataset.mode);
 });
 
 /* ---------- מיקום ושעות ---------- */
@@ -487,25 +479,12 @@ onCartChange((change) => {
 
 /* ---------- קופה ---------- */
 
-function savedMode() {
-  try {
-    return window.sessionStorage.getItem('pizza-demo-mode') === 'pickup' ? 'pickup' : 'delivery';
-  } catch {
-    return 'delivery';
-  }
-}
-
 function rememberMode(mode) {
   checkout.mode = mode;
-  try {
-    window.sessionStorage.setItem('pizza-demo-mode', mode);
-  } catch {
-    // בלי אחסון הבחירה נשמרת רק בזיכרון.
-  }
 }
 
 const checkout = {
-  mode: savedMode(),
+  mode: 'delivery',
   address: { city: '', street: '', number: '', apartment: '', floor: '', instructions: '' },
   contact: { name: '', phone: '' },
   check: { status: 'idle' },

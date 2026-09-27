@@ -1,5 +1,6 @@
 .deploy/
 .claude/
+.codex-remote-attachments/
 .impeccable/
 _before-redesign/
 previews/
