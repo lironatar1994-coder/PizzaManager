@@ -100,6 +100,7 @@ function home() {
   app.innerHTML = `<main class="hero" aria-labelledby="hero-title">
     <picture class="hero__media"><source media="(max-width: 700px)" srcset="./assets/pizza-hero-mobile.jpg" /><img src="./assets/pizza-hero-desktop.jpg" alt="פיצה להמחשה על רקע כהה" fetchpriority="high" /></picture>
     <div class="hero__shade" aria-hidden="true"></div>
+    <div class="hero__heat" aria-hidden="true"></div>
     <header class="hero__top">${brand()}<div class="topbar__end"><span class="demo-pill demo-pill--hero">אתר הדגמה<span class="demo-pill__more"> · תמונות ומחירים להמחשה</span></span><span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span></div></header>
     <div class="hero__body">
       <h1 id="hero-title">${safe(title).replace(/\n/g, '<br />')}</h1>
@@ -115,6 +116,7 @@ function home() {
         <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
       </div>
     </div>
+    <p class="hero__hours">${icon('clock')}<span>שעות לדוגמה <bdi>${safe(shop.hours.opensAt)}–${safe(shop.hours.closesAt)}</bdi></span></p>
   </main>`;
 }
 
@@ -246,7 +248,8 @@ function productPage(product, editLine) {
   app.innerHTML = `${topbar(back)}
     <main class="builder${isPizza ? '' : ' builder--flat'}">
       <section class="stage" aria-label="התצוגה של ${safe(product.name)}">
-        <div class="stage__canvas"><div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
+        ${isPizza ? `<span class="stage__live"><span class="stage__live-dot" aria-hidden="true"></span>תצוגה חיה</span>` : ''}
+        <div class="stage__canvas">${isPizza ? '<span class="stage__flare" aria-hidden="true"></span>' : ''}<div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p></div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
@@ -276,7 +279,10 @@ function productPage(product, editLine) {
     const unit = unitPrice(product, config);
     const total = unit * quantity;
     document.querySelector('#stage-title').textContent = quantity > 1 ? `${info.title} · ${quantity} יח׳` : info.title;
-    document.querySelector('#stage-detail').textContent = detailText(info) || 'בלי תוספות';
+    const details = detailText(info);
+    document.querySelector('#stage-detail').textContent = isPizza && !drawn.toppings.length
+      ? `${details ? `${details} · ` : ''}תוספות שתבחרו יופיעו כאן`
+      : details || 'בלי תוספות';
     document.querySelector('#bar-total').textContent = money(total);
     document.querySelector('#add-label').textContent = `${editLine ? 'עדכון בסל' : 'הוספה לסל'} · ${money(total)}`;
     form.querySelector('output').textContent = quantity;
@@ -305,9 +311,14 @@ function productPage(product, editLine) {
       status.textContent = target.checked ? `נוסף: ${name}` : `הוסר: ${name}`;
     } else if (target.name?.startsWith('place-')) {
       status.textContent = `${target.closest('.topping').querySelector('.topping__name').textContent}: ${target.getAttribute('aria-label')}`;
+    } else if (target.name === 'variant') {
+      status.textContent = `נבחר גודל ${target.closest('.tile').querySelector('strong').textContent}`;
+    } else if (target.name?.startsWith('opt-')) {
+      status.textContent = `נבחר ${target.closest('.tile').querySelector('strong').textContent}`;
     }
     if (previous.variantId !== config.variantId) pulse(art.querySelector('svg'));
     refresh();
+    if (target.matches('input[type="radio"], input[type="checkbox"]')) reactToChoice(art, true);
   });
   form.addEventListener('input', (event) => {
     if (event.target.name === 'note') config = { ...config, note: event.target.value };
@@ -317,6 +328,8 @@ function productPage(product, editLine) {
     if (!button) return;
     quantity = Math.max(1, Math.min(99, quantity + (button.dataset.qty === 'plus' ? 1 : -1)));
     refresh();
+    status.textContent = `כמות: ${quantity}`;
+    reactToChoice(art, false);
   });
 
   document.querySelector('#add-to-cart').addEventListener('click', () => {
@@ -337,6 +350,34 @@ function productPage(product, editLine) {
 function pulse(element) {
   if (reducedMotion.matches) return;
   element.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.025)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'cubic-bezier(.16,1,.3,1)' });
+}
+
+function reactToChoice(art, visualChange) {
+  if (reducedMotion.matches) return;
+  const total = document.querySelector('#bar-total');
+  const label = document.querySelector('#add-label');
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--ember').trim();
+  for (const element of [total, label]) {
+    element.getAnimations().forEach((animation) => animation.cancel());
+    element.animate([
+      { color: accent, transform: 'translateY(3px)', opacity: .72 },
+      { color: getComputedStyle(element).color, transform: 'translateY(0)', opacity: 1 },
+    ], { duration: 360, easing: 'cubic-bezier(.16,1,.3,1)' });
+  }
+  if (!visualChange) return;
+  const flare = art.closest('.stage')?.querySelector('.stage__flare');
+  if (!flare) return;
+  flare.getAnimations().forEach((animation) => animation.cancel());
+  flare.animate([
+    { opacity: 0, transform: 'scale(.82)' },
+    { opacity: .75, transform: 'scale(1)', offset: .35 },
+    { opacity: 0, transform: 'scale(1.12)' },
+  ], { duration: 590, easing: 'cubic-bezier(.16,1,.3,1)' });
+  const dot = art.closest('.stage').querySelector('.stage__live-dot');
+  if (dot) {
+    dot.getAnimations().forEach((animation) => animation.cancel());
+    dot.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.6)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(.16,1,.3,1)' });
+  }
 }
 
 // במובייל הפיצה מתכווצת לפינה בזמן גלילה, כדי שתישאר גלויה ליד הבחירות.
@@ -871,4 +912,7 @@ function navigate() {
 }
 
 window.addEventListener('hashchange', navigate);
+const syncPageVisibility = () => document.documentElement.classList.toggle('is-page-hidden', document.hidden);
+document.addEventListener('visibilitychange', syncPageVisibility);
+syncPageVisibility();
 render();
