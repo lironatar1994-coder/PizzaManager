@@ -1,4 +1,4 @@
-// מציג בסיס פיצה מצולם עם תוספות SVG מתוך התצורה; כל מסכי ההזמנה משתמשים באותה תצוגה.
+// מציג בסיס פיצה מצולם עם תוספות מצולמות מתוך התצורה; כל מסכי ההזמנה משתמשים באותה תצוגה.
 import { selectedVariant } from './order.js';
 
 const C = 200;
@@ -35,42 +35,27 @@ function scatter(key, count, radius, gap) {
     const x = Math.cos(angle) * distance;
     const y = Math.sin(angle) * distance;
     const rotation = next() * 360;
-    const size = 0.86 + next() * 0.28;
+    const size = 0.76 + next() * 0.42;
     if (points.every((point) => (point.x - x) ** 2 + (point.y - y) ** 2 > gap * gap)) points.push({ x, y, rotation, size });
   }
   return points;
 }
 
 const SHAPES = {
-  olive: {
-    count: 17, gap: 30,
-    draw: '<path d="M0-8.4a8.4 8.4 0 1 1 0 16.8a8.4 8.4 0 1 1 0-16.8Zm0 4.9a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7Z" fill="#221c19" fill-rule="evenodd"/><path d="M-5.6-4a6.6 6.6 0 0 1 4.6-3.2" fill="none" stroke="#6d625b" stroke-width="1.5" stroke-linecap="round"/>',
-  },
-  mushroom: {
-    count: 12, gap: 38,
-    draw: '<path d="M-12.5 1.5c0-9.4 5.8-13.5 12.5-13.5s12.5 4.1 12.5 13.5c-3 1.3-6.2 1.3-8.6.2l.9 9.6c-3 1.4-6.6 1.4-9.6 0l.9-9.6c-2.4 1.1-5.6 1.1-8.6-.2Z" fill="#b58d6b"/><path d="M-8.8-.4c.7-6.3 4.2-9 8.8-9s8.1 2.7 8.8 9" fill="none" stroke="#e9d3b8" stroke-width="2.4" stroke-linecap="round"/>',
-  },
-  corn: {
-    count: 28, gap: 19,
-    draw: '<rect x="-4.4" y="-5" width="8.8" height="10" rx="3.2" fill="#f2a20c" stroke="#a86a00" stroke-width="1"/><rect x="-2.2" y="-3.2" width="2.8" height="3.8" rx="1.4" fill="#ffd66b"/>',
-  },
-  onion: {
-    count: 12, gap: 34,
-    draw: '<path d="M-13 5a14 14 0 0 1 26 0" fill="none" stroke="#8a2c68" stroke-width="3.6" stroke-linecap="round"/><path d="M-8.6 5.6a9.6 9.6 0 0 1 17.2 0" fill="none" stroke="#dcaacb" stroke-width="1.7" stroke-linecap="round"/>',
-  },
-  jalapeno: {
-    count: 12, gap: 32,
-    draw: '<circle r="8.8" fill="#3a7a31"/><circle r="6.2" fill="#c7dc8e"/><circle cx="-2.1" cy="-1.7" r="1.25" fill="#f6f2da"/><circle cx="2.3" cy="-.4" r="1.25" fill="#f6f2da"/><circle cy="2.5" r="1.25" fill="#f6f2da"/>',
-  },
-  feta: {
-    count: 15, gap: 28,
-    draw: '<rect x="-5.8" y="-5.8" width="11.6" height="11.6" rx="2.2" fill="#fbf6ea"/><path d="M-5.8 2.6h11.6v1a2.2 2.2 0 0 1-2.2 2.2h-7.2a2.2 2.2 0 0 1-2.2-2.2Z" fill="#e3d6bd"/>',
-  },
+  olive: { count: 21, gap: 26, size: 22, src: './assets/toppings/olive.webp' },
+  mushroom: { count: 14, gap: 34, size: 29, src: './assets/toppings/mushroom.webp' },
+  corn: { count: 34, gap: 17, size: 13, src: './assets/toppings/corn.webp' },
+  onion: { count: 15, gap: 30, size: 29, src: './assets/toppings/onion.webp' },
+  jalapeno: { count: 15, gap: 29, size: 23, src: './assets/toppings/jalapeno.webp' },
+  feta: { count: 18, gap: 25, size: 17, src: './assets/toppings/feta.webp' },
 };
 const FALLBACK_SHAPE = { count: 14, gap: 30, draw: '<circle r="7" fill="#e7c9a0"/>' };
 
 export function shapeIcon(shape) {
-  return `<svg class="shape-icon" viewBox="-15 -15 30 30" aria-hidden="true">${(SHAPES[shape] || FALLBACK_SHAPE).draw}</svg>`;
+  const ingredient = SHAPES[shape];
+  return ingredient
+    ? `<img class="ingredient-photo" src="${ingredient.src}" alt="" loading="lazy" aria-hidden="true" />`
+    : `<svg class="shape-icon" viewBox="-15 -15 30 30" aria-hidden="true">${FALLBACK_SHAPE.draw}</svg>`;
 }
 
 // מצב הציור נגזר מהתצורה: גודל, סוג בצק ותוספות עם מיקום.
@@ -91,9 +76,12 @@ export function pizzaState(product, config) {
 
 export function toppingMarkup(topping, entering = false) {
   const shape = SHAPES[topping.shape] || FALLBACK_SHAPE;
+  const piece = shape.src
+    ? `<image href="${shape.src}" x="${-shape.size / 2}" y="${-shape.size / 2}" width="${shape.size}" height="${shape.size}" />`
+    : shape.draw;
   const points = scatter(topping.id, shape.count, SCATTER_RADIUS, shape.gap)
     .filter((point) => topping.placement === 'whole' || (topping.placement === 'right' ? point.x > 6 : point.x < -6));
-  return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-placement="${topping.placement}">${points.map((point, index) => `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__piece" style="--i:${index}">${shape.draw}</g></g>`).join('')}</g>`;
+  return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-placement="${topping.placement}">${points.map((point, index) => `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__piece" style="--i:${index}">${piece}</g></g>`).join('')}</g>`;
 }
 
 export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 8)}`, rings = [], label = '' } = {}) {

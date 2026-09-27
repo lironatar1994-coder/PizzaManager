@@ -31,6 +31,9 @@ verify_web() {
     curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-base-v2.webp"
     curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-base-thin-v2.webp"
     curl -fs --max-time 20 -o /dev/null "$url/assets/garlic-bread-demo.webp"
+    for ingredient in olive mushroom corn onion jalapeno feta; do
+        curl -fs --max-time 20 -o /dev/null "$url/assets/toppings/$ingredient.webp"
+    done
 }
 
 verify_with_retries() {

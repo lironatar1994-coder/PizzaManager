@@ -1,6 +1,6 @@
 import { shop, activeProducts, findProduct } from './data.js?v=20260927-hero';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, describe, lineTotal } from './order.js';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260927-ux4';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-preview2';
 import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder } from './store.js';
 import { verifyAddress, isOpen, submitOrder } from './services.js';
 
@@ -28,6 +28,8 @@ const ICONS = {
   alert: '<circle cx="12" cy="12" r="8.8"/><path d="M12 7.8v5M12 16.2v.1"/>',
   phone: '<path d="M6.2 4h2.9l1.5 3.9-1.9 1.3a10.5 10.5 0 0 0 6.1 6.1l1.3-1.9 3.9 1.5v2.9a1.6 1.6 0 0 1-1.7 1.6A15.2 15.2 0 0 1 4.6 5.7 1.6 1.6 0 0 1 6.2 4Z"/>',
   clock: '<circle cx="12" cy="12" r="8.8"/><path d="M12 7.5V12l3 2"/>',
+  expand: '<path d="M8.5 4.5h-4v4m11-4h4v4m0 7v4h-4m-7 0h-4v-4"/><path d="m4.5 4.5 5 5m10-5-5 5m5 10-5-5m-10 5 5-5"/>',
+  down: '<path d="m7 9.5 5 5 5-5"/>',
 };
 const icon = (name, className = '') => `<svg class="icon${className ? ` ${className}` : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 const placementIcon = (placement) => `<svg class="placement__icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.6" fill="none" stroke="currentColor" stroke-width="1.6"/>${{
@@ -214,12 +216,20 @@ function multiGroup(group, value) {
           <span class="topping__price" data-price-for="${safe(choice.id)}">${choice.price ? `+${money(choicePrice(choice, placement || 'whole'))}` : 'כלול'}</span>
           <span class="topping__check">${icon('check')}</span>
         </label>
-        ${group.placement ? `<div class="placement" role="radiogroup" aria-label="איפה לשים ${safe(choice.name)}?">${Object.entries(PLACEMENTS).map(([key, info]) => `<label class="placement__option">
+        ${group.placement ? `<button type="button" class="topping__placement-toggle" data-placement-toggle aria-expanded="false" aria-controls="placement-${safe(group.id)}-${safe(choice.id)}" aria-label="מיקום ${safe(choice.name)}: ${placementLabel(placement || 'whole')}. שינוי מיקום"><span data-placement-label>${placementLabel(placement || 'whole')}</span>${icon('down')}</button>
+        <div class="placement" id="placement-${safe(group.id)}-${safe(choice.id)}" role="radiogroup" aria-label="איפה לשים ${safe(choice.name)}?">${Object.entries(PLACEMENTS).map(([key, info]) => `<label class="placement__option">
           <input type="radio" name="place-${safe(group.id)}-${safe(choice.id)}" value="${key}" aria-label="${info.label}" ${(placement || 'whole') === key ? 'checked' : ''} />
           <span aria-hidden="true">${placementIcon(key)}${key === 'whole' ? 'שלמה' : key === 'right' ? 'ימין' : 'שמאל'}</span>
         </label>`).join('')}</div>` : ''}
       </div>`;
     }).join('')}</div></fieldset>`;
+}
+
+const placementLabel = (placement) => placement === 'right' ? 'על חצי ימין' : placement === 'left' ? 'על חצי שמאל' : 'על כל הפיצה';
+
+function closePlacement(topping) {
+  topping?.classList.remove('is-editing');
+  topping?.querySelector('[data-placement-toggle]')?.setAttribute('aria-expanded', 'false');
 }
 
 function readConfig(form, product) {
@@ -249,6 +259,7 @@ function productPage(product, editLine) {
     <main class="builder${isPizza ? '' : ' builder--flat'}">
       <section class="stage" aria-label="התצוגה של ${safe(product.name)}">
         ${isPizza ? `<span class="stage__live"><span class="stage__live-dot" aria-hidden="true"></span>תצוגה חיה</span>` : ''}
+        ${isPizza ? `<button type="button" class="stage__expand" data-expand-pizza aria-label="הגדלת תצוגת הפיצה" aria-haspopup="dialog">${icon('expand')}</button>` : ''}
         <div class="stage__canvas">${isPizza ? '<span class="stage__flare" aria-hidden="true"></span>' : ''}<div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
@@ -298,6 +309,13 @@ function productPage(product, editLine) {
       for (const choice of group.choices) {
         const label = form.querySelector(`[data-price-for="${CSS.escape(choice.id)}"]`);
         if (label && choice.price) label.textContent = `+${money(choicePrice(choice, config.options[group.id]?.[choice.id] || 'whole'))}`;
+        const topping = label?.closest('.topping');
+        const placement = config.options[group.id]?.[choice.id] || 'whole';
+        const toggle = topping?.querySelector('[data-placement-toggle]');
+        if (toggle) {
+          toggle.querySelector('[data-placement-label]').textContent = placementLabel(placement);
+          toggle.setAttribute('aria-label', `מיקום ${choice.name}: ${placementLabel(placement)}. שינוי מיקום`);
+        }
       }
     }
   };
@@ -313,9 +331,13 @@ function productPage(product, editLine) {
     const target = event.target;
     if (target.name?.startsWith('multi-')) {
       const name = target.closest('.topping').querySelector('.topping__name').textContent;
+      closePlacement(target.closest('.topping'));
       status.textContent = target.checked ? `נוסף: ${name}` : `הוסר: ${name}`;
     } else if (target.name?.startsWith('place-')) {
-      status.textContent = `${target.closest('.topping').querySelector('.topping__name').textContent}: ${target.getAttribute('aria-label')}`;
+      const topping = target.closest('.topping');
+      status.textContent = `${topping.querySelector('.topping__name').textContent}: ${target.getAttribute('aria-label')}`;
+      closePlacement(topping);
+      topping.querySelector('[data-placement-toggle]').focus({ preventScroll: true });
     } else if (target.name === 'variant') {
       status.textContent = `נבחר גודל ${target.closest('.tile').querySelector('strong').textContent}`;
     } else if (target.name?.startsWith('opt-')) {
@@ -329,6 +351,23 @@ function productPage(product, editLine) {
     if (event.target.name === 'note') config = { ...config, note: event.target.value };
   });
   form.addEventListener('click', (event) => {
+    if (event.target.matches('.placement input')) {
+      const topping = event.target.closest('.topping');
+      closePlacement(topping);
+      topping.querySelector('[data-placement-toggle]').focus({ preventScroll: true });
+      return;
+    }
+    const placementToggle = event.target.closest('[data-placement-toggle]');
+    if (placementToggle) {
+      const topping = placementToggle.closest('.topping');
+      const open = !topping.classList.contains('is-editing');
+      form.querySelectorAll('.topping.is-editing').forEach(closePlacement);
+      if (open) {
+        topping.classList.add('is-editing');
+        placementToggle.setAttribute('aria-expanded', 'true');
+      }
+      return;
+    }
     const button = event.target.closest('[data-qty]');
     if (!button) return;
     quantity = Math.max(1, Math.min(99, quantity + (button.dataset.qty === 'plus' ? 1 : -1)));
@@ -336,6 +375,8 @@ function productPage(product, editLine) {
     status.textContent = `כמות: ${quantity}`;
     reactToChoice(art, false);
   });
+
+  document.querySelector('[data-expand-pizza]')?.addEventListener('click', () => openPizzaPreview(product, config, quantity));
 
   document.querySelector('#add-to-cart').addEventListener('click', () => {
     config = readConfig(form, product);
@@ -446,6 +487,37 @@ function flyToCart(source) {
     return target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'cubic-bezier(.16,1,.3,1)' }).finished;
   });
 }
+
+/* ---------- תצוגת הפיצה המוגדלת ---------- */
+
+const pizzaPreview = document.createElement('dialog');
+pizzaPreview.className = 'pizza-preview';
+pizzaPreview.setAttribute('aria-labelledby', 'pizza-preview-title');
+document.body.append(pizzaPreview);
+let previewReturnPosition = null;
+
+function openPizzaPreview(product, config, quantity) {
+  previewReturnPosition = { top: window.scrollY, left: window.scrollX };
+  const selection = describe(product, config);
+  const state = { ...pizzaState(product, config), scale: 1 };
+  pizzaPreview.innerHTML = `<div class="pizza-preview__shell">
+    <header class="pizza-preview__head"><h2 id="pizza-preview-title">${safe(selection.title)}</h2><button type="button" class="icon-button" data-close-preview aria-label="סגירת תצוגת הפיצה">${icon('close')}</button></header>
+    <div class="pizza-preview__art">${pizzaSVG(state, { label: `הדמיה מוגדלת של ${safe(product.name)} לפי הבחירות שלכם` })}</div>
+    <footer class="pizza-preview__foot"><p>${safe(detailText(selection) || 'בלי תוספות')}</p><strong><bdi>${money(unitPrice(product, config) * quantity)}</bdi>${quantity > 1 ? `<span> · ${quantity} יח׳</span>` : ''}</strong><button type="button" class="button pizza-preview__return" data-close-preview>חזרה לבחירות ${icon('back')}</button></footer>
+  </div>`;
+  pizzaPreview.showModal();
+  pizzaPreview.querySelector('[data-close-preview]').focus({ preventScroll: true });
+}
+
+pizzaPreview.addEventListener('click', (event) => {
+  if (event.target === pizzaPreview || event.target.closest('[data-close-preview]')) pizzaPreview.close();
+});
+pizzaPreview.addEventListener('close', () => {
+  if (!previewReturnPosition) return;
+  const position = previewReturnPosition;
+  previewReturnPosition = null;
+  window.scrollTo({ ...position, behavior: 'instant' });
+});
 
 /* ---------- סל ---------- */
 
@@ -896,6 +968,7 @@ function render() {
   teardown = [];
   if (sheet.open) sheet.close();
   if (info.open) info.close();
+  if (pizzaPreview.open) pizzaPreview.close();
   const route = getRoute();
   // מסך הפתיחה כהה, שאר הזרימה בהירה: צבע סרגל הדפדפן בטלפון עוקב.
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', route.page ? '#f7f6f2' : '#120e0c');
