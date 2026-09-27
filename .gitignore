@@ -1,0 +1,8 @@
+.deploy/
+.claude/
+.impeccable/
+_before-redesign/
+previews/
+node_modules/
+.DS_Store
+Thumbs.db
