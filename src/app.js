@@ -1,6 +1,6 @@
-import { shop, activeProducts, findProduct } from './data.js';
+import { shop, activeProducts, findProduct } from './data.js?v=20260927-ux4';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, describe, lineTotal } from './order.js';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260927-ux4';
 import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder } from './store.js';
 import { verifyAddress, isOpen, submitOrder } from './services.js';
 
@@ -70,7 +70,7 @@ function contactButtons(className) {
 
 function productArt(product, config, label = '') {
   if (product.visual === 'pizza') return pizzaSVG(pizzaState(product, config), { label });
-  if (product.image) return `<img src="${safe(product.image)}" alt="${safe(product.imageAlt || '')}" loading="lazy" />`;
+  if (product.image) return `<img src="${safe(product.image)}" alt="${label ? safe(product.imageAlt || label) : ''}" loading="lazy" />`;
   return `<span class="art-placeholder" ${label ? `role="img" aria-label="${safe(label)}"` : 'aria-hidden="true"'}><span>תמונת מוצר</span></span>`;
 }
 
@@ -108,7 +108,7 @@ function home() {
         <a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery">${icon('delivery')}<span>משלוח</span></a>
         <a class="button button--glass hero__cta" href="${productHref()}" data-mode="pickup">${icon('pickup')}<span>איסוף עצמי</span></a>
       </div>`}
-      ${closed ? `<p class="hero__closed">${icon('alert')}<span>הפיצרייה סגורה כרגע. ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
+      ${closed ? `<p class="hero__closed">${icon('alert')}<span>לפי שעות הדוגמה, הפיצרייה סגורה כרגע. ההזמנות נפתחות ב־${shop.hours.opensAt}.</span></p>` : ''}
       <div class="hero__contact">
         <a class="contact-link" href="${phoneHref()}">${icon('phone')}<span><bdi>${safe(shop.phone)}</bdi></span></a>
         <button type="button" class="contact-link" data-open-info>${icon('pin')}<span>מיקום ושעות</span></button>
@@ -208,7 +208,7 @@ function productPage(product, editLine) {
   app.innerHTML = `${topbar(back)}
     <main class="builder${isPizza ? '' : ' builder--flat'}">
       <section class="stage" aria-label="התצוגה של ${safe(product.name)}">
-        <div class="stage__canvas"><div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `איור של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
+        <div class="stage__canvas"><div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p></div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
@@ -608,8 +608,8 @@ function checkoutPage(focusId) {
   app.innerHTML = `${topbar(productHref())}
     <main class="page checkout"><div class="wrap checkout__layout">
       <form class="checkout__form" id="checkout-form" novalidate>
-        <header class="page-head"><h1>כך נראית הקופה</h1><p>אפשר לבדוק את הזרימה, ללא הזמנה או תשלום אמיתיים.</p></header>
-        <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>זוהי הדגמה בלבד.</strong> הפרטים נשמרים בדפדפן לצורך התצוגה; שום הזמנה לא נשלחת לפיצרייה ולא מתבצע חיוב.</span></div>
+        <header class="page-head"><h1>קופה לדוגמה</h1><p>בוחרים משלוח או איסוף, ואז ממלאים פרטי קשר.</p></header>
+        <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>הדגמה בלבד:</strong> הפרטים נשמרים בדפדפן. לא נשלחת הזמנה ולא מתבצע חיוב.</span></div>
         ${!open ? `<div class="notice notice--warn" role="alert">${icon('alert')}<span><strong>הפיצרייה סגורה כרגע.</strong> ההזמנות נפתחות ב־${shop.hours.opensAt} (שעות לדוגמה). הסל נשמר בינתיים.</span></div>` : ''}
         ${checkout.failure ? `<div class="notice notice--error" role="alert" tabindex="-1" id="failure">${icon('alert')}<span><strong>בהדגמה דימינו תשלום שנכשל.</strong> לא בוצע חיוב ואפשר לנסות שוב.</span></div>` : ''}
         <fieldset class="field-group">

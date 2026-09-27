@@ -9,6 +9,7 @@ const required = [
   'index.html', 'src/app.js', 'src/data.js', 'src/order.js',
   'src/pizza.js', 'src/store.js', 'src/services.js', 'src/styles.css',
   'assets/pizza-hero-desktop.jpg', 'assets/pizza-hero-mobile.jpg',
+  'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp',
   'deploy_linux.sh', 'deploy/pizza-manager-locations.conf',
 ];
 for (const file of required) {

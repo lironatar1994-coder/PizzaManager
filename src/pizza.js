@@ -1,4 +1,4 @@
-// מצייר כל פיצה מתוך התצורה שלה: מסך ההרכבה, הסל, התפריט וכרטיס ההזמנה משתמשים באותו ציור.
+// מציג בסיס פיצה מצולם עם תוספות SVG מתוך התצורה; כל מסכי ההזמנה משתמשים באותה תצוגה.
 import { selectedVariant } from './order.js';
 
 const C = 200;
@@ -96,59 +96,17 @@ export function toppingMarkup(topping, entering = false) {
   return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-placement="${topping.placement}">${points.map((point, index) => `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__piece" style="--i:${index}">${shape.draw}</g></g>`).join('')}</g>`;
 }
 
-function crustMarkup(crust, uid) {
-  const width = CRUST[crust] || CRUST.classic;
-  const next = random(hash(`char-${crust}`));
-  const spots = Array.from({ length: 22 }, () => {
-    const angle = next() * Math.PI * 2;
-    const distance = R - width * (0.3 + next() * 0.4);
-    const rx = 3 + next() * (crust === 'thin' ? 4 : 7);
-    return `<ellipse cx="${(C + Math.cos(angle) * distance).toFixed(1)}" cy="${(C + Math.sin(angle) * distance).toFixed(1)}" rx="${rx.toFixed(1)}" ry="${(rx * (0.45 + next() * 0.25)).toFixed(1)}" transform="rotate(${((angle * 180) / Math.PI + 90).toFixed(0)} ${(C + Math.cos(angle) * distance).toFixed(1)} ${(C + Math.sin(angle) * distance).toFixed(1)})" opacity="${(0.35 + next() * 0.4).toFixed(2)}"/>`;
-  }).join('');
-  return `<g class="pizza__crust" data-crust="${crust}">
-    <circle cx="${C}" cy="${C}" r="${R}" fill="url(#${uid}-crust)"/>
-    <circle cx="${C}" cy="${C}" r="${R - width * 0.55}" fill="none" stroke="#f9dfa6" stroke-opacity=".32" stroke-width="${(width * 0.3).toFixed(1)}"/>
-    <g fill="#3a2316">${spots}</g>
-    <circle cx="${C}" cy="${C}" r="${R - width}" fill="url(#${uid}-sauce)"/>
-  </g>`;
-}
-
-const dot = (point, radius) => `<circle cx="${(C + point.x).toFixed(1)}" cy="${(C + point.y).toFixed(1)}" r="${radius.toFixed(1)}"/>`;
-
-// שכבת גבינה מותכת אחת עם שוליים גליים, רוטב שמציץ דרכה וכתמי השחמה.
-function cheeseMarkup(uid) {
-  const cheeseR = SCATTER_RADIUS - 2;
-  const next = random(hash('cheese-edge'));
-  const edge = Array.from({ length: 30 }, (_, index) => {
-    const angle = (index / 30) * Math.PI * 2 + next() * 0.15;
-    const distance = cheeseR - 4 + next() * 10;
-    return dot({ x: Math.cos(angle) * distance, y: Math.sin(angle) * distance }, 9 + next() * 9);
-  }).join('');
-  const peeks = scatter('sauce-peek', 16, cheeseR - 10, 34).map((point, index) => dot(point, 4 + (index % 4) * 2.2 * point.size)).join('');
-  const browned = scatter('browned', 34, cheeseR, 17).map((point, index) => dot(point, 1.8 + (index % 5) * 1.1)).join('');
-  const sheen = scatter('sheen', 10, cheeseR - 20, 40).map((point) => dot(point, 5 + point.size * 5)).join('');
-  return `<g clip-path="url(#${uid}-inner)">
-    <circle cx="${C}" cy="${C}" r="${cheeseR - 6}" fill="url(#${uid}-cheese)"/>
-    <g fill="#eab86b">${edge}</g>
-    <g fill="#b9331c" opacity=".78">${peeks}</g>
-    <g fill="#b8732f" opacity=".42">${browned}</g>
-    <g fill="#fff4d2" opacity=".22">${sheen}</g>
-  </g>`;
-}
-
 export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 8)}`, rings = [], label = '' } = {}) {
   const inner = R - CRUST.thin;
   const hasHalf = state.toppings.some((topping) => topping.placement !== 'whole');
+  const baseImage = state.crust === 'thin' ? './assets/pizza-base-thin-v2.webp' : './assets/pizza-base-v2.webp';
   return `<svg class="pizza" viewBox="0 0 400 400" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}>
     <defs>
-      <radialGradient id="${uid}-crust"><stop offset=".8" stop-color="#f0bf73"/><stop offset=".93" stop-color="#d4924a"/><stop offset="1" stop-color="#9a5624"/></radialGradient>
-      <radialGradient id="${uid}-cheese"><stop offset="0" stop-color="#f6d28e"/><stop offset=".75" stop-color="#eebf72"/><stop offset="1" stop-color="#e5ad60"/></radialGradient>
-      <radialGradient id="${uid}-sauce"><stop offset=".72" stop-color="#bd3520"/><stop offset="1" stop-color="#8f2414"/></radialGradient>
       <clipPath id="${uid}-inner"><circle class="pizza__inner-clip" cx="${C}" cy="${C}" r="${R - CRUST[state.crust] - 7}"/></clipPath>
     </defs>
     ${rings.map((scale) => `<circle class="pizza__ring" cx="${C}" cy="${C}" r="${(R * scale).toFixed(1)}"/>`).join('')}
     <g class="pizza__disc" style="--scale:${state.scale}">
-      <g class="pizza__base">${crustMarkup(state.crust, uid)}${cheeseMarkup(uid)}</g>
+      <image class="pizza__photo" href="${baseImage}" x="0" y="0" width="400" height="400" />
       <g class="pizza__toppings" clip-path="url(#${uid}-inner)">${state.toppings.map((topping) => toppingMarkup(topping)).join('')}</g>
       <line class="pizza__cut${hasHalf ? ' is-visible' : ''}" x1="${C}" y1="${C - inner}" x2="${C}" y2="${C + inner}"/>
     </g>
@@ -160,10 +118,7 @@ export function updatePizza(svg, previous, next) {
   const disc = svg.querySelector('.pizza__disc');
   disc.style.setProperty('--scale', next.scale);
   if (previous.crust !== next.crust) {
-    const uid = svg.querySelector('radialGradient').id.replace(/-crust$/, '');
-    const template = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    template.innerHTML = crustMarkup(next.crust, uid);
-    svg.querySelector('.pizza__crust').replaceWith(template.firstElementChild);
+    svg.querySelector('.pizza__photo').setAttribute('href', next.crust === 'thin' ? './assets/pizza-base-thin-v2.webp' : './assets/pizza-base-v2.webp');
     svg.querySelector('.pizza__inner-clip').setAttribute('r', R - CRUST[next.crust] - 7);
   }
   const layer = svg.querySelector('.pizza__toppings');

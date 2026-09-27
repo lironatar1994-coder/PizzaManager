@@ -28,7 +28,7 @@ export const products = [
     description: 'רוטב עגבניות, מוצרלה ובצק שנאפה במקום. תיאור לדוגמה.',
     visual: 'pizza',
     image: null,
-    imageAlt: 'איור של הפיצה לפי הבחירות',
+    imageAlt: 'הדמיית הפיצה לפי הבחירות',
     variants: [
       { id: 'small', name: 'קטנה', detail: 'אישית', price: 38, scale: 0.74 },
       { id: 'medium', name: 'בינונית', detail: 'לשניים', price: 52, scale: 0.87 },
@@ -66,7 +66,8 @@ export const products = [
     active: false,
     name: 'לחם שום',
     description: 'לחם שום עם חמאה ועשבי תיבול. תיאור לדוגמה.',
-    image: null,
+    image: './assets/garlic-bread-demo.webp',
+    imageAlt: 'צילום לדוגמה של לחם שום',
     price: 24,
     optionGroups: [
       {

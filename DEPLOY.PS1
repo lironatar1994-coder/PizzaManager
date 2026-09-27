@@ -29,7 +29,7 @@ function VerifyLive([string]$ExpectedRevision) {
     if ($page.StatusCode -ne 200 -or $page.Content -notmatch '<html lang="he" dir="rtl">' -or $page.Content -notmatch 'noindex,nofollow') {
         throw 'Public demo page verification failed'
     }
-    foreach ($asset in @('src/app.js', 'src/styles.css', 'assets/pizza-hero-mobile.jpg')) {
+    foreach ($asset in @('src/app.js', 'src/styles.css', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp')) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live asset: $asset" }
     }
