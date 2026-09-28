@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <g id="oven-mark-luxury" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 39V24a18 18 0 0 1 36 0v15M3 43h42M12 39V24a12 12 0 0 1 24 0v15M15 9l3 6m15-6-3 6M24 6v6M6 23h6m24 0h6"/>
+    <path d="M20 35c-3-4-1-7 2-10 0 3 2 3 2 0 3 3 5 7 3 10m-10 4c4-4 10-4 14 0"/>
+  </g>
+</svg>

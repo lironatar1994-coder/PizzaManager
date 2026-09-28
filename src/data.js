@@ -6,8 +6,8 @@ export const shop = {
   logo: null,
   brandMark: './assets/brand/oven-mark.svg#oven-mark',
   heroImages: {
-    mobile: './assets/pizza-hero-mobile.jpg',
-    desktop: './assets/pizza-hero-desktop.jpg',
+    mobile: './assets/hero-luxury-mobile-v1.webp',
+    desktop: './assets/hero-luxury-desktop-v1.webp',
     alt: 'פיצה להמחשה על רקע כהה — אינה צילום של מוצר העסק',
   },
   heroTitle: 'פיצה חמה.\nבדיוק לטעמכם.',

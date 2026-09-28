@@ -13,6 +13,8 @@ const required = [
   ...['pizza', 'garlic', 'family', 'combo'].map((name) => 'assets/menu-' + name + '-v1.webp'),
   'assets/menu-pizza-editorial-v2.webp',
   'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg',
+  'src/opening.css', 'assets/hero-luxury-mobile-v1.webp', 'assets/hero-luxury-desktop-v1.webp',
+  'assets/fonts/frank-ruhl-libre-600.woff', 'assets/fonts/FrankRuhlLibre-OFL.txt', 'assets/brand/oven-mark-luxury.svg',
   ...['olive', 'mushroom', 'corn', 'onion', 'jalapeno', 'feta'].map((name) => `assets/toppings/${name}.webp`),
   'deploy_linux.sh', 'deploy/pizza-manager-locations.conf',
 ];

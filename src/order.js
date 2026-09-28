@@ -1,4 +1,4 @@
-import { shop, isAvailable, findProduct, demoFlags } from './data.js?v=20260929-menu4';
+import { shop, isAvailable, findProduct, demoFlags } from './data.js?v=20260929-luxury1';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 

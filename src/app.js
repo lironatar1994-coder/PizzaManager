@@ -1,11 +1,11 @@
-import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-menu4';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-menu4';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-menu4';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260929-menu4';
-import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260929-menu4';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260929-menu4';
-import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260929-menu4';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260929-menu4';
+import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-luxury1';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-luxury1';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-luxury1';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260929-luxury1';
+import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260929-luxury1';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260929-luxury1';
+import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260929-luxury1';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260929-luxury1';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -201,32 +201,43 @@ function productHref() {
 function home() {
   const list = activeProducts();
   const unavailable = list.length === 0;
-  const title = unavailable ? 'אין מוצרים זמינים\nכרגע.' : list.length === 1 ? shop.heroTitle : shop.multiHeroTitle;
-  const description = unavailable ? 'אפשר לחזור לכאן בהמשך.' : list.length === 1 ? shop.heroDescription : shop.multiHeroDescription;
   const status = openingStatus();
   const closed = !status.open;
-  app.innerHTML = `<main class="hero" aria-labelledby="hero-title">
-    <picture class="hero__media"><source media="(max-width: 700px)" srcset="${safe(shop.heroImages.mobile)}" /><img src="${safe(shop.heroImages.desktop)}" alt="${safe(shop.heroImages.alt)}" fetchpriority="high" /></picture>
+  const remembered = typeof getRepeatOrder === 'function' && getRepeatOrder()?.lines?.length;
+  const heroImages = shop.demoOnly ? { mobile: './assets/hero-luxury-mobile-v1.webp', desktop: './assets/hero-luxury-desktop-v1.webp', alt: shop.heroImages.alt } : shop.heroImages;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#141614');
+  app.innerHTML = `<main class="hero hero--luxury" aria-labelledby="hero-title">
+    <!-- THESIS: A centered restaurant identity and four clear actions within one mobile viewport.
+    OWN-WORLD: Warm charcoal stone, editorial pizza photography, ivory Hebrew serif and satin brass controls.
+    STORY: Choose delivery or pickup; contact and navigation remain directly below.
+    FIRST VIEWPORT: The complete identity and action group sits at the horizontal and vertical center of 100dvh, with safe-area padding.
+    FORM: User-approved luxury comp; vertical centering is the user's explicit adaptation.
+    FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
+    <picture class="hero__media"><source media="(max-width: 700px)" srcset="${safe(heroImages.mobile)}" /><img src="${safe(heroImages.desktop)}" alt="${safe(heroImages.alt)}" fetchpriority="high" /></picture>
     <div class="hero__shade" aria-hidden="true"></div>
-    <div class="hero__heat" aria-hidden="true"></div>
-    <header class="hero__top">${brand()}<div class="topbar__end"><span class="demo-pill demo-pill--hero">אתר הדגמה<span class="demo-pill__more"> · תמונות ומחירים להמחשה</span></span><span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span></div></header>
     <div class="hero__body">
-      <h1 id="hero-title">${safe(title).replace(/\n/g, '<br />')}</h1>
-      <p class="hero__lead">${safe(description)}</p>
+      <div class="hero__identity">
+        ${shop.logo ? `<img class="hero__mark" src="${safe(shop.logo)}" alt="" />` : '<svg class="hero__mark" viewBox="0 0 48 48" aria-hidden="true"><use href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury" /></svg>'}
+        <h1 id="hero-title">${safe(shop.name)}</h1>
+      </div>
+      ${unavailable ? '<p class="hero__empty" role="status">אין מוצרים זמינים כרגע. אפשר לחזור לכאן בהמשך.</p>' : ''}
       ${unavailable ? '' : `<div class="hero__actions" role="group" aria-label="איך תרצו לקבל את ההזמנה?">
-        <a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery"><span>משלוח</span>${icon('delivery')}</a>
-        <a class="button hero__cta hero__cta--pickup" href="${productHref()}" data-mode="pickup"><span>איסוף עצמי</span>${icon('pickup')}</a>
+        ${shop.deliveryZones?.length ? `<a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery">${icon('delivery')}<span>משלוח</span></a>` : ''}
+        <a class="button hero__cta hero__cta--pickup" href="${productHref()}" data-mode="pickup"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14l1 12H4Z" /><path d="M8 10V6a4 4 0 0 1 8 0v4" /></svg><span>איסוף עצמי</span></a>
       </div>`}
-      <p class="hero__closed" data-hero-closed ${closed ? '' : 'hidden'}>${icon('alert')}<span>אפשר להרכיב ולשמור גם כשהפיצרייה סגורה.</span></p>
       <div class="hero__utilities" role="group" aria-label="טלפון ומיקום">
-        <button type="button" class="hero__utility" data-hero-contact="phone" aria-label="הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel">${icon('phone')}</button>
-        <button type="button" class="hero__utility" data-hero-contact="location" aria-label="הצגת הכתובת והניווט" aria-expanded="false" aria-controls="hero-contact-panel">${icon('pin')}</button>
-        ${getFavorites().length ? `<button type="button" class="hero__utility" data-open-favorites aria-label="המועדפים שלי">${icon('heart')}</button>` : ''}
-        ${getRepeatOrder()?.lines?.length ? `<a class="hero__repeat" href="#/repeat">${icon('undo')}להזמין שוב</a>` : ''}
+        ${shop.demoOnly ? `<button type="button" class="hero__utility" data-hero-contact="phone" aria-label="חיוג · הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel"><span>חיוג</span>${icon('phone')}</button>` : `<a class="hero__utility" href="${phoneHref()}"><span>חיוג</span>${icon('phone')}</a>`}
+        ${shop.demoOnly ? `<button type="button" class="hero__utility" data-hero-contact="location" aria-label="ניווט · הצגת הכתובת" aria-expanded="false" aria-controls="hero-contact-panel"><span>ניווט</span>${icon('pin')}</button>` : `<a class="hero__utility" href="${safe(wazeHref())}" target="_blank" rel="noopener"><span>ניווט</span>${icon('pin')}</a>`}
         <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
       </div>
+      <p class="hero__closed" data-hero-closed ${closed ? '' : 'hidden'}>${icon('alert')}<span>הפיצרייה סגורה כרגע.</span></p>
+      <div class="hero__extras">
+        <span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span>
+        ${getFavorites().length ? `<button type="button" class="hero__shortcut" data-open-favorites>${icon('heart')}המועדפים שלי</button>` : ''}
+        ${remembered ? `<a class="hero__shortcut" href="#/repeat">${icon('undo')}להזמין שוב</a>` : ''}
+      </div>
     </div>
-    <button type="button" class="hero__hours" data-open-info aria-label="שעות הפעילות ופירוט השבוע">${icon('clock')}<span data-opening-label>${safe(status.label)}${shop.demoOnly ? ' · לדוגמה' : ''}</span></button>
+    <footer class="hero__footer"><button type="button" class="hero__hours" data-open-info aria-label="שעות הפעילות ופירוט השבוע">${icon('clock')}<span data-opening-label>${safe(status.label)}${shop.demoOnly ? ' · לדוגמה' : ''}</span></button>${shop.demoOnly ? '<span class="hero__disclaimer">תמונת הדגמה · ללא חיוב</span>' : ''}</footer>
   </main>`;
 }
 
@@ -242,6 +253,9 @@ function closeHeroContact() {
   const utilities = document.querySelector('.hero__utilities');
   if (!utilities) return;
   const panel = utilities.querySelector('.hero__contact-panel');
+  if (panel.contains(document.activeElement)) {
+    utilities.querySelector(`[data-hero-contact="${panel.dataset.kind}"]`)?.focus({ preventScroll: true });
+  }
   panel.classList.remove('is-open');
   panel.setAttribute('aria-hidden', 'true');
   panel.inert = true;
@@ -258,10 +272,8 @@ function toggleHeroContact(kind) {
   const utilityBox = utilities.getBoundingClientRect();
   const panelBox = panel.getBoundingClientRect();
   const roomBelow = window.innerHeight - utilityBox.bottom;
-  const side = window.innerWidth >= 900 && utilityBox.left > panelBox.width + 28;
-  panel.classList.toggle('is-side', side);
-  panel.classList.toggle('is-up', !side && roomBelow < panelBox.height + 20);
-  panel.style.setProperty('--hero-panel-shift', `${Math.min(0, window.innerHeight - utilityBox.top - panelBox.height - 16)}px`);
+  panel.classList.remove('is-side');
+  panel.classList.toggle('is-up', roomBelow < panelBox.height + 20);
   panel.classList.add('is-open');
   panel.setAttribute('aria-hidden', 'false');
   panel.inert = false;

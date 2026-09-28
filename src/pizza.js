@@ -1,5 +1,5 @@
 // מציג בסיס פיצה מצולם עם תוספות מצולמות מתוך התצורה; כל מסכי ההזמנה משתמשים באותה תצוגה.
-import { selectedVariant } from './order.js?v=20260929-menu4';
+import { selectedVariant } from './order.js?v=20260929-luxury1';
 
 const C = 200;
 const R = 188;
