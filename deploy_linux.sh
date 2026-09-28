@@ -27,6 +27,10 @@ verify_web() {
     curl -fs --max-time 20 "$url/" | grep -q 'noindex,nofollow'
     curl -fs --max-time 20 -o /dev/null "$url/src/app.js"
     curl -fs --max-time 20 -o /dev/null "$url/src/styles.css"
+    curl -fs --max-time 20 -o /dev/null "$url/src/order.js"
+    curl -fs --max-time 20 -o /dev/null "$url/src/store.js"
+    curl -fs --max-time 20 -o /dev/null "$url/assets/brand/oven-mark.svg"
+    curl -fs --max-time 20 -o /dev/null "$url/assets/brand/favicon.svg"
     curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-hero-mobile.jpg"
     curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-base-v2.webp"
     curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-base-thin-v2.webp"

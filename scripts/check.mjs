@@ -10,6 +10,7 @@ const required = [
   'src/pizza.js', 'src/store.js', 'src/services.js', 'src/styles.css',
   'assets/pizza-hero-desktop.jpg', 'assets/pizza-hero-mobile.jpg',
   'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp',
+  'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg',
   ...['olive', 'mushroom', 'corn', 'onion', 'jalapeno', 'feta'].map((name) => `assets/toppings/${name}.webp`),
   'deploy_linux.sh', 'deploy/pizza-manager-locations.conf',
 ];

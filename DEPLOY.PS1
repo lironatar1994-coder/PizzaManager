@@ -29,7 +29,7 @@ function VerifyLive([string]$ExpectedRevision) {
     if ($page.StatusCode -ne 200 -or $page.Content -notmatch '<html lang="he" dir="rtl">' -or $page.Content -notmatch 'noindex,nofollow') {
         throw 'Public demo page verification failed'
     }
-    foreach ($asset in @('src/app.js', 'src/styles.css', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')) {
+    foreach ($asset in @('src/app.js', 'src/styles.css', 'src/order.js', 'src/store.js', 'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live asset: $asset" }
     }

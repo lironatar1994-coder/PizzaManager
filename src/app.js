@@ -1,8 +1,8 @@
-import { shop, activeProducts, findProduct } from './data.js?v=20260927-hero';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, describe, lineTotal } from './order.js';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-preview2';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder } from './store.js';
-import { verifyAddress, isOpen, submitOrder } from './services.js';
+import { shop, activeProducts, findProduct } from './data.js?v=20260928-flow1';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal } from './order.js?v=20260928-flow1';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-flow1';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode } from './store.js?v=20260928-flow1';
+import { verifyAddress, isOpen, submitOrder } from './services.js?v=20260928-flow1';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -10,6 +10,7 @@ const safe = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => (
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 })[character]);
 let teardown = [];
+let freshBuilder = false;
 
 /* ---------- אייקונים ---------- */
 
@@ -30,6 +31,8 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="8.8"/><path d="M12 7.5V12l3 2"/>',
   expand: '<path d="M8.5 4.5h-4v4m11-4h4v4m0 7v4h-4m-7 0h-4v-4"/><path d="m4.5 4.5 5 5m10-5-5 5m5 10-5-5m-10 5 5-5"/>',
   down: '<path d="m7 9.5 5 5 5-5"/>',
+  receipt: '<path d="M6 3.5h12V21l-3-1.5L12 21l-3-1.5L6 21Z"/><path d="M9 8h6m-6 4h6m-6 4h3"/>',
+  copy: '<path d="M8 8h12v12H8Z"/><path d="M16 8V4H4v12h4m4-2h4m-2-2v4"/>',
 };
 const icon = (name, className = '') => `<svg class="icon${className ? ` ${className}` : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 const placementIcon = (placement) => `<svg class="placement__icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.6" fill="none" stroke="currentColor" stroke-width="1.6"/>${{
@@ -42,7 +45,7 @@ const placementIcon = (placement) => `<svg class="placement__icon" viewBox="0 0 
 
 function brand() {
   return `<a class="brand" href="#/" aria-label="${safe(shop.name)} — לעמוד הפתיחה">
-    <svg class="brand__mark" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 22c5-8 11-11 17-10-1 7-5 13-13 16l-4-6Z" fill="currentColor"/><circle cx="18" cy="20" r="1.4" fill="var(--tomato)"/><circle cx="22" cy="17" r="1.4" fill="var(--tomato)"/></svg>
+    ${shop.logo ? `<img class="brand__mark" src="${safe(shop.logo)}" alt="" />` : `<svg class="brand__mark" viewBox="0 0 48 48" aria-hidden="true"><use href="${safe(shop.brandMark)}"/></svg>`}
     <span>${safe(shop.name)}</span>
   </a>`;
 }
@@ -86,6 +89,13 @@ function stepper({ value, min = 1, max = 99, label, attr = 'data-qty', small = f
 
 const detailText = (info) => [...info.singles, ...info.extras.map((extra) => extra.text)].join(' · ');
 
+function priceMarkup(product, config, quantity) {
+  const price = priceBreakdown(product, config, quantity);
+  return `<dl class="price-rows">${price.rows.map((row) => `<div><dt>${safe(row.name)}</dt><dd><bdi>${row.amount ? money(row.amount) : 'כלול'}</bdi></dd></div>`).join('')}
+    ${quantity > 1 ? `<div class="price-rows__unit"><dt>מחיר ליחידה</dt><dd><bdi>${money(price.unit)}</bdi></dd></div><div><dt>כמות</dt><dd><bdi>× ${quantity}</bdi></dd></div>` : ''}
+    <div class="price-rows__total"><dt>סה״כ${quantity > 1 ? ` ל־${quantity} יח׳` : ''}</dt><dd><bdi>${money(price.total)}</bdi></dd></div></dl>`;
+}
+
 function productHref() {
   const list = activeProducts();
   return list.length === 1 ? `#/product/${list[0].id}` : '#/menu';
@@ -100,7 +110,7 @@ function home() {
   const description = unavailable ? 'אפשר לחזור לכאן בהמשך.' : list.length === 1 ? shop.heroDescription : shop.multiHeroDescription;
   const closed = !isOpen();
   app.innerHTML = `<main class="hero" aria-labelledby="hero-title">
-    <picture class="hero__media"><source media="(max-width: 700px)" srcset="./assets/pizza-hero-mobile.jpg" /><img src="./assets/pizza-hero-desktop.jpg" alt="פיצה להמחשה על רקע כהה" fetchpriority="high" /></picture>
+    <picture class="hero__media"><source media="(max-width: 700px)" srcset="${safe(shop.heroImages.mobile)}" /><img src="${safe(shop.heroImages.desktop)}" alt="${safe(shop.heroImages.alt)}" fetchpriority="high" /></picture>
     <div class="hero__shade" aria-hidden="true"></div>
     <div class="hero__heat" aria-hidden="true"></div>
     <header class="hero__top">${brand()}<div class="topbar__end"><span class="demo-pill demo-pill--hero">אתר הדגמה<span class="demo-pill__more"> · תמונות ומחירים להמחשה</span></span><span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span></div></header>
@@ -247,11 +257,15 @@ function readConfig(form, product) {
   return normalizeConfig(product, config);
 }
 
-function productPage(product, editLine) {
+function productPage(product, editLine, copyLine) {
   const list = activeProducts();
   const back = list.length > 1 ? '#/menu' : '#/';
-  let config = editLine ? normalizeConfig(product, editLine.config) : defaultConfig(product);
-  let quantity = editLine?.qty ?? 1;
+  let draftKey = editLine ? `edit:${editLine.id}` : copyLine ? `copy:${copyLine.id}` : `product:${product.id}`;
+  const draft = getDraft(draftKey, product);
+  let config = draft?.config || (editLine || copyLine ? normalizeConfig(product, (editLine || copyLine).config) : defaultConfig(product));
+  let quantity = draft?.qty ?? editLine?.qty ?? 1;
+  let hasDraft = Boolean(draft);
+  let savedScroll = draft?.scroll || 0;
   const isPizza = product.visual === 'pizza';
   const variantScales = variantsFor(product).length > 1 ? variantsFor(product).map((variant) => variant.scale ?? 1) : [];
 
@@ -259,12 +273,12 @@ function productPage(product, editLine) {
     <main class="builder${isPizza ? '' : ' builder--flat'}">
       <section class="stage" aria-label="התצוגה של ${safe(product.name)}">
         ${isPizza ? `<span class="stage__live"><span class="stage__live-dot" aria-hidden="true"></span>תצוגה חיה</span>` : ''}
-        ${isPizza ? `<button type="button" class="stage__expand" data-expand-pizza aria-label="הגדלת תצוגת הפיצה" aria-haspopup="dialog">${icon('expand')}</button>` : ''}
+        ${isPizza ? `<button type="button" class="stage__expand" data-expand-pizza aria-label="הגדלת תצוגת הפיצה ועריכת חצאים" aria-haspopup="dialog">${icon('expand')}</button>` : ''}
         <div class="stage__canvas">${isPizza ? '<span class="stage__flare" aria-hidden="true"></span>' : ''}<div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
-        <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p></header>
+        <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p>${copyLine ? `<p class="builder__resume">${icon('copy')}<span>עותק חדש לעריכה · המקור נשאר בסל</span></p>` : ''}</header>
         ${variantSection(product, config)}
         ${(product.optionGroups || []).map((group) => (group.type === 'single' ? singleGroup(group, config.options[group.id]) : multiGroup(group, config.options[group.id]))).join('')}
         <div class="field-group">
@@ -275,7 +289,8 @@ function productPage(product, editLine) {
       </form>
     </main>
     <div class="buybar"><div class="buybar__inner">
-      <div class="buybar__total"><span>סה״כ</span><strong id="bar-total"></strong></div>
+      <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}דמי משלוח, אם נבחר, מחושבים בקופה.</p></div>
+      <button type="button" class="buybar__total buybar__price" data-price-toggle aria-expanded="false" aria-controls="price-panel"><span>פירוט מחיר ${icon('down')}</span><strong id="bar-total"></strong></button>
       <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span id="add-label"></span>${icon('forward')}</button>
     </div></div>
     <p class="visually-hidden" aria-live="polite" id="builder-status"></p>`;
@@ -284,6 +299,30 @@ function productPage(product, editLine) {
   const art = document.querySelector('#stage-art');
   const status = document.querySelector('#builder-status');
   let drawn = isPizza ? pizzaState(product, config) : null;
+  let scrollTimer;
+  const flushDraft = () => {
+    clearTimeout(scrollTimer);
+    if (!document.querySelector('dialog[open]')) savedScroll = window.scrollY;
+    if (hasDraft && !freshBuilder) saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll });
+  };
+  const rememberSelection = () => { hasDraft = true; flushDraft(); };
+  const rememberScroll = () => {
+    if (document.querySelector('dialog[open]')) return;
+    savedScroll = window.scrollY;
+    hasDraft = true;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(flushDraft, 160);
+  };
+  const onVisibility = () => { if (document.hidden) flushDraft(); };
+  window.addEventListener('scroll', rememberScroll, { passive: true });
+  window.addEventListener('pagehide', flushDraft);
+  document.addEventListener('visibilitychange', onVisibility);
+  teardown.push(() => {
+    flushDraft();
+    window.removeEventListener('scroll', rememberScroll);
+    window.removeEventListener('pagehide', flushDraft);
+    document.removeEventListener('visibilitychange', onVisibility);
+  });
 
   const refresh = () => {
     const info = describe(product, config);
@@ -300,7 +339,9 @@ function productPage(product, editLine) {
       document.querySelector('#stage-compact').textContent = [info.singles[0], toppingSummary].filter(Boolean).join(' · ');
     }
     document.querySelector('#bar-total').textContent = money(total);
-    document.querySelector('#add-label').textContent = `${editLine ? 'עדכון בסל' : 'הוספה לסל'} · ${money(total)}`;
+    document.querySelector('#add-label').textContent = editLine ? 'עדכון בסל' : 'הוספה לסל';
+    document.querySelector('[data-price-toggle]').setAttribute('aria-label', `פירוט המחיר, ${money(total)}`);
+    document.querySelector('[data-price-content]').innerHTML = priceMarkup(product, config, quantity);
     form.querySelector('output').textContent = quantity;
     form.querySelector('[data-qty="minus"]').disabled = quantity <= 1;
     form.querySelector('[data-qty="plus"]').disabled = quantity >= 99;
@@ -345,10 +386,11 @@ function productPage(product, editLine) {
     }
     if (previous.variantId !== config.variantId) pulse(art.querySelector('svg'));
     refresh();
+    rememberSelection();
     if (target.matches('input[type="radio"], input[type="checkbox"]')) reactToChoice(art, true);
   });
   form.addEventListener('input', (event) => {
-    if (event.target.name === 'note') config = { ...config, note: event.target.value };
+    if (event.target.name === 'note') { config = { ...config, note: event.target.value }; rememberSelection(); }
   });
   form.addEventListener('click', (event) => {
     if (event.target.matches('.placement input')) {
@@ -372,25 +414,69 @@ function productPage(product, editLine) {
     if (!button) return;
     quantity = Math.max(1, Math.min(99, quantity + (button.dataset.qty === 'plus' ? 1 : -1)));
     refresh();
+    rememberSelection();
     status.textContent = `כמות: ${quantity}`;
     reactToChoice(art, false);
   });
 
-  document.querySelector('[data-expand-pizza]')?.addEventListener('click', () => openPizzaPreview(product, config, quantity));
+  const setPreviewConfig = (nextConfig) => {
+    config = normalizeConfig(product, nextConfig);
+    for (const group of product.optionGroups || []) {
+      if (group.type !== 'multi') continue;
+      for (const choice of group.choices) {
+        const checkbox = form.querySelector(`input[name="multi-${CSS.escape(group.id)}"][value="${CSS.escape(choice.id)}"]`);
+        checkbox.checked = Boolean(config.options[group.id]?.[choice.id]);
+        const placement = config.options[group.id]?.[choice.id] || 'whole';
+        const radio = form.querySelector(`input[name="place-${CSS.escape(group.id)}-${CSS.escape(choice.id)}"][value="${placement}"]`);
+        if (radio) radio.checked = true;
+        closePlacement(checkbox.closest('.topping'));
+      }
+    }
+    const next = pizzaState(product, config);
+    updatePizza(art.querySelector('svg'), drawn, next);
+    drawn = next;
+    refresh();
+    rememberSelection();
+    status.textContent = `הפיצה עודכנה, סה״כ ${money(unitPrice(product, config) * quantity)}`;
+  };
+  document.querySelector('[data-expand-pizza]')?.addEventListener('click', () => openPizzaPreview(product, config, quantity, setPreviewConfig));
 
-  document.querySelector('#add-to-cart').addEventListener('click', () => {
+  const priceToggle = document.querySelector('[data-price-toggle]');
+  const pricePanel = document.querySelector('#price-panel');
+  const closePrice = () => { pricePanel.hidden = true; priceToggle.setAttribute('aria-expanded', 'false'); };
+  priceToggle.addEventListener('click', () => { pricePanel.hidden = !pricePanel.hidden; priceToggle.setAttribute('aria-expanded', String(!pricePanel.hidden)); if (!pricePanel.hidden) pricePanel.querySelector('h2').focus({ preventScroll: true }); });
+  pricePanel.querySelector('[data-close-price]').addEventListener('click', () => { closePrice(); priceToggle.focus({ preventScroll: true }); });
+  const closeOutside = (event) => { if (!event.target.closest('.buybar')) closePrice(); };
+  const closeOnEscape = (event) => { if (event.key === 'Escape' && !pricePanel.hidden) { closePrice(); priceToggle.focus({ preventScroll: true }); } };
+  document.addEventListener('click', closeOutside);
+  document.addEventListener('keydown', closeOnEscape);
+  teardown.push(() => { document.removeEventListener('click', closeOutside); document.removeEventListener('keydown', closeOnEscape); });
+
+  document.querySelector('#add-to-cart').addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    closePrice();
     config = readConfig(form, product);
+    const updated = Boolean(editLine);
+    let line;
     if (editLine) {
       updateLine(editLine.id, { config, qty: quantity });
-      history.replaceState(null, '', `#/product/${product.id}`);
+      line = getLine(editLine.id);
       editLine = null;
-    } else addLine(config, quantity);
-    flyToCart(art).then(() => openCart());
+    } else line = addLine(config, quantity);
+    clearDraft(draftKey);
+    draftKey = `product:${product.id}`;
+    hasDraft = false;
+    history.replaceState(null, '', `#/product/${product.id}`);
     refresh();
+    const route = window.location.hash;
+    try { await flyToCart(art); } finally { button.disabled = false; }
+    if (art.isConnected && window.location.hash === route) openAdded(line, updated);
   });
 
   if (isPizza) teardown.push(setupStage(document.querySelector('.stage')));
   refresh();
+  return savedScroll;
 }
 
 function pulse(element) {
@@ -481,10 +567,10 @@ function flyToCart(source) {
     { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 1 },
     { transform: `translate(${dx * 0.55}px, ${dy * 0.35 - 40}px) scale(${Math.max(scale, 0.45)}) rotate(-120deg)`, opacity: 1, offset: 0.55 },
     { transform: `translate(${dx}px, ${dy}px) scale(${scale}) rotate(-240deg)`, opacity: 0.2 },
-  ], { duration: 720, easing: 'cubic-bezier(.55,0,.25,1)' });
-  return flight.finished.then(() => {
+  ], { duration: 520, easing: 'cubic-bezier(.55,0,.25,1)' });
+  return flight.finished.catch(() => {}).then(() => {
     ghost.remove();
-    return target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'cubic-bezier(.16,1,.3,1)' }).finished;
+    if (target.isConnected) target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 320, easing: 'cubic-bezier(.16,1,.3,1)' });
   });
 }
 
@@ -495,28 +581,121 @@ pizzaPreview.className = 'pizza-preview';
 pizzaPreview.setAttribute('aria-labelledby', 'pizza-preview-title');
 document.body.append(pizzaPreview);
 let previewReturnPosition = null;
+let previewReturnRoute = '';
+let previewEditor = null;
 
-function openPizzaPreview(product, config, quantity) {
+function openPizzaPreview(product, config, quantity, onChange) {
   previewReturnPosition = { top: window.scrollY, left: window.scrollX };
+  previewReturnRoute = window.location.hash;
+  previewEditor = { product, config: normalizeConfig(product, config), quantity, onChange, scope: 'whole' };
   const selection = describe(product, config);
   const state = { ...pizzaState(product, config), scale: 1 };
+  const groups = (product.optionGroups || []).filter((group) => group.type === 'multi' && group.placement);
   pizzaPreview.innerHTML = `<div class="pizza-preview__shell">
-    <header class="pizza-preview__head"><h2 id="pizza-preview-title">${safe(selection.title)}</h2><button type="button" class="icon-button" data-close-preview aria-label="סגירת תצוגת הפיצה">${icon('close')}</button></header>
-    <div class="pizza-preview__art">${pizzaSVG(state, { label: `הדמיה מוגדלת של ${safe(product.name)} לפי הבחירות שלכם` })}</div>
-    <footer class="pizza-preview__foot"><p>${safe(detailText(selection) || 'בלי תוספות')}</p><strong><bdi>${money(unitPrice(product, config) * quantity)}</bdi>${quantity > 1 ? `<span> · ${quantity} יח׳</span>` : ''}</strong><button type="button" class="button pizza-preview__return" data-close-preview>חזרה לבחירות ${icon('back')}</button></footer>
+    <header class="pizza-preview__head"><h2 id="pizza-preview-title">${safe(selection.title)}${quantity > 1 ? ` · ${quantity} יח׳` : ''}</h2><button type="button" class="icon-button" data-close-preview aria-label="סגירת תצוגת הפיצה">${icon('close')}</button></header>
+    ${groups.length ? '<p class="pizza-preview__hint">נוגעים בחצי שרוצים לערוך</p>' : ''}
+    <div class="pizza-preview__art" data-scope="whole">${pizzaSVG(state, { label: `הדמיה מוגדלת של ${safe(product.name)} לפי הבחירות שלכם`, editable: groups.length > 0 })}
+      ${groups.length ? `<div class="pizza-preview__hitareas"><button type="button" data-preview-scope="right" aria-label="עריכת חצי ימין" aria-pressed="false"></button><button type="button" data-preview-scope="left" aria-label="עריכת חצי שמאל" aria-pressed="false"></button></div>` : ''}
+    </div>
+    ${groups.length ? `<div class="pizza-preview__scope" role="group" aria-label="איזה חלק של הפיצה עורכים?">${Object.entries(PLACEMENTS).map(([key, value]) => `<button type="button" data-preview-scope="${key}" aria-label="${value.label}" aria-pressed="${key === 'whole'}">${placementIcon(key)}${key === 'whole' ? 'שלמה' : key === 'right' ? 'ימין' : 'שמאל'}</button>`).join('')}</div>
+    <div class="pizza-preview__options">${groups.map((group) => `<fieldset><legend class="visually-hidden">${safe(group.name)}</legend><div class="preview-choices">${group.choices.map((choice) => `<button type="button" class="preview-choice" data-preview-group="${safe(group.id)}" data-preview-choice="${safe(choice.id)}" aria-pressed="false">${choice.shape ? `<span class="preview-choice__art">${shapeIcon(choice.shape)}</span>` : ''}<span class="preview-choice__text"><strong>${safe(choice.name)}</strong><small data-preview-detail></small></span><span class="preview-choice__check">${icon('check')}</span></button>`).join('')}</div></fieldset>`).join('')}</div>` : ''}
+    <footer class="pizza-preview__foot"><p data-preview-description></p><details class="preview-price"><summary aria-label="פירוט מחיר הפיצה"><bdi data-preview-total></bdi><span>פירוט מחיר ${icon('down')}</span></summary><div data-preview-price></div></details><button type="button" class="button pizza-preview__return" data-close-preview>חזרה לבחירות ${icon('back')}</button></footer>
+    <p class="visually-hidden" aria-live="polite" data-preview-status></p>
   </div>`;
+  refreshPizzaPreview();
   pizzaPreview.showModal();
   pizzaPreview.querySelector('[data-close-preview]').focus({ preventScroll: true });
 }
 
+function refreshPizzaPreview() {
+  if (!previewEditor) return;
+  const { product, config, quantity, scope } = previewEditor;
+  const selection = describe(product, config);
+  pizzaPreview.querySelector('[data-preview-description]').textContent = detailText(selection) || 'בלי תוספות';
+  pizzaPreview.querySelector('[data-preview-total]').textContent = money(unitPrice(product, config) * quantity);
+  pizzaPreview.querySelector('[data-preview-price]').innerHTML = priceMarkup(product, config, quantity);
+  pizzaPreview.querySelector('.pizza-preview__art').dataset.scope = scope;
+  pizzaPreview.querySelectorAll('[data-preview-scope]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.previewScope === scope)));
+  pizzaPreview.querySelectorAll('[data-preview-choice]').forEach((button) => {
+    const group = product.optionGroups.find((item) => item.id === button.dataset.previewGroup);
+    const choice = group.choices.find((item) => item.id === button.dataset.previewChoice);
+    const placement = config.options[group.id]?.[choice.id];
+    const selected = placement === 'whole' || placement === scope;
+    const price = choicePrice(choice, placement || scope);
+    button.setAttribute('aria-pressed', String(Boolean(selected)));
+    button.setAttribute('aria-label', `${choice.name}, ${PLACEMENTS[scope].label}, ${selected ? 'נבחרה. הסרה מהחלק הזה' : 'הוספה לחלק הזה'}`);
+    button.querySelector('[data-preview-detail]').textContent = placement ? `${PLACEMENTS[placement].label} · ${price ? money(price) : 'כלול'}` : price ? `+${money(price)}` : 'כלול';
+  });
+}
+
 pizzaPreview.addEventListener('click', (event) => {
-  if (event.target === pizzaPreview || event.target.closest('[data-close-preview]')) pizzaPreview.close();
+  if (event.target === pizzaPreview || event.target.closest('[data-close-preview]')) { pizzaPreview.close(); return; }
+  if (!previewEditor) return;
+  const scopeButton = event.target.closest('[data-preview-scope]');
+  if (scopeButton) { previewEditor.scope = scopeButton.dataset.previewScope; refreshPizzaPreview(); return; }
+  const choiceButton = event.target.closest('[data-preview-choice]');
+  if (!choiceButton) return;
+  const { product, scope, config, onChange } = previewEditor;
+  const next = normalizeConfig(product, config);
+  const choices = next.options[choiceButton.dataset.previewGroup];
+  const id = choiceButton.dataset.previewChoice;
+  const current = choices[id];
+  if (scope === 'whole') {
+    if (current === 'whole') delete choices[id];
+    else choices[id] = 'whole';
+  } else if (current === 'whole') choices[id] = scope === 'right' ? 'left' : 'right';
+  else if (current === scope) delete choices[id];
+  else choices[id] = current ? 'whole' : scope;
+  updatePizza(pizzaPreview.querySelector('.pizza'), { ...pizzaState(product, config), scale: 1 }, { ...pizzaState(product, next), scale: 1 });
+  previewEditor.config = next;
+  onChange(next);
+  refreshPizzaPreview();
+  pizzaPreview.querySelector('[data-preview-status]').textContent = `הבחירות עודכנו. סה״כ ${money(unitPrice(product, next) * previewEditor.quantity)}`;
 });
 pizzaPreview.addEventListener('close', () => {
+  previewEditor = null;
   if (!previewReturnPosition) return;
   const position = previewReturnPosition;
   previewReturnPosition = null;
-  window.scrollTo({ ...position, behavior: 'instant' });
+  if (window.location.hash === previewReturnRoute) window.scrollTo({ ...position, behavior: 'instant' });
+});
+
+/* ---------- אישור הוספה ---------- */
+
+const added = document.createElement('dialog');
+added.className = 'add-confirm';
+added.setAttribute('aria-labelledby', 'added-title');
+document.body.append(added);
+let addedProduct = null;
+
+function openAdded(line, updated) {
+  const product = findProduct(line.config.productId);
+  const selection = describe(product, line.config);
+  addedProduct = product;
+  added.innerHTML = `<div class="add-confirm__panel"><header><span class="add-confirm__check">${icon('check')}</span><h2 id="added-title">${updated ? 'עודכן בסל' : 'נוסף לסל'}</h2><button type="button" class="icon-button" data-close-added aria-label="סגירת אישור ההוספה">${icon('close')}</button></header>
+    <div class="add-confirm__product"><div class="add-confirm__art">${productArt(product, line.config)}</div><div><h3>${safe(selection.title)}</h3><p>${safe(detailText(selection) || 'בלי תוספות')}</p><strong><bdi>${money(lineTotal(line, product))}</bdi><span> · ${line.qty} יח׳</span></strong></div></div>
+    <div class="add-confirm__actions"><button type="button" class="button button--primary" data-added-cart>לסל ${icon('box')}</button><button type="button" class="button button--quiet" data-added-more>${product.visual === 'pizza' ? 'עוד פיצה' : 'עוד מוצר'} ${icon('plus')}</button></div>
+  </div>`;
+  added.showModal();
+  added.querySelector('[data-added-cart]').focus({ preventScroll: true });
+}
+
+function freshProduct() {
+  freshBuilder = true;
+  const products = activeProducts();
+  const route = getRoute();
+  if (route.page === 'product') clearDraft(`product:${route.id}`);
+  if (addedProduct) clearDraft(`product:${addedProduct.id}`);
+  if (products.length === 1) clearDraft(`product:${products[0].id}`);
+  const href = productHref();
+  if (window.location.hash === href) navigate();
+  else window.location.hash = href;
+}
+
+added.addEventListener('click', (event) => {
+  if (event.target === added || event.target.closest('[data-close-added]')) { added.close(); return; }
+  if (event.target.closest('[data-added-cart]')) { added.close(); openCart(); }
+  if (event.target.closest('[data-added-more]')) { added.close(); freshProduct(); }
 });
 
 /* ---------- סל ---------- */
@@ -534,11 +713,10 @@ function cartLineMarkup(line) {
     <span class="cart-line__art">${productArt(product, line.config)}</span>
     <div class="cart-line__body">
       <h3>${safe(info.title)}</h3>
-      ${details ? `<p>${safe(details)}</p>` : ''}
-      ${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}
-      <div class="cart-line__actions"><a href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet>עריכה</a><button type="button" data-remove>הסרה</button></div>
     </div>
     <div class="cart-line__side"><bdi class="cart-line__price" data-line-price>${money(lineTotal(line, product))}</bdi>${stepper({ value: line.qty, label: `כמות של ${info.title}`, attr: 'data-line-qty', small: true })}</div>
+    <div class="cart-line__details">${details ? `<p>${safe(details)}</p>` : ''}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}</div>
+    <div class="cart-line__actions"><a href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet>עריכה</a><a href="#/product/${safe(product.id)}/copy/${safe(line.id)}" data-copy-line="${safe(line.id)}" data-close-sheet>${icon('copy')}שכפול ושינוי</a><button type="button" data-remove>הסרה</button></div>
   </li>`;
 }
 
@@ -552,7 +730,7 @@ function renderCart() {
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
         <p class="sheet__hint">${checkout.mode === 'pickup' ? 'איסוף עצמי נבחר. אפשר לשנות בקופה.' : 'משלוח נבחר. דמי המשלוח ייקבעו לפי הכתובת בקופה.'}</p>
         <a class="button button--primary" href="#/checkout" data-close-sheet><span>להמשך ההזמנה</span>${icon('forward')}</a>
-        <a class="button button--quiet" href="${productHref()}" data-close-sheet>להוסיף עוד</a>
+        <a class="button button--quiet" href="${productHref()}" data-fresh-product>להוסיף עוד</a>
       </footer>`
     : `<div class="empty-state">
         <svg class="empty-state__art" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="50" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 7"/><path d="M60 60 60 10A50 50 0 0 1 103.3 35Z" fill="currentColor" opacity=".18"/></svg>
@@ -569,6 +747,9 @@ function openCart() {
 }
 
 sheet.addEventListener('click', (event) => {
+  if (event.target.closest('[data-fresh-product]')) { event.preventDefault(); sheet.close(); freshProduct(); return; }
+  const copy = event.target.closest('[data-copy-line]');
+  if (copy) clearDraft(`copy:${copy.dataset.copyLine}`);
   if (event.target === sheet || event.target.closest('[data-close-sheet]')) { sheet.close(); return; }
   const lineNode = event.target.closest('[data-line]');
   if (!lineNode) return;
@@ -656,10 +837,11 @@ onCartChange((change) => {
 
 function rememberMode(mode) {
   checkout.mode = mode;
+  saveMode(mode);
 }
 
 const checkout = {
-  mode: 'delivery',
+  mode: getMode(),
   address: { city: '', street: '', number: '', apartment: '', floor: '', instructions: '' },
   contact: { name: '', phone: '' },
   check: { status: 'idle' },
@@ -966,9 +1148,12 @@ function notFound() {
 function render() {
   teardown.forEach((cleanup) => cleanup());
   teardown = [];
+  freshBuilder = false;
   if (sheet.open) sheet.close();
   if (info.open) info.close();
   if (pizzaPreview.open) pizzaPreview.close();
+  if (added.open) added.close();
+  let restoreScroll = 0;
   const route = getRoute();
   // מסך הפתיחה כהה, שאר הזרימה בהירה: צבע סרגל הדפדפן בטלפון עוקב.
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', route.page ? '#f7f6f2' : '#120e0c');
@@ -976,13 +1161,14 @@ function render() {
   if (route.page === 'menu' && list.length > 1) menu();
   else if (route.page === 'product') {
     const product = list.find((item) => item.id === route.id);
-    const editLine = route.action === 'edit' ? getLine(route.lineId) : null;
-    if (product) productPage(product, editLine);
+    const source = ['edit', 'copy'].includes(route.action) ? getLine(route.lineId) : null;
+    const validSource = !route.action || source?.config.productId === product?.id;
+    if (product && validSource) restoreScroll = productPage(product, route.action === 'edit' ? source : null, route.action === 'copy' ? source : null);
     else notFound();
   } else if (route.page === 'checkout') checkoutPage();
   else if (route.page === 'done') donePage();
   else home();
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  window.scrollTo({ top: restoreScroll, behavior: 'instant' });
 }
 
 function navigate() {
@@ -991,6 +1177,7 @@ function navigate() {
 }
 
 window.addEventListener('hashchange', navigate);
+history.scrollRestoration = 'manual';
 const syncPageVisibility = () => document.documentElement.classList.toggle('is-page-hidden', document.hidden);
 document.addEventListener('visibilitychange', syncPageVisibility);
 syncPageVisibility();

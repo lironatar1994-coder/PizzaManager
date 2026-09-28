@@ -1,4 +1,4 @@
-import { shop } from './data.js';
+import { shop } from './data.js?v=20260928-flow1';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 
@@ -50,16 +50,27 @@ export function selectedVariant(product, config) {
 }
 
 export function unitPrice(product, config) {
-  let total = selectedVariant(product, config).price;
+  return priceBreakdown(product, config).unit;
+}
+
+// אותו חישוב משמש את המחיר הכולל ואת הפירוט, כולל עיגול תוספות על חצי.
+export function priceBreakdown(product, config, qty = 1) {
+  const variant = selectedVariant(product, config);
+  const rows = [{ name: variant.name ? `${product.name} · ${variant.name}` : product.name, amount: variant.price }];
   for (const group of product.optionGroups || []) {
     const value = config.options[group.id];
-    if (group.type === 'single') total += choicePrice(group.choices.find((choice) => choice.id === value) || { price: 0 });
-    else for (const [choiceId, placement] of Object.entries(value || {})) {
-      const choice = group.choices.find((item) => item.id === choiceId);
-      if (choice) total += choicePrice(choice, placement);
+    if (group.type === 'single') {
+      const choice = group.choices.find((item) => item.id === value);
+      if (choice) rows.push({ name: group.visualRole === 'crust' ? `בצק ${choice.name}` : choice.name, amount: choicePrice(choice) });
+    } else {
+      for (const choice of group.choices) {
+        const placement = value?.[choice.id];
+        if (placement) rows.push({ name: PLACEMENTS[placement]?.short ? `${choice.name} ${PLACEMENTS[placement].short}` : choice.name, amount: choicePrice(choice, placement) });
+      }
     }
   }
-  return total;
+  const unit = rows.reduce((sum, row) => sum + row.amount, 0);
+  return { rows, unit, qty, total: unit * qty };
 }
 
 // שורות קריאות לסיכום, לסל ולכרטיס ההזמנה.

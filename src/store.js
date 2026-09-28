@@ -1,8 +1,11 @@
-import { findProduct } from './data.js';
-import { lineTotal, normalizeConfig } from './order.js';
+import { findProduct } from './data.js?v=20260928-flow1';
+import { lineTotal, normalizeConfig } from './order.js?v=20260928-flow1';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
+const DRAFT_KEY = 'pizza-demo-builder-drafts-v1';
+const MODE_KEY = 'pizza-demo-order-mode-v1';
+const DRAFT_LIFETIME = 24 * 60 * 60 * 1000;
 const listeners = new Set();
 
 // הגישה ל־storage עצמה יכולה לזרוק שגיאה כשהדפדפן חוסם אחסון.
@@ -41,6 +44,38 @@ let cart = (Array.isArray(savedCart) ? savedCart : [])
 
 const newId = () => Math.random().toString(36).slice(2, 10);
 
+// טיוטות נפרדות לכל מוצר ולעריכה של שורה קיימת. המחירים תמיד מחושבים מחדש.
+const savedDrafts = read('localStorage', DRAFT_KEY, {});
+const drafts = savedDrafts && typeof savedDrafts === 'object' && !Array.isArray(savedDrafts) ? savedDrafts : {};
+const boundedQty = (qty) => Math.max(1, Math.min(99, Math.floor(Number(qty) || 1)));
+
+export function getDraft(key, product) {
+  const draft = drafts[key];
+  if (!draft || draft.config?.productId !== product.id || !Number.isFinite(draft.updatedAt) || Date.now() - draft.updatedAt > DRAFT_LIFETIME) {
+    delete drafts[key];
+    return null;
+  }
+  return {
+    config: normalizeConfig(product, draft.config),
+    qty: boundedQty(draft.qty),
+    scroll: Number.isFinite(draft.scroll) ? Math.max(0, draft.scroll) : 0,
+  };
+}
+
+export function saveDraft(key, product, { config, qty, scroll }) {
+  drafts[key] = { config: normalizeConfig(product, config), qty: boundedQty(qty), scroll: Math.max(0, scroll || 0), updatedAt: Date.now() };
+  for (const [id, draft] of Object.entries(drafts)) if (!draft || Date.now() - draft.updatedAt > DRAFT_LIFETIME) delete drafts[id];
+  write('localStorage', DRAFT_KEY, drafts);
+}
+
+export function clearDraft(key) {
+  delete drafts[key];
+  write('localStorage', DRAFT_KEY, drafts);
+}
+
+export const getMode = () => read('sessionStorage', MODE_KEY, 'delivery') === 'pickup' ? 'pickup' : 'delivery';
+export const saveMode = (mode) => write('sessionStorage', MODE_KEY, mode === 'pickup' ? 'pickup' : 'delivery');
+
 function commit(detail) {
   write('localStorage', CART_KEY, cart);
   listeners.forEach((listener) => listener(detail));
@@ -57,7 +92,7 @@ export function onCartChange(listener) {
 }
 
 export function addLine(config, qty) {
-  const line = { id: newId(), config, qty };
+  const line = { id: newId(), config: normalizeConfig(findProduct(config.productId), config), qty: boundedQty(qty) };
   cart = [...cart, line];
   commit({ type: 'add', line });
   return line;

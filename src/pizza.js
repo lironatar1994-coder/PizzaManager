@@ -1,5 +1,5 @@
 // מציג בסיס פיצה מצולם עם תוספות מצולמות מתוך התצורה; כל מסכי ההזמנה משתמשים באותה תצוגה.
-import { selectedVariant } from './order.js';
+import { selectedVariant } from './order.js?v=20260928-flow1';
 
 const C = 200;
 const R = 188;
@@ -81,10 +81,10 @@ export function toppingMarkup(topping, entering = false) {
     : shape.draw;
   const points = scatter(topping.id, shape.count, SCATTER_RADIUS, shape.gap)
     .filter((point) => topping.placement === 'whole' || (topping.placement === 'right' ? point.x > 6 : point.x < -6));
-  return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-placement="${topping.placement}">${points.map((point, index) => `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__piece" style="--i:${index}">${piece}</g></g>`).join('')}</g>`;
+  return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-shape="${topping.shape}" data-placement="${topping.placement}">${points.map((point, index) => `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__piece" style="--i:${index};--drift:${(point.x * .035).toFixed(1)}px">${piece}</g></g>`).join('')}</g>`;
 }
 
-export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 8)}`, rings = [], label = '' } = {}) {
+export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 8)}`, rings = [], label = '', editable = false } = {}) {
   const inner = R - CRUST.thin;
   const hasHalf = state.toppings.some((topping) => topping.placement !== 'whole');
   const baseImage = state.crust === 'thin' ? './assets/pizza-base-thin-v2.webp' : './assets/pizza-base-v2.webp';
@@ -96,6 +96,7 @@ export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 
     <g class="pizza__disc" style="--scale:${state.scale}">
       <image class="pizza__photo" href="${baseImage}" x="0" y="0" width="400" height="400" />
       <g class="pizza__toppings" clip-path="url(#${uid}-inner)">${state.toppings.map((topping) => toppingMarkup(topping)).join('')}</g>
+      ${editable ? `<g class="pizza__focus" aria-hidden="true"><path class="pizza__focus-right" d="M${C} ${C - inner}a${inner} ${inner} 0 0 1 0 ${inner * 2}Z"/><path class="pizza__focus-left" d="M${C} ${C - inner}a${inner} ${inner} 0 0 0 0 ${inner * 2}Z"/></g>` : ''}
       <line class="pizza__cut${hasHalf ? ' is-visible' : ''}" x1="${C}" y1="${C - inner}" x2="${C}" y2="${C + inner}"/>
     </g>
   </svg>`;
@@ -114,10 +115,10 @@ export function updatePizza(svg, previous, next) {
   const after = new Map(next.toppings.map((topping) => [topping.id, topping.placement]));
   for (const [id, placement] of before) {
     if (after.get(id) === placement) continue;
-    const node = layer.querySelector(`[data-topping="${id}"]:not(.is-leaving)`);
+    const node = layer.querySelector(`[data-topping="${CSS.escape(id)}"]:not(.is-leaving)`);
     if (!node) continue;
     node.classList.add('is-leaving');
-    setTimeout(() => node.remove(), 260);
+    setTimeout(() => node.remove(), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260);
   }
   for (const topping of next.toppings) {
     if (before.get(topping.id) === topping.placement) continue;

@@ -2,6 +2,14 @@
 export const shop = {
   name: 'פיצה לדוגמה',
   demoOnly: true,
+  // סמל מקורי להדגמה. לוגו ותמונות אמיתיים יוחלפו כאן כשיימסרו.
+  logo: null,
+  brandMark: './assets/brand/oven-mark.svg#oven-mark',
+  heroImages: {
+    mobile: './assets/pizza-hero-mobile.jpg',
+    desktop: './assets/pizza-hero-desktop.jpg',
+    alt: 'פיצה להמחשה על רקע כהה — אינה צילום של מוצר העסק',
+  },
   heroTitle: 'פיצה חמה.\nבדיוק לטעמכם.',
   heroDescription: 'בוחרים גודל, מוסיפים מה שאוהבים — ורואים את הפיצה שלכם נבנית.',
   multiHeroTitle: 'מה מתחשק לכם\nהיום?',

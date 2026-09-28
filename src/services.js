@@ -1,5 +1,5 @@
 // שירותי הדגמה. במערכת האמיתית: אימות כתובת בשירות מפות, קליטת הזמנה בשרת ומעבר לספק סליקה.
-import { shop, demoFlags } from './data.js';
+import { shop, demoFlags } from './data.js?v=20260928-flow1';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const normalize = (text) => text.trim().replace(/[\s־-]+/g, ' ');
