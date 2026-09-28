@@ -60,6 +60,7 @@ export const products = [
     active: true,
     name: 'הפיצה שלנו',
     description: 'רוטב עגבניות, מוצרלה ובצק שנאפה במקום. תיאור לדוגמה.',
+    menuDescription: 'גודל ותוספות לבחירה',
     visual: 'pizza',
     image: null,
     imageAlt: 'הדמיית הפיצה לפי הבחירות',
@@ -106,6 +107,7 @@ export const products = [
     active: true,
     name: 'לחם שום',
     description: 'לחם שום עם חמאה ועשבי תיבול. תיאור לדוגמה.',
+    menuDescription: 'חמאה ועשבי תיבול',
     image: './assets/garlic-bread-demo.webp',
     imageAlt: 'צילום לדוגמה של לחם שום',
     foodInfo: { reviewed: false, ingredients: ['לחם חיטה', 'חמאה', 'שום', 'עשבי תיבול'], allergens: ['חיטה (גלוטן)', 'חלב'], crossContact: 'מידע על סביבת ההכנה טרם נמסר מהעסק.' },
@@ -123,6 +125,7 @@ export const products = [
   {
     id: 'pizza-and-garlic', active: true, name: 'פיצה ולחם שום',
     description: 'פיצה בינונית בהרכבה אישית ולחם שום. קומבו ומחיר לדוגמה.',
+    menuDescription: 'פיצה בינונית ולחם שום',
     price: 70,
     bundle: [
       { id: 'pizza', name: 'הפיצה', productId: 'house-pizza', variantId: 'medium', variantIds: ['medium', 'large'] },
@@ -132,6 +135,7 @@ export const products = [
   {
     id: 'family-meal', active: true, name: 'ארוחה משפחתית',
     description: 'שתי פיצות גדולות, כל אחת בהרכב משלה, ולחם שום. ארוחה ומחיר לדוגמה.',
+    menuDescription: '2 פיצות גדולות ולחם שום',
     price: 145,
     bundle: [
       { id: 'pizza-one', name: 'הפיצה הראשונה', productId: 'house-pizza', variantId: 'large', variantIds: ['large'] },

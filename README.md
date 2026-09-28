@@ -104,7 +104,7 @@ py -m http.server 4173 --bind 127.0.0.1
 
 ## נתוני מוצר
 
-לכל מוצר יש `id`, `active`, `name`, `description`, `image`, ומחיר בסיס `price` או מערך `variants`. אפשר להוסיף גם `optionGroups` ו־`notePresets` לפי הצורך. לכל גודל אפשר להוסיף קוטר בס״מ (`diameterCm`) ומספר משולשים (`slices`).
+לכל מוצר יש `id`, `active`, `name`, `description`, `image`, ומחיר בסיס `price` או מערך `variants`. אפשר להוסיף `menuDescription` לתיאור קצר בתפריט; בלי השדה מוצג תקציר של `description`, והתיאור המלא נשאר במסך המוצר. אפשר להוסיף גם `optionGroups` ו־`notePresets` לפי הצורך. לכל גודל אפשר להוסיף קוטר בס״מ (`diameterCm`) ומספר משולשים (`slices`).
 
 - `visual: 'pizza'` מצייר את המוצר כפיצה חיה. לכל גודל יש `scale`, שקובע את קוטר הפיצה בציור.
 - קבוצה עם `visualRole: 'crust'` מחליפה בין תמונות בסיס לבצק קלאסי או דק לפי `choice.crust`.

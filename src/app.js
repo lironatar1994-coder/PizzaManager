@@ -1,11 +1,11 @@
-import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260928-flow2';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260928-flow2';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-flow2';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-flow2';
-import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260928-flow2';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-flow2';
-import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260928-flow2';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260928-flow2';
+import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260928-menu2';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260928-menu2';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-menu2';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-menu2';
+import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260928-menu2';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-menu2';
+import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260928-menu2';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260928-menu2';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -276,10 +276,12 @@ function menu() {
     const config = defaultConfig(product);
     const price = product.bundle ? unitPrice(product, config) : Math.min(...variantsFor(product).filter(isAvailable).map((variant) => variant.price));
     const saving = bundleSavings(product, config);
+    const description = product.menuDescription || product.description;
+    const fromPrice = !product.bundle && variantsFor(product).filter(isAvailable).some((variant) => variant.price > price);
     return `<li><a class="menu-item${product.bundle ? ' menu-item--bundle' : ''}" href="#/product/${safe(product.id)}">
       <span class="menu-item__art">${productArt(product, { ...config, variantId: variantsFor(product).at(-1).id })}</span>
-      <span class="menu-item__text"><strong>${safe(product.name)}</strong><span>${safe(product.description)}</span>${saving ? `<small class="bundle-saving">חיסכון של <bdi>${money(saving)}</bdi> לעומת הפריטים בנפרד</small>` : ''}</span>
-      <span class="menu-item__price">${product.bundle ? '' : 'החל מ־'}<bdi>${money(price)}</bdi>${product.bundle ? '<small>לפני תוספות</small>' : ''}</span><span class="menu-item__go">${icon('forward')}</span>
+      <span class="menu-item__text"><span class="menu-item__heading"><strong>${safe(product.name)}</strong><span class="menu-item__price">${fromPrice ? 'מ־' : ''}<bdi>${money(price)}</bdi></span></span>${description ? `<span class="menu-item__description">${safe(description)}</span>` : ''}${saving ? `<small class="menu-item__saving">חוסכים <bdi>${money(saving)}</bdi></small>` : ''}</span>
+      <span class="menu-item__go">${icon('forward')}</span>
     </a></li>`;
   }).join('')}</ul>`;
   const bundles = list.filter((product) => product.bundle);
@@ -287,10 +289,10 @@ function menu() {
   app.innerHTML = `${topbar('#/')}
     <main class="page menu-page"><div class="wrap">
       ${orderProgress('compose')}
-      <header class="page-head"><h1>מה מכינים היום?</h1><p>בוחרים מוצר, ואז מרכיבים אותו בדיוק כמו שאוהבים.</p></header>
-      ${getFavorites().length ? `<button type="button" class="link-button menu-favorites" data-open-favorites>${icon('heart')}המועדפים שלי</button>` : ''}
-      ${bundles.length ? `<section class="menu-section" aria-labelledby="combos-title"><header><h2 id="combos-title">ביחד בארוחה</h2><p>כל פיצה בהרכב שלה. ${shop.demoOnly ? 'קומבואים ומחירים לדוגמה.' : 'מחיר הארוחה לפני תוספות ושדרוגים.'}</p></header>${menuItems(bundles)}</section>` : ''}
-      ${individual.length ? `<section class="menu-section" aria-labelledby="individual-title"><h2 id="individual-title">להרכיב בנפרד</h2>${menuItems(individual)}</section>` : ''}
+      <header class="menu-head"><h1>התפריט</h1>${getFavorites().length ? `<button type="button" class="icon-button menu-favorites" data-open-favorites aria-label="המועדפים שלי">${icon('heart')}</button>` : ''}</header>
+      ${individual.length ? `<section class="menu-section" aria-labelledby="individual-title"><h2 class="visually-hidden" id="individual-title">מוצרים להרכבה</h2>${menuItems(individual)}</section>` : ''}
+      ${bundles.length ? `<section class="menu-section menu-section--bundles" aria-labelledby="combos-title"><h2 id="combos-title">ארוחות</h2>${menuItems(bundles)}</section>` : ''}
+      <p class="menu-note">${shop.demoOnly ? 'מחירי הדגמה · ' : ''}המחירים לפני תוספות</p>
     </div></main>`;
 }
 
