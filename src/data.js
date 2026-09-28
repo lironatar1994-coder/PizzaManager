@@ -68,7 +68,9 @@ export const products = [
           { id: 'mushrooms', name: 'פטריות', price: 6, shape: 'mushroom' },
           { id: 'corn', name: 'תירס', price: 5, shape: 'corn' },
           { id: 'onion', name: 'בצל סגול', price: 5, shape: 'onion' },
-          { id: 'jalapeno', name: 'חלפיניו', price: 6, shape: 'jalapeno' },
+          // available: false מסמן חוסר זמני; alternatives הם מזהים מאותה קבוצת תוספות.
+          // דוגמת חוסר מוצגת רק עם ?demo=soldout; אינה טוענת דבר על מלאי עסק אמיתי.
+          { id: 'jalapeno', name: 'חלפיניו', price: 6, shape: 'jalapeno', available: true, demoSoldOut: true, alternatives: ['onion'] },
           { id: 'feta', name: 'בולגרית', price: 9, shape: 'feta' },
         ],
       },
@@ -94,15 +96,17 @@ export const products = [
   },
 ];
 
-// מצבי הדגמה בכתובת: ?demo=multiple (תפריט), ?demo=closed (מחוץ לשעות), ?demo=payfail (תשלום נכשל)
+// מצבי הדגמה: multiple (תפריט), closed (סגור), payfail (כישלון תשלום), soldout (תוספת שאזלה)
 export function demoFlags() {
   const flags = (new URLSearchParams(window.location.search).get('demo') || '').split(',');
-  return { multiple: flags.includes('multiple'), closed: flags.includes('closed'), payFail: flags.includes('payfail') };
+  return { multiple: flags.includes('multiple'), closed: flags.includes('closed'), payFail: flags.includes('payfail'), soldOut: flags.includes('soldout') };
 }
+
+export const isAvailable = (item) => Boolean(item) && item.available !== false && !(item.demoSoldOut && demoFlags().soldOut);
 
 export function activeProducts() {
   const { multiple } = demoFlags();
-  return products.filter((product) => product.active || multiple);
+  return products.filter((product) => isAvailable(product) && (product.active || multiple));
 }
 
 export function findProduct(id) {

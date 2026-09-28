@@ -1,10 +1,10 @@
-import { shop, activeProducts, findProduct } from './data.js?v=20260928-speed1';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, clearExtras } from './order.js?v=20260928-speed1';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-speed1';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-speed1';
-import { verifyAddress, isOpen, submitOrder } from './services.js?v=20260928-speed1';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-speed1';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260928-speed1';
+import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260928-flow1';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder } from './order.js?v=20260928-flow1';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-flow1';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-flow1';
+import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260928-flow1';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-flow1';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260928-flow1';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -73,6 +73,24 @@ function topbar(back) {
   </div></header>`;
 }
 
+function orderProgress(current, productId) {
+  const hasCart = Boolean(cartCount());
+  const composeHref = productId ? `#/product/${safe(productId)}` : productHref();
+  return `<nav class="order-progress" aria-label="שלבי ההזמנה" data-order-progress="${current}" data-product-id="${safe(productId || '')}" data-has-cart="${hasCart}"><ol>${[
+    ['compose', 'הרכבה', `<a href="${composeHref}" data-close-sheet>הרכבה</a>`],
+    ['cart', 'סל', `<button type="button" data-open-cart ${hasCart ? '' : 'disabled'}>סל</button>`],
+    ['details', 'פרטים', hasCart ? '<a href="#/checkout" data-close-sheet>פרטים</a>' : '<span aria-disabled="true">פרטים</span>'],
+  ].map(([id, label, control]) => `<li>${current === id ? `<span aria-current="step">${label}</span>` : control}</li>`).join('')}</ol></nav>`;
+}
+
+const alternativeFor = (group, choice) => (choice.alternatives || []).map((id) => group.choices.find((item) => item.id === id)).find(isAvailable);
+const priceDifference = (delta) => delta > 0 ? `תוספת ${money(delta)}` : delta < 0 ? `הפחתה ${money(-delta)}` : 'המחיר לא השתנה';
+
+function lineIssues(line) {
+  const product = activeProducts().find((item) => item.id === line.config.productId);
+  return product ? configurationIssues(product, line.config).map((issue) => issue.name) : ['המוצר אינו זמין'];
+}
+
 const phoneHref = () => `tel:${shop.phone.replace(/[^\d+]/g, '')}`;
 const wazeHref = () => `https://waze.com/ul?q=${encodeURIComponent(shop.location.address)}&navigate=yes`;
 const mapsHref = () => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shop.location.address)}`;
@@ -110,7 +128,7 @@ function selectedExtrasMarkup(group, value, editing) {
   const choices = group.choices.filter((choice) => value?.[choice.id]);
   const selected = choices.find((choice) => choice.id === editing);
   return `<ul class="selected-extras__list" aria-label="${safe(group.name)} שנבחרו">${choices.map((choice) => `<li>
-    ${group.placement ? `<button type="button" data-extra-edit="${safe(choice.id)}" aria-expanded="${choice.id === editing}" aria-label="שינוי מיקום ${safe(choice.name)}">${placementIcon(value[choice.id])}<span>${safe(choice.name)}<small>${placementLabel(value[choice.id])}</small></span></button>` : `<span class="selected-extras__name">${safe(choice.name)}</span>`}
+    ${group.placement ? `<button type="button" data-extra-edit="${safe(choice.id)}" ${!isAvailable(choice) ? 'disabled' : ''} aria-expanded="${choice.id === editing}" aria-label="שינוי מיקום ${safe(choice.name)}">${placementIcon(value[choice.id])}<span>${safe(choice.name)}<small>${isAvailable(choice) ? placementLabel(value[choice.id]) : 'אזל להיום'}</small></span></button>` : `<span class="selected-extras__name">${safe(choice.name)}${!isAvailable(choice) ? '<small>אזל להיום</small>' : ''}</span>`}
     <button type="button" class="selected-extras__remove" data-extra-remove="${safe(choice.id)}" aria-label="הסרת ${safe(choice.name)}">${icon('close')}</button>
   </li>`).join('')}</ul>${selected ? `<section class="selected-extras__editor" aria-label="מיקום ${safe(selected.name)}"><header><strong>${safe(selected.name)}</strong><button type="button" class="icon-button" data-close-extra aria-label="סגירת מיקום התוספת">${icon('close')}</button></header><div role="group" aria-label="בחירת מיקום ${safe(selected.name)}">${['right', 'whole', 'left'].map((part) => `<button type="button" data-quick-placement="${part}" aria-pressed="${value[selected.id] === part}">${placementIcon(part)}${PLACEMENTS[part].label}</button>`).join('')}</div></section>` : ''}`;
 }
@@ -152,6 +170,7 @@ function home() {
         <button type="button" class="hero__utility" data-hero-contact="phone" aria-label="הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel">${icon('phone')}</button>
         <button type="button" class="hero__utility" data-hero-contact="location" aria-label="הצגת הכתובת והניווט" aria-expanded="false" aria-controls="hero-contact-panel">${icon('pin')}</button>
         ${getFavorites().length ? `<button type="button" class="hero__utility" data-open-favorites aria-label="המועדפים שלי">${icon('heart')}</button>` : ''}
+        ${getLastOrder()?.lines?.length ? `<a class="hero__repeat" href="#/repeat">${icon('undo')}להזמין שוב</a>` : ''}
         <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
       </div>
     </div>
@@ -203,6 +222,7 @@ function menu() {
   const list = activeProducts();
   app.innerHTML = `${topbar('#/')}
     <main class="page menu-page"><div class="wrap">
+      ${orderProgress('compose')}
       <header class="page-head"><h1>מה מכינים היום?</h1><p>בוחרים מוצר, ואז מרכיבים אותו בדיוק כמו שאוהבים.</p></header>
       ${getFavorites().length ? `<button type="button" class="link-button menu-favorites" data-open-favorites>${icon('heart')}המועדפים שלי</button>` : ''}
       <ul class="menu-list">${list.map((product) => {
@@ -217,16 +237,41 @@ function menu() {
     </div></main>`;
 }
 
+function repeatPage() {
+  const order = getLastOrder();
+  const repeat = prepareRepeatOrder(order, activeProducts());
+  app.innerHTML = `${topbar('#/')}<main class="page repeat-page"><div class="wrap repeat-page__inner">
+    ${orderProgress('compose')}
+    <header class="page-head"><h1>להזמין שוב</h1><p>${order ? 'ההרכב מההזמנה האחרונה בביקור הזה, לפי התפריט והמחירים הנוכחיים.' : 'אין עדיין הזמנה קודמת בביקור הזה.'}</p></header>
+    ${shop.demoOnly ? '<p class="repeat-page__hint">הזמנה ומחירים לדוגמה בלבד.</p>' : ''}
+    ${repeat.notices.length ? `<section class="repeat-updates" aria-label="התאמות לתפריט הנוכחי"><h2>מה התעדכן?</h2><ul>${repeat.notices.map((notice) => `<li>${safe(notice)}</li>`).join('')}</ul></section>` : ''}
+    <ul class="repeat-lines">${repeat.lines.map((line) => {
+      const product = findProduct(line.config.productId);
+      return `<li><span class="repeat-line__art">${productArt(product, line.config)}</span><div>${itemLabelMarkup(line.config.label)}<h2>${line.qty} × ${safe(line.title)}</h2>${compositionMarkup(describe(product, line.config))}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}</div><bdi>${money(line.total)}</bdi></li>`;
+    }).join('')}</ul>
+    ${repeat.lines.length ? `<p class="repeat-page__hint">${cartCount() ? 'הפריטים יתווספו לסל הנוכחי. ' : ''}אפשר לערוך כל פריט בסל לפני שממשיכים.</p><button type="button" class="button button--primary" data-load-repeat>טעינה לסל ועריכה · <bdi>${money(repeat.total)}</bdi>${icon('forward')}</button>` : '<p class="repeat-page__hint">אפשר לבחור מהרכבים זמינים בתפריט.</p>'}
+    <a class="link-button" href="${productHref()}">להרכבה חדשה ${icon('forward')}</a><p data-repeat-status role="status"></p>
+  </div></main>`;
+  document.querySelector('[data-load-repeat]')?.addEventListener('click', (event) => {
+    event.currentTarget.disabled = true;
+    const current = prepareRepeatOrder(order, activeProducts());
+    if (current.lines.length !== repeat.lines.length || JSON.stringify(current.lines) !== JSON.stringify(repeat.lines)) { repeatPage(); return; }
+    current.lines.forEach((line) => addLine(line.config, line.qty));
+    document.querySelector('[data-repeat-status]').textContent = 'ההרכב נטען לסל. אפשר לערוך כל פריט.';
+    openCart();
+  });
+}
+
 /* ---------- מסך הרכבה ---------- */
 
 function variantSection(product, config) {
   if (!product.variants?.length || product.variants.length < 2) return '';
   return `<fieldset class="field-group"><legend class="field-group__head"><span class="field-group__title">איזה גודל?</span></legend>
     <div class="tile-row tile-row--3">${product.variants.map((variant) => `<label class="tile tile--size">
-      <input type="radio" name="variant" value="${safe(variant.id)}" ${variant.id === config.variantId ? 'checked' : ''} />
+      <input type="radio" name="variant" value="${safe(variant.id)}" ${variant.id === config.variantId ? 'checked' : ''} ${!isAvailable(variant) ? 'disabled' : ''} />
       <span class="tile__surface">
         ${product.visual === 'pizza' ? `<span class="size-disc" style="--s:${variant.scale ?? 1}" aria-hidden="true"></span>` : ''}
-        <strong>${safe(variant.name)}</strong>${variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}
+        <strong>${safe(variant.name)}</strong>${!isAvailable(variant) ? '<small>אזל להיום</small>' : variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}
         ${variant.diameterCm > 0 || variant.slices > 0 ? `<span class="tile__measure">${variant.diameterCm > 0 ? `<span><bdi>${safe(variant.diameterCm)}</bdi> ס״מ</span>` : ''}${variant.slices > 0 ? `<span><bdi>${safe(variant.slices)}</bdi> משולשים</span>` : ''}</span>` : ''}<bdi>${money(variant.price)}</bdi>
       </span>
     </label>`).join('')}</div></fieldset>`;
@@ -235,10 +280,10 @@ function variantSection(product, config) {
 function singleGroup(group, value) {
   return `<fieldset class="field-group"><legend class="field-group__head"><span class="field-group__title">${safe(group.name)}</span></legend>
     <div class="tile-row tile-row--${Math.min(group.choices.length, 3)}">${group.choices.map((choice) => `<label class="tile tile--option">
-      <input type="radio" name="opt-${safe(group.id)}" value="${safe(choice.id)}" ${choice.id === value ? 'checked' : ''} />
+      <input type="radio" name="opt-${safe(group.id)}" value="${safe(choice.id)}" ${choice.id === value ? 'checked' : ''} ${!isAvailable(choice) ? 'disabled' : ''} />
       <span class="tile__surface">
         ${choice.crust ? `<svg class="crust-icon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="${choice.crust === 'thin' ? 15.5 : 14}" fill="none" stroke="currentColor" stroke-width="${choice.crust === 'thin' ? 2 : 5}"/></svg>` : ''}
-        <strong>${safe(choice.name)}</strong>${choice.detail ? `<small>${safe(choice.detail)}</small>` : ''}<bdi>${choice.price ? `+${money(choice.price)}` : 'כלול'}</bdi>
+        <strong>${safe(choice.name)}</strong>${!isAvailable(choice) ? '<small>אזל להיום</small>' : choice.detail ? `<small>${safe(choice.detail)}</small>` : ''}<bdi>${choice.price ? `+${money(choice.price)}` : 'כלול'}</bdi>
       </span>
     </label>`).join('')}</div></fieldset>`;
 }
@@ -249,17 +294,21 @@ function multiGroup(group, value) {
     <div class="selected-extras" data-selected-extras="${safe(group.id)}" hidden></div>
     <div class="topping-grid">${group.choices.map((choice) => {
       const placement = value?.[choice.id];
-      return `<div class="topping" data-choice="${safe(choice.id)}">
+      const available = isAvailable(choice);
+      const alternative = !available ? alternativeFor(group, choice) : null;
+      return `<div class="topping${available ? '' : ' topping--unavailable'}" data-choice="${safe(choice.id)}">
         <label class="topping__main">
-          <input type="checkbox" name="multi-${safe(group.id)}" value="${safe(choice.id)}" ${placement ? 'checked' : ''} />
+          <input type="checkbox" name="multi-${safe(group.id)}" value="${safe(choice.id)}" ${placement ? 'checked' : ''} ${available ? '' : 'disabled'} />
           ${choice.shape ? `<span class="topping__art">${shapeIcon(choice.shape)}</span>` : ''}
           <span class="topping__name">${safe(choice.name)}</span>
           <span class="topping__price" data-price-for="${safe(choice.id)}">${choice.price ? `+${money(choicePrice(choice, placement || 'whole'))}` : 'כלול'}</span>
           <span class="topping__check">${icon('check')}</span>
+          ${available ? '' : '<span class="topping__stock">אזל להיום</span>'}
         </label>
-        ${group.placement ? `<button type="button" class="topping__placement-toggle" data-placement-toggle aria-expanded="false" aria-controls="placement-${safe(group.id)}-${safe(choice.id)}" aria-label="מיקום ${safe(choice.name)}: ${placementLabel(placement || 'whole')}. שינוי מיקום"><span data-placement-label>${placementLabel(placement || 'whole')}</span>${icon('down')}</button>
+        ${alternative ? `<button type="button" class="topping__alternative" data-alternative-group="${safe(group.id)}" data-alternative-from="${safe(choice.id)}" data-alternative-to="${safe(alternative.id)}" aria-label="בחירת ${safe(alternative.name)} במקום ${safe(choice.name)}">אפשר במקום: ${safe(alternative.name)} ${icon('plus')}</button>` : ''}
+        ${group.placement ? `<button type="button" class="topping__placement-toggle" data-placement-toggle ${available ? '' : 'disabled'} aria-expanded="false" aria-controls="placement-${safe(group.id)}-${safe(choice.id)}" aria-label="מיקום ${safe(choice.name)}: ${placementLabel(placement || 'whole')}. שינוי מיקום"><span data-placement-label>${placementLabel(placement || 'whole')}</span>${icon('down')}</button>
         <div class="placement" id="placement-${safe(group.id)}-${safe(choice.id)}" role="radiogroup" aria-label="איפה לשים ${safe(choice.name)}?">${Object.entries(PLACEMENTS).map(([key, info]) => `<label class="placement__option">
-          <input type="radio" name="place-${safe(group.id)}-${safe(choice.id)}" value="${key}" aria-label="${info.label}" ${(placement || 'whole') === key ? 'checked' : ''} />
+          <input type="radio" name="place-${safe(group.id)}-${safe(choice.id)}" value="${key}" aria-label="${info.label}" ${(placement || 'whole') === key ? 'checked' : ''} ${available ? '' : 'disabled'} />
           <span aria-hidden="true">${placementIcon(key)}${key === 'whole' ? 'שלמה' : key === 'right' ? 'ימין' : 'שמאל'}</span>
         </label>`).join('')}</div>` : ''}
       </div>`;
@@ -301,6 +350,8 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   let recoveredEditId = null;
   let selectedExtraEditor = null;
   let personalOpen = draft?.personalOpen ?? false;
+  let lastChange = null;
+  let isAdding = false;
   const returnSuffix = returnToCheckout ? '?return=checkout' : '';
   const submitLabel = () => returnToCheckout ? editLine ? 'שמירה וחזרה לקופה' : 'הוספה וחזרה לקופה' : editLine ? 'עדכון בסל' : 'הוספה לסל';
   const isPizza = product.visual === 'pizza';
@@ -315,7 +366,9 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p><div class="stage__composition" data-stage-composition></div>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
+        ${orderProgress('compose', product.id)}
         <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p>${returnToCheckout ? `<a class="builder__return" href="#/checkout">${icon('back')}חזרה לקופה</a>` : ''}${copyLine ? `<p class="builder__resume">${icon('copy')}<span>עותק חדש לעריכה · המקור נשאר בסל</span></p>` : ''}${source ? `<p class="builder__resume">${icon(source.kind === 'favorite' ? 'heart' : 'share')}<span>${safe(source.label)} · המחיר לפי התפריט הנוכחי</span></p>` : ''}</header>
+        <p class="builder-availability" data-builder-availability role="status" hidden></p>
         <section class="builder-tools" aria-label="שמירה ושיתוף של ההרכב">
           <div class="builder-tools__actions">
             <button type="button" data-save-toggle aria-expanded="false" aria-controls="favorite-editor">${icon('heart')}<span data-save-label>שמירה</span></button>
@@ -336,6 +389,8 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
             <p class="builder-tools__status" data-share-status role="status"></p>
           </div>
         </section>
+        <div class="builder-undo" data-builder-undo hidden><span data-last-change></span><button type="button" class="link-button" data-undo-change>${icon('undo')}ביטול השינוי האחרון</button></div>
+        <details class="edit-changes" data-edit-changes hidden><summary><span><strong>שינויים לפני העדכון</strong><small data-edit-change-summary></small></span>${icon('down')}</summary><ul data-edit-change-list></ul><p data-edit-change-total></p></details>
         ${variantSection(product, config)}
         ${(product.optionGroups || []).map((group) => (group.type === 'single' ? singleGroup(group, config.options[group.id]) : multiGroup(group, config.options[group.id]))).join('')}
         <details class="builder-personal" data-personal ${personalOpen ? 'open' : ''}>
@@ -351,7 +406,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
       </form>
     </main>
     <div class="buybar buybar--builder"><p class="buybar__recovery" data-edit-recovery role="status" hidden></p><div class="buybar__basket" data-builder-basket hidden><button type="button" data-open-cart><span data-basket-current></span>${icon('down')}</button><span data-basket-projected></span></div><div class="buybar__inner">
-      <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}דמי משלוח, אם נבחר, מחושבים בקופה.</p></div>
+      <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><section class="price-changes" data-price-changes hidden><h3>שינויים ביחס לפריט בסל</h3><ul data-price-change-list></ul><p data-price-change-total></p></section><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}דמי משלוח, אם נבחר, מחושבים בקופה.</p></div>
       <button type="button" class="buybar__total buybar__price" data-price-toggle aria-expanded="false" aria-controls="price-panel"><span>פירוט מחיר ${icon('down')}</span><strong id="bar-total"></strong></button>
       <div class="buybar__quantity" data-builder-quantity><span>כמות</span>${stepper({ value: quantity, label: 'כמות' })}</div>
       <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span id="add-label"></span>${icon('forward')}</button>
@@ -361,6 +416,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   const form = document.querySelector('#builder-form');
   // הגודל הוא הבחירה הראשונה. פעולות שמירה ושיתוף מצטרפות אחרי הבחירה הזו.
   if ((product.variants || []).length > 1) form.querySelector('fieldset').after(form.querySelector('.builder-tools'));
+  form.querySelector('.builder-tools').after(form.querySelector('[data-builder-undo]'), form.querySelector('[data-edit-changes]'));
   const art = document.querySelector('#stage-art');
   const status = document.querySelector('#builder-status');
   const saveToggle = form.querySelector('[data-save-toggle]');
@@ -434,6 +490,10 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     if (hasDraft && !freshBuilder) saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll, personalOpen });
   };
   const rememberSelection = () => { hasDraft = true; flushDraft(); };
+  const captureChange = (previous, previousQty = quantity) => {
+    if (JSON.stringify([previous.variantId, previous.options, previousQty]) === JSON.stringify([config.variantId, config.options, quantity])) return;
+    lastChange = { variantId: previous.variantId, options: structuredClone(previous.options), qty: previousQty };
+  };
   personal.addEventListener('toggle', () => { personalOpen = personal.open; rememberSelection(); });
   const rememberScroll = () => {
     if (document.querySelector('dialog[open]')) return;
@@ -457,6 +517,32 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     const info = describe(product, config);
     const unit = unitPrice(product, config);
     const total = unit * quantity;
+    const issues = configurationIssues(product, config);
+    const availability = form.querySelector('[data-builder-availability]');
+    availability.hidden = !issues.length;
+    availability.textContent = issues.length ? `אזל להיום: ${issues.map((issue) => issue.name).join(', ')}. הסירו את הבחירה או בחרו חלופה לפני ההוספה.` : '';
+    document.querySelector('#add-to-cart').disabled = isAdding || Boolean(issues.length);
+    const undo = form.querySelector('[data-builder-undo]');
+    undo.hidden = !lastChange;
+    if (lastChange) {
+      const change = configurationChanges(product, { ...config, variantId: lastChange.variantId, options: lastChange.options }, config, lastChange.qty, quantity);
+      undo.querySelector('[data-last-change]').textContent = change.changes.at(-1) || 'ההרכב עודכן';
+    }
+    const original = editLine ? getLine(editLine.id) : null;
+    const change = original ? configurationChanges(product, original.config, config, original.qty, quantity) : null;
+    const hasChanges = Boolean(change?.changes.length);
+    form.querySelector('[data-edit-changes]').hidden = !hasChanges;
+    document.querySelector('[data-price-changes]').hidden = !hasChanges;
+    if (hasChanges) {
+      form.querySelector('[data-edit-change-summary]').textContent = `${change.changes.length === 1 ? 'שינוי אחד' : `${change.changes.length} שינויים`} · ${priceDifference(change.delta)}`;
+      const changesMarkup = change.changes.map((text) => `<li>${safe(text)}</li>`).join('');
+      form.querySelector('[data-edit-change-list]').innerHTML = changesMarkup;
+      document.querySelector('[data-price-change-list]').innerHTML = changesMarkup;
+      const totals = `לפני <bdi>${money(change.previousTotal)}</bdi> · אחרי <bdi>${money(change.total)}</bdi>`;
+      form.querySelector('[data-edit-change-total]').innerHTML = totals;
+      document.querySelector('[data-price-change-total]').textContent = priceDifference(change.delta);
+    }
+    document.querySelector('[data-price-toggle] > span').innerHTML = `${hasChanges ? 'פירוט ושינויים' : 'פירוט מחיר'} ${icon('down')}`;
     document.querySelector('#stage-title').textContent = [config.label, info.title, quantity > 1 ? `${quantity} יח׳` : ''].filter(Boolean).join(' · ');
     const details = detailText(info);
     document.querySelector('#stage-detail').textContent = isPizza && !drawn.toppings.length
@@ -512,7 +598,9 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   document.querySelector('[data-builder-quantity]').addEventListener('click', (event) => {
     const button = event.target.closest('[data-qty]');
     if (!button) return;
+    const previousQty = quantity;
     quantity = Math.max(1, Math.min(99, quantity + (button.dataset.qty === 'plus' ? 1 : -1)));
+    captureChange(config, previousQty);
     refresh(); rememberSelection();
     status.textContent = `כמות: ${quantity}`;
     reactToChoice(art, false);
@@ -521,6 +609,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   form.addEventListener('change', (event) => {
     const previous = config;
     config = readConfig(form, product);
+    captureChange(previous);
     if (isPizza) {
       const next = pizzaState(product, config);
       updatePizza(art.querySelector('svg'), drawn, next);
@@ -552,6 +641,17 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     if (event.target.name === 'itemName') { config = normalizeConfig(product, { ...config, label: event.target.value }); refresh(); rememberSelection(); }
   });
   form.addEventListener('click', (event) => {
+    if (event.target.closest('[data-undo-change]')) { setPreviewConfig(config, { type: 'undo-change' }); form.querySelector('.builder-tools button')?.focus({ preventScroll: true }); return; }
+    const alternativeButton = event.target.closest('[data-alternative-group]');
+    if (alternativeButton) {
+      const { alternativeGroup: groupId, alternativeFrom: from, alternativeTo: to } = alternativeButton.dataset;
+      const group = product.optionGroups.find((item) => item.id === groupId);
+      const choice = group?.choices.find((item) => item.id === to);
+      if (!choice || !isAvailable(choice)) return;
+      setPreviewConfig(replaceExtra(product, config, groupId, from, to));
+      status.textContent = `נבחרה חלופה: ${choice.name}`;
+      return;
+    }
     const selected = event.target.closest('[data-selected-extras]');
     if (selected) {
       const groupId = selected.dataset.selectedExtras;
@@ -665,7 +765,14 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   form.addEventListener('submit', (event) => event.preventDefault());
 
   const setPreviewConfig = (nextConfig, action = {}) => {
-    if (action.type === 'clear') {
+    const previous = config;
+    const previousQty = quantity;
+    const undoing = action.type === 'undo-change' && lastChange;
+    if (undoing) {
+      config = normalizeConfig(product, { ...config, variantId: lastChange.variantId, options: lastChange.options });
+      quantity = lastChange.qty;
+      lastChange = null; clearedExtras = null; selectedExtraEditor = null;
+    } else if (action.type === 'clear') {
       const groupIds = (product.optionGroups || []).filter((group) => group.type === 'multi' && (!action.groupId || group.id === action.groupId)).map((group) => group.id);
       clearedExtras = { groupIds, options: structuredClone(config.options) };
       config = clearExtras(product, config, action.groupId);
@@ -675,8 +782,10 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
       config = normalizeConfig(product, { ...config, options });
       clearedExtras = null;
     } else { config = normalizeConfig(product, nextConfig); clearedExtras = null; }
+    if (!undoing) captureChange(previous, previousQty);
+    form.querySelectorAll('input[name="variant"]').forEach((input) => { input.checked = input.value === config.variantId; });
     for (const group of product.optionGroups || []) {
-      if (group.type !== 'multi') continue;
+      if (group.type === 'single') { form.querySelectorAll(`input[name="opt-${CSS.escape(group.id)}"]`).forEach((input) => { input.checked = input.value === config.options[group.id]; }); continue; }
       for (const choice of group.choices) {
         const checkbox = form.querySelector(`input[name="multi-${CSS.escape(group.id)}"][value="${CSS.escape(choice.id)}"]`);
         checkbox.checked = Boolean(config.options[group.id]?.[choice.id]);
@@ -693,10 +802,10 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     }
     refresh();
     rememberSelection();
-    status.textContent = `${action.type === 'clear' ? 'התוספות נוקו' : action.type === 'undo-clear' ? 'התוספות הוחזרו' : 'הבחירות עודכנו'}, סה״כ ${money(unitPrice(product, config) * quantity)}`;
-    return { config, canUndoClear: Boolean(clearedExtras) };
+    status.textContent = `${undoing ? 'השינוי האחרון בוטל' : action.type === 'clear' ? 'התוספות נוקו' : action.type === 'undo-clear' ? 'התוספות הוחזרו' : 'הבחירות עודכנו'}, סה״כ ${money(unitPrice(product, config) * quantity)}`;
+    return { config, quantity, canUndo: Boolean(lastChange), canUndoClear: Boolean(clearedExtras) };
   };
-  document.querySelector('[data-expand-pizza]')?.addEventListener('click', () => openPizzaPreview(product, config, quantity, setPreviewConfig, Boolean(clearedExtras)));
+  document.querySelector('[data-expand-pizza]')?.addEventListener('click', () => openPizzaPreview(product, config, quantity, setPreviewConfig, Boolean(clearedExtras), Boolean(lastChange)));
 
   const priceToggle = document.querySelector('[data-price-toggle]');
   const pricePanel = document.querySelector('#price-panel');
@@ -710,7 +819,9 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   teardown.push(() => { document.removeEventListener('click', closeOutside); document.removeEventListener('keydown', closeOnEscape); });
 
   document.querySelector('#add-to-cart').addEventListener('click', async (event) => {
+    if (isAdding || configurationIssues(product, config).length) return;
     const button = event.currentTarget;
+    isAdding = true;
     button.disabled = true;
     closePrice();
     config = readConfig(form, product);
@@ -722,9 +833,10 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
       line = getLine(editLine.id);
       editLine = null;
     } else line = addLine(config, quantity);
-    if (!line) { button.disabled = false; refresh(); return; }
+    if (!line) { isAdding = false; refresh(); return; }
     recoveredEditId = null;
     clearedExtras = null;
+    lastChange = null;
     document.querySelector('[data-edit-recovery]').hidden = true;
     clearDraft(draftKey);
     draftKey = `product:${product.id}`;
@@ -737,7 +849,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     history.replaceState(null, '', `#/product/${product.id}`);
     refresh();
     const route = window.location.hash;
-    try { await flyToCart(art); } finally { button.disabled = false; }
+    try { await flyToCart(art); } finally { isAdding = false; button.disabled = false; }
     if (art.isConnected && window.location.hash === route) openAdded(line, updated);
   });
 
@@ -851,10 +963,16 @@ let previewReturnPosition = null;
 let previewReturnRoute = '';
 let previewEditor = null;
 
-function openPizzaPreview(product, config, quantity, onChange, canUndoClear = false) {
+function previewChoiceMarkup(group, choice) {
+  const available = isAvailable(choice);
+  const alternative = !available ? alternativeFor(group, choice) : null;
+  return `<div class="preview-choice-item"><button type="button" class="preview-choice" data-preview-group="${safe(group.id)}" data-preview-choice="${safe(choice.id)}" ${available ? '' : 'disabled'} aria-pressed="false">${choice.shape ? `<span class="preview-choice__art">${shapeIcon(choice.shape)}</span>` : ''}<span class="preview-choice__text"><strong>${safe(choice.name)}</strong><small data-preview-detail></small></span><span class="preview-choice__check">${icon('check')}</span></button>${alternative ? `<button type="button" class="preview-alternative" data-preview-alternative="${safe(alternative.id)}" data-preview-group="${safe(group.id)}" data-preview-from="${safe(choice.id)}">אפשר במקום: ${safe(alternative.name)}</button>` : ''}</div>`;
+}
+
+function openPizzaPreview(product, config, quantity, onChange, canUndoClear = false, canUndo = false) {
   previewReturnPosition = { top: window.scrollY, left: window.scrollX };
   previewReturnRoute = window.location.hash;
-  previewEditor = { product, config: normalizeConfig(product, config), quantity, onChange, scope: 'whole', canUndoClear };
+  previewEditor = { product, config: normalizeConfig(product, config), quantity, onChange, scope: 'whole', canUndoClear, canUndo };
   const selection = describe(product, config);
   const state = { ...pizzaState(product, config), scale: 1 };
   const groups = (product.optionGroups || []).filter((group) => group.type === 'multi' && group.placement);
@@ -865,7 +983,7 @@ function openPizzaPreview(product, config, quantity, onChange, canUndoClear = fa
       ${groups.length ? `<div class="pizza-preview__hitareas"><button type="button" data-preview-scope="right" aria-label="עריכת חצי ימין" aria-pressed="false"></button><button type="button" data-preview-scope="left" aria-label="עריכת חצי שמאל" aria-pressed="false"></button></div>` : ''}
     </div>
     ${groups.length ? `<div class="pizza-preview__scope" role="group" aria-label="איזה חלק של הפיצה עורכים?">${Object.entries(PLACEMENTS).map(([key, value]) => `<button type="button" data-preview-scope="${key}" aria-label="${value.label}" aria-pressed="${key === 'whole'}">${placementIcon(key)}${key === 'whole' ? 'שלמה' : key === 'right' ? 'ימין' : 'שמאל'}</button>`).join('')}</div>
-    <div class="pizza-preview__options"><div class="half-actions"><button type="button" data-copy-half>${icon('copy')}<span data-copy-half-label></span></button><button type="button" data-swap-halves>${icon('swap')}החלפת צדדים</button></div><div class="preview-clear"><button type="button" data-preview-clear>ניקוי תוספות</button><button type="button" data-preview-undo-clear hidden>${icon('undo')}החזרת התוספות</button></div>${groups.map((group) => `<fieldset><legend class="visually-hidden">${safe(group.name)}</legend><div class="preview-choices">${group.choices.map((choice) => `<button type="button" class="preview-choice" data-preview-group="${safe(group.id)}" data-preview-choice="${safe(choice.id)}" aria-pressed="false">${choice.shape ? `<span class="preview-choice__art">${shapeIcon(choice.shape)}</span>` : ''}<span class="preview-choice__text"><strong>${safe(choice.name)}</strong><small data-preview-detail></small></span><span class="preview-choice__check">${icon('check')}</span></button>`).join('')}</div></fieldset>`).join('')}<div class="preview-composition" data-preview-description></div></div>` : ''}
+    <div class="pizza-preview__options"><div class="half-actions"><button type="button" data-copy-half>${icon('copy')}<span data-copy-half-label></span></button><button type="button" data-swap-halves>${icon('swap')}החלפת צדדים</button></div><div class="preview-clear"><button type="button" data-preview-clear>ניקוי תוספות</button><button type="button" data-preview-undo-clear hidden>${icon('undo')}החזרת התוספות</button><button type="button" data-preview-undo-change hidden>${icon('undo')}ביטול השינוי האחרון</button></div>${groups.map((group) => `<fieldset><legend class="visually-hidden">${safe(group.name)}</legend><div class="preview-choices">${group.choices.map((choice) => previewChoiceMarkup(group, choice)).join('')}</div></fieldset>`).join('')}<div class="preview-composition" data-preview-description></div></div>` : ''}
     <footer class="pizza-preview__foot">${groups.length ? '' : '<div data-preview-description></div>'}<details class="preview-price"><summary aria-label="פירוט מחיר הפיצה"><bdi data-preview-total></bdi><span>פירוט מחיר ${icon('down')}</span></summary><div data-preview-price></div></details><button type="button" class="button pizza-preview__return" data-close-preview>חזרה לבחירות ${icon('back')}</button></footer>
     <p class="visually-hidden" aria-live="polite" data-preview-status></p>
   </div>`;
@@ -878,6 +996,7 @@ function refreshPizzaPreview() {
   if (!previewEditor) return;
   const { product, config, quantity, scope } = previewEditor;
   const selection = describe(product, config);
+  pizzaPreview.querySelector('#pizza-preview-title').textContent = [config.label, selection.title, quantity > 1 ? `${quantity} יח׳` : ''].filter(Boolean).join(' · ');
   pizzaPreview.querySelector('[data-preview-description]').innerHTML = compositionMarkup(selection);
   pizzaPreview.querySelector('[data-preview-total]').textContent = money(unitPrice(product, config) * quantity);
   pizzaPreview.querySelector('[data-preview-price]').innerHTML = priceMarkup(product, config, quantity);
@@ -893,6 +1012,7 @@ function refreshPizzaPreview() {
     pizzaPreview.querySelector('[data-swap-halves]').disabled = JSON.stringify(swapHalves(product, config).options) === JSON.stringify(config.options);
     pizzaPreview.querySelector('[data-preview-clear]').disabled = !(product.optionGroups || []).some((group) => group.type === 'multi' && Object.keys(config.options[group.id] || {}).length);
     pizzaPreview.querySelector('[data-preview-undo-clear]').hidden = !previewEditor.canUndoClear;
+    pizzaPreview.querySelector('[data-preview-undo-change]').hidden = !previewEditor.canUndo;
   }
   pizzaPreview.querySelectorAll('[data-preview-choice]').forEach((button) => {
     const group = product.optionGroups.find((item) => item.id === button.dataset.previewGroup);
@@ -901,8 +1021,8 @@ function refreshPizzaPreview() {
     const selected = placement === 'whole' || placement === scope;
     const price = choicePrice(choice, placement || scope);
     button.setAttribute('aria-pressed', String(Boolean(selected)));
-    button.setAttribute('aria-label', `${choice.name}, ${PLACEMENTS[scope].label}, ${selected ? 'נבחרה. הסרה מהחלק הזה' : 'הוספה לחלק הזה'}`);
-    button.querySelector('[data-preview-detail]').textContent = placement ? `${PLACEMENTS[placement].label} · ${price ? money(price) : 'כלול'}` : price ? `+${money(price)}` : 'כלול';
+    button.setAttribute('aria-label', `${choice.name}, ${!isAvailable(choice) ? 'אזל להיום' : `${PLACEMENTS[scope].label}, ${selected ? 'נבחרה. הסרה מהחלק הזה' : 'הוספה לחלק הזה'}`}`);
+    button.querySelector('[data-preview-detail]').textContent = !isAvailable(choice) ? 'אזל להיום' : placement ? `${PLACEMENTS[placement].label} · ${price ? money(price) : 'כלול'}` : price ? `+${money(price)}` : 'כלול';
   });
 }
 
@@ -912,6 +1032,8 @@ function applyPreviewChange(next, action = {}) {
   updatePizza(pizzaPreview.querySelector('.pizza'), { ...pizzaState(product, config), scale: 1 }, { ...pizzaState(product, result.config), scale: 1 });
   previewEditor.config = result.config;
   previewEditor.canUndoClear = result.canUndoClear;
+  previewEditor.canUndo = result.canUndo;
+  previewEditor.quantity = result.quantity;
   refreshPizzaPreview();
   pizzaPreview.querySelector('[data-preview-status]').textContent = `${action.type === 'clear' ? 'התוספות נוקו' : action.type === 'undo-clear' ? 'התוספות הוחזרו' : action.type === 'swap' ? 'התוספות החליפו צדדים' : action.type === 'copy' ? 'התוספות הועתקו לחצי הנבחר' : 'הבחירות עודכנו'}. סה״כ ${money(unitPrice(product, result.config) * previewEditor.quantity)}`;
 }
@@ -926,8 +1048,18 @@ pizzaPreview.addEventListener('click', (event) => {
   if (event.target.closest('[data-swap-halves]')) { applyPreviewChange(swapHalves(product, config), { type: 'swap' }); return; }
   if (event.target.closest('[data-preview-clear]')) { applyPreviewChange(config, { type: 'clear' }); pizzaPreview.querySelector('[data-preview-undo-clear]').focus({ preventScroll: true }); return; }
   if (event.target.closest('[data-preview-undo-clear]')) { applyPreviewChange(config, { type: 'undo-clear' }); pizzaPreview.querySelector('[data-preview-clear]').focus({ preventScroll: true }); return; }
+  if (event.target.closest('[data-preview-undo-change]')) { applyPreviewChange(config, { type: 'undo-change' }); pizzaPreview.querySelector('[data-preview-clear]').focus({ preventScroll: true }); return; }
+  const alternativeButton = event.target.closest('[data-preview-alternative]');
+  if (alternativeButton) {
+    const group = product.optionGroups.find((item) => item.id === alternativeButton.dataset.previewGroup);
+    const choice = group?.choices.find((item) => item.id === alternativeButton.dataset.previewAlternative);
+    if (!choice || !isAvailable(choice)) return;
+    const next = replaceExtra(product, config, group.id, alternativeButton.dataset.previewFrom, choice.id, scope);
+    applyPreviewChange(next);
+    return;
+  }
   const choiceButton = event.target.closest('[data-preview-choice]');
-  if (!choiceButton) return;
+  if (!choiceButton || choiceButton.disabled) return;
   const next = normalizeConfig(product, config);
   const choices = next.options[choiceButton.dataset.previewGroup];
   const id = choiceButton.dataset.previewChoice;
@@ -999,10 +1131,12 @@ function cartLineMarkup(line, compact = false) {
   const product = findProduct(line.config.productId);
   const info = describe(product, line.config);
   const extrasSummary = info.extras.length === 1 ? 'תוספת אחת' : `${info.extras.length} תוספות`;
+  const issues = lineIssues(line);
   return `<li class="cart-line" data-line="${safe(line.id)}">
     <span class="cart-line__art">${productArt(product, line.config)}</span>
     <div class="cart-line__body">
       ${itemLabelMarkup(line.config.label)}<h3>${safe(info.title)}</h3>
+      ${issues.length ? `<p class="cart-line__unavailable">צריך לעדכן: ${safe(issues.join(', '))}</p>` : ''}
     </div>
     <div class="cart-line__side"><bdi class="cart-line__price" data-line-price>${money(lineTotal(line, product))}</bdi>${stepper({ value: line.qty, label: `כמות: ${line.config.label || info.title}`, attr: 'data-line-qty', small: true })}</div>
     ${compact ? `<details class="cart-line__details cart-line__disclosure" data-cart-composition="${safe(line.id)}" ${cartExpanded.has(line.id) ? 'open' : ''}><summary aria-label="פירוט ההרכב: ${safe(line.config.label || info.title)}"><span>פירוט ההרכב${info.extras.length ? ` · ${extrasSummary}` : ''}${line.config.note ? ' והערה' : ''}</span>${icon('down')}</summary>` : '<div class="cart-line__details">'}${compositionMarkup(info)}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}${compact ? '</details>' : '</div>'}
@@ -1016,7 +1150,7 @@ function renderCart() {
   const removed = lastRemovedLine();
   const removedTitle = removed ? removed.config.label || describe(findProduct(removed.config.productId), removed.config).title : '';
   sheet.innerHTML = `<div class="sheet__panel">
-    <header class="sheet__head"><h2 id="cart-title">הסל שלכם</h2><span class="sheet__count" data-sheet-count>${count ? itemsText(count) : ''}</span><button type="button" class="icon-button" data-close-sheet aria-label="סגירת הסל">${icon('close')}</button></header>
+    <header class="sheet__head"><h2 id="cart-title">הסל שלכם</h2><span class="sheet__count" data-sheet-count>${count ? itemsText(count) : ''}</span><button type="button" class="icon-button" data-close-sheet aria-label="סגירת הסל">${icon('close')}</button>${orderProgress('cart')}</header>
     ${removed ? `<div class="cart-undo" role="status"><span>הפריט הוסר <bdi>${safe(removedTitle)}</bdi></span><button type="button" class="link-button" data-undo-remove>${icon('undo')}החזרה</button></div>` : ''}
     ${cart.length ? `<ul class="cart-lines${cart.length >= 3 ? ' cart-lines--compact' : ''}">${cart.map((line) => cartLineMarkup(line, cart.length >= 3)).join('')}</ul>
       <footer class="sheet__foot">
@@ -1158,8 +1292,11 @@ onFavoritesChange(() => { if (favoritesDialog.open) renderFavorites(); });
 
 onCartChange((change) => {
   const count = cartCount();
+  document.querySelectorAll('[data-order-progress]').forEach((nav) => {
+    if (nav.dataset.hasCart !== String(Boolean(count))) nav.outerHTML = orderProgress(nav.dataset.orderProgress, nav.dataset.productId || undefined);
+  });
   document.querySelectorAll('[data-cart-count]').forEach((node) => { node.textContent = count; node.hidden = count === 0; });
-  document.querySelectorAll('[data-open-cart]').forEach((node) => node.setAttribute('aria-label', cartLabel(count)));
+  document.querySelectorAll('[data-open-cart]').forEach((node) => { if (!node.closest('.order-progress')) node.setAttribute('aria-label', cartLabel(count)); });
   document.querySelectorAll('[data-hero-cart]').forEach((node) => { node.hidden = count === 0; });
   if (sheet.open) {
     if (change.type === 'update') {
@@ -1199,12 +1336,11 @@ const checkout = {
   memoryMessage: rememberedCustomer ? 'הפרטים השמורים מולאו. כתובת למשלוח תיבדק מחדש.' : '',
   memoryError: false,
   check: { status: 'idle' },
+  phoneTouched: false,
   errors: {},
   submitting: false,
   failure: false,
 };
-
-const validPhone = (value) => /^0(5\d{8}|[2-489]\d{7}|7\d{8})$/.test(value.replace(/[\s-]/g, ''));
 
 function customerPreferenceMarkup() {
   return `<label class="customer-memory__choice"><input type="checkbox" name="rememberDetails" ${checkout.remember ? 'checked' : ''} /><span><strong>לשמור פרטים להזמנה הבאה</strong><small>פרטי קשר וכתובת במכשיר הזה, רק לפי בחירתכם.</small></span></label>
@@ -1244,11 +1380,32 @@ function checkoutTotals() {
 
 function field({ name, label, value, group, autocomplete = '', inputmode = '', wide = false, optional = false, type = 'text' }) {
   const error = checkout.errors[name];
+  const phone = name === 'phone';
+  const phoneValid = phone && checkout.phoneTouched && !error && validPhone(value);
   return `<div class="field field--${name}${wide ? ' field--wide' : ''}${error ? ' field--invalid' : ''}">
     <label for="f-${name}">${label}${optional ? ' <span class="field__optional">לא חובה</span>' : ''}</label>
-    <input class="input" id="f-${name}" name="${name}" type="${type}" data-group="${group}" value="${safe(value)}" ${autocomplete ? `autocomplete="${autocomplete}"` : ''} ${inputmode ? `inputmode="${inputmode}"` : ''} ${error ? `aria-invalid="true" aria-describedby="e-${name}"` : ''} dir="auto" />
-    ${error ? `<p class="field__error" id="e-${name}">${error}</p>` : ''}
+    <input class="input" id="f-${name}" name="${name}" type="${type}" data-group="${group}" value="${safe(value)}" ${autocomplete ? `autocomplete="${autocomplete}"` : ''} ${inputmode ? `inputmode="${inputmode}"` : ''} ${error ? 'aria-invalid="true"' : ''} ${error || phone ? `aria-describedby="e-${name}"` : ''} dir="${phone ? 'ltr' : 'auto'}" />
+    ${phone ? `<p class="phone-feedback${error ? ' field__error' : phoneValid ? ' is-valid' : ''}" id="e-phone" role="status">${error ? safe(error) : phoneValid ? `${icon('check')}מבנה המספר תקין` : ''}</p>` : error ? `<p class="field__error" id="e-${name}">${safe(error)}</p>` : ''}
   </div>`;
+}
+
+function checkPhoneField(input, format = true) {
+  checkout.phoneTouched = true;
+  const error = phoneProblem(input.value);
+  const wrapper = input.closest('.field');
+  const feedback = wrapper.querySelector('.phone-feedback');
+  wrapper.classList.toggle('field--invalid', Boolean(error));
+  input.setAttribute('aria-invalid', String(Boolean(error)));
+  feedback.classList.toggle('field__error', Boolean(error));
+  feedback.classList.toggle('is-valid', !error);
+  feedback.innerHTML = error ? safe(error) : `${icon('check')}מבנה המספר תקין`;
+  if (error) checkout.errors.phone = error;
+  else {
+    delete checkout.errors.phone;
+    if (format) input.value = formatPhone(input.value);
+  }
+  checkout.contact.phone = input.value;
+  syncCustomerMemory();
 }
 
 function addressStatus() {
@@ -1273,8 +1430,9 @@ function checkoutState() {
   const totals = checkoutTotals();
   const out = checkout.mode === 'delivery' && checkout.check.status === 'out';
   const needsAddress = checkout.mode === 'delivery' && checkout.check.status !== 'ok';
-  const blocked = !open || totals.shortBy > 0 || needsAddress;
-  const reason = !open ? `סגור כרגע · נפתח ב־${shop.hours.opensAt}` : totals.shortBy ? `חסרים ${money(totals.shortBy)} למינימום` : out ? 'הכתובת מחוץ לאזור' : needsAddress ? checkout.check.status === 'checking' ? 'בודקים את הכתובת…' : 'בחרו כתובת למשלוח' : '';
+  const unavailable = getCart().some((line) => lineIssues(line).length);
+  const blocked = !open || unavailable || totals.shortBy > 0 || needsAddress;
+  const reason = !open ? `סגור כרגע · נפתח ב־${shop.hours.opensAt}` : unavailable ? 'עדכנו את הפריטים שאינם זמינים' : totals.shortBy ? `חסרים ${money(totals.shortBy)} למינימום` : out ? 'הכתובת מחוץ לאזור' : needsAddress ? checkout.check.status === 'checking' ? 'בודקים את הכתובת…' : 'בחרו כתובת למשלוח' : '';
   return { open, totals, blocked, reason };
 }
 
@@ -1304,7 +1462,8 @@ function summaryMarkup() {
     <ul class="summary__lines">${getCart().map((line) => {
       const product = findProduct(line.config.productId);
       const info = describe(product, line.config);
-      return `<li><a class="summary__edit" href="#/product/${safe(product.id)}/edit/${safe(line.id)}?return=checkout" data-checkout-edit="${safe(line.id)}" aria-label="עריכת ${safe(line.config.label || info.title)} וחזרה לקופה"><span class="summary__art">${productArt(product, line.config)}</span><div class="summary__text">${itemLabelMarkup(line.config.label)}<strong>${line.qty > 1 ? `${line.qty} × ` : ''}${safe(info.title)}</strong>${checkout.updatedLine === line.id ? '<small class="summary__updated" role="status">הפריט עודכן</small>' : ''}</div><span class="summary__line-side"><bdi>${money(lineTotal(line, product))}</bdi><small>עריכה ${icon('edit')}</small></span><div class="summary__composition">${compositionMarkup(info)}</div></a></li>`;
+      const issues = lineIssues(line);
+      return `<li><a class="summary__edit" href="#/product/${safe(product.id)}/edit/${safe(line.id)}?return=checkout" data-checkout-edit="${safe(line.id)}" aria-label="עריכת ${safe(line.config.label || info.title)} וחזרה לקופה"><span class="summary__art">${productArt(product, line.config)}</span><div class="summary__text">${itemLabelMarkup(line.config.label)}<strong>${line.qty > 1 ? `${line.qty} × ` : ''}${safe(info.title)}</strong>${issues.length ? `<small class="cart-line__unavailable">צריך לעדכן: ${safe(issues.join(', '))}</small>` : ''}${checkout.updatedLine === line.id ? '<small class="summary__updated" role="status">הפריט עודכן</small>' : ''}</div><span class="summary__line-side"><bdi>${money(lineTotal(line, product))}</bdi><small>עריכה ${icon('edit')}</small></span><div class="summary__composition">${compositionMarkup(info)}</div></a></li>`;
     }).join('')}</ul>
     <button type="button" class="link-button" data-open-cart>עריכת הסל</button>
     <dl class="summary__totals">
@@ -1327,10 +1486,16 @@ function checkoutPage(focusId) {
   }
   const { open } = checkoutState();
   const { address, contact } = checkout;
+  if (checkout.phoneTouched) {
+    const error = phoneProblem(contact.phone);
+    if (error) checkout.errors.phone = error;
+    else delete checkout.errors.phone;
+  }
 
   app.innerHTML = `${topbar(productHref())}
     <main class="page checkout"><div class="wrap checkout__layout">
       <form class="checkout__form" id="checkout-form" novalidate>
+        ${orderProgress('details')}
         <header class="page-head"><h1>קופה לדוגמה</h1><p>אפשר לשנות כאן את אופן הקבלה ולמלא פרטי קשר.</p></header>
         <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>הדגמה בלבד:</strong> לא נשלחת הזמנה ולא מתבצע חיוב. אזורי השירות והמחירים הם דוגמאות.</span></div>
         ${!open ? `<div class="notice notice--warn" role="alert">${icon('alert')}<span><strong>הפיצרייה סגורה כרגע.</strong> ההזמנות נפתחות ב־${shop.hours.opensAt} (שעות לדוגמה). הסל נשמר בינתיים.</span></div>` : ''}
@@ -1380,6 +1545,7 @@ function checkoutPage(focusId) {
     <div class="buybar"><div class="buybar__inner" id="checkout-bar">${checkoutBarMarkup()}</div></div>`;
 
   const form = document.querySelector('#checkout-form');
+  form.addEventListener('focusout', (event) => { if (event.target.name === 'phone') checkPhoneField(event.target); });
   form.addEventListener('change', (event) => {
     if (event.target.name === 'rememberDetails') {
       checkout.remember = event.target.checked;
@@ -1396,6 +1562,15 @@ function checkoutPage(focusId) {
     if (!dataset.group) return;
     checkout[dataset.group][name] = value;
     syncCustomerMemory();
+    if (name === 'phone') {
+      delete checkout.errors.phone;
+      const wrapper = event.target.closest('.field');
+      wrapper.classList.remove('field--invalid');
+      event.target.removeAttribute('aria-invalid');
+      wrapper.querySelector('.phone-feedback').className = 'phone-feedback';
+      wrapper.querySelector('.phone-feedback').textContent = '';
+      return;
+    }
     if (checkout.errors[name]) {
       delete checkout.errors[name];
       const wrapper = event.target.closest('.field');
@@ -1526,13 +1701,14 @@ async function runAddressCheck() {
 async function placeOrder() {
   if (checkout.submitting) return;
   if (!isOpen() || !getCart().length) { refreshCheckoutParts(); return; }
+  if (getCart().some((line) => lineIssues(line).length)) { refreshCheckoutParts(); document.querySelector('#summary')?.scrollIntoView({ block: 'start' }); return; }
   const errors = {};
   if (checkout.mode === 'delivery') {
     if (!checkout.address.place) errors.addressQuery = 'בחרו כתובת מלאה עם מספר בית מתוך הרשימה.';
   }
   if (!checkout.contact.name.trim()) errors.name = 'איך לפנות אליכם?';
-  if (!checkout.contact.phone.trim()) errors.phone = 'צריך טלפון כדי לעדכן על ההזמנה.';
-  else if (!validPhone(checkout.contact.phone)) errors.phone = 'המספר לא נראה תקין. למשל: 050-1234567';
+  const phoneError = phoneProblem(checkout.contact.phone);
+  if (phoneError) errors.phone = phoneError;
   checkout.errors = errors;
   checkout.failure = false;
   if (Object.keys(errors).length) {
@@ -1601,6 +1777,7 @@ function donePage() {
         <div class="notice notice--warn">${icon('alert')}<span><strong>הדגמה: ההזמנה לא נשלחה ולא בוצע חיוב.</strong> במערכת האמיתית המסך הזה יופיע רק אחרי שהפיצרייה קיבלה את ההזמנה והתשלום אושר.</span></div>
         <ol class="done__steps">${steps.map((step) => `<li>${step}</li>`).join('')}</ol>
         <a class="button button--quiet" href="#/">לעמוד הפתיחה</a>
+        <a class="link-button done__repeat" href="#/repeat">${icon('undo')}להזמין שוב</a>
       </div>
       <div class="ticket-wrap"><article class="ticket" aria-label="פרטי ההזמנה">
         <header class="ticket__head"><strong>${safe(shop.name)}</strong><span>הזמנה <bdi>${safe(order.reference)}</bdi></span><span><bdi>${when}</bdi></span></header>
@@ -1665,6 +1842,7 @@ function render() {
     checkout.returnFromEdit = null;
     checkoutPage();
   }
+  else if (route.page === 'repeat') repeatPage();
   else if (route.page === 'done') donePage();
   else home();
   const bar = document.querySelector('.buybar');

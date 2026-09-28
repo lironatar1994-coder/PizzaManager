@@ -1,5 +1,5 @@
-import { findProduct } from './data.js?v=20260928-speed1';
-import { lineTotal, normalizeConfig } from './order.js?v=20260928-speed1';
+import { findProduct } from './data.js?v=20260928-flow1';
+import { lineTotal, normalizeConfig } from './order.js?v=20260928-flow1';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
@@ -196,5 +196,6 @@ export function clearCart() {
   commit({ type: 'clear' });
 }
 
-export const saveLastOrder = (order) => write('sessionStorage', ORDER_KEY, order);
-export const getLastOrder = () => read('sessionStorage', ORDER_KEY, null);
+let lastOrder = read('sessionStorage', ORDER_KEY, null);
+export const saveLastOrder = (order) => { lastOrder = order; return write('sessionStorage', ORDER_KEY, order); };
+export const getLastOrder = () => lastOrder;

@@ -1,4 +1,4 @@
-import { shop } from './data.js?v=20260928-speed1';
+import { shop, isAvailable } from './data.js?v=20260928-flow1';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 
@@ -14,8 +14,75 @@ export function variantsFor(product) {
 
 export function defaultConfig(product) {
   const options = {};
-  for (const group of product.optionGroups || []) options[group.id] = group.type === 'single' ? group.choices[0]?.id : {};
-  return { productId: product.id, variantId: variantsFor(product)[0].id, options, note: '', label: '' };
+  for (const group of product.optionGroups || []) options[group.id] = group.type === 'single' ? (group.choices.find(isAvailable) || group.choices[0])?.id : {};
+  return { productId: product.id, variantId: (variantsFor(product).find(isAvailable) || variantsFor(product)[0]).id, options, note: '', label: '' };
+}
+
+// שומר תוספת שאזלה בהרכב קיים כדי להציג את הבעיה, במקום להסיר אותה בשקט.
+export function configurationIssues(product, config) {
+  const issues = [];
+  const variant = selectedVariant(product, config);
+  if (!isAvailable(variant)) issues.push({ name: variant.name || product.name, kind: 'variant' });
+  for (const group of product.optionGroups || []) {
+    const value = config.options?.[group.id];
+    for (const choice of group.choices) {
+      if ((group.type === 'single' ? choice.id === value : value?.[choice.id]) && !isAvailable(choice)) issues.push({ name: choice.name, groupId: group.id, choiceId: choice.id, kind: 'choice' });
+    }
+  }
+  return issues;
+}
+
+export function availableConfig(product, config) {
+  const next = normalizeConfig(product, config);
+  if (!isAvailable(selectedVariant(product, next))) next.variantId = (variantsFor(product).find(isAvailable) || variantsFor(product)[0]).id;
+  for (const group of product.optionGroups || []) {
+    if (group.type === 'single') {
+      if (!isAvailable(group.choices.find((choice) => choice.id === next.options[group.id]))) next.options[group.id] = (group.choices.find(isAvailable) || group.choices[0])?.id;
+    } else for (const choice of group.choices) if (!isAvailable(choice)) delete next.options[group.id][choice.id];
+  }
+  return next;
+}
+
+// שחזור ההרכב בלבד. כתובת, טלפון, מחיר היסטורי ואישור תשלום אינם מקור להזמנה חדשה.
+export function prepareRepeatOrder(order, products) {
+  const lines = [];
+  const notices = [];
+  for (const saved of Array.isArray(order?.lines) ? order.lines.slice(0, 50) : []) {
+    const product = products.find((item) => item.id === saved.config?.productId);
+    const title = String(saved.label || saved.title || 'פריט מההזמנה הקודמת').slice(0, 100);
+    if (!product || !isAvailable(product)) { notices.push(`${title}: המוצר אינו זמין בתפריט הנוכחי.`); continue; }
+    const normalized = normalizeConfig(product, saved.config);
+    const issues = configurationIssues(product, normalized);
+    const config = availableConfig(product, normalized);
+    if (configurationIssues(product, config).length) { notices.push(`${title}: אין כרגע אפשרויות זמינות להרכבה.`); continue; }
+    for (const issue of issues) notices.push(`${title}: ${issue.name} אינו זמין היום; ההרכב עודכן.`);
+    if (JSON.stringify([saved.config.variantId, saved.config.options]) !== JSON.stringify([normalized.variantId, normalized.options])) notices.push(`${title}: אפשרויות שהוסרו מהתפריט הותאמו להרכב הנוכחי.`);
+    const qty = Math.max(1, Math.min(99, Math.floor(Number(saved.qty) || 1)));
+    lines.push({ config, qty, title: describe(product, config).title, total: unitPrice(product, config) * qty });
+  }
+  return { lines, notices, total: lines.reduce((sum, line) => sum + line.total, 0) };
+}
+
+export function configurationChanges(product, before, after, beforeQty = 1, afterQty = 1) {
+  const changes = [];
+  if (before.variantId !== after.variantId) changes.push(`גודל: מ${selectedVariant(product, before).name || 'הגודל הקודם'} ל${selectedVariant(product, after).name || 'הגודל החדש'}`);
+  for (const group of product.optionGroups || []) {
+    if (group.type === 'single') {
+      if (before.options[group.id] !== after.options[group.id]) changes.push(`בחירה: ${group.choices.find((choice) => choice.id === after.options[group.id])?.name || group.name}`);
+    } else for (const choice of group.choices) {
+      const previous = before.options[group.id]?.[choice.id];
+      const next = after.options[group.id]?.[choice.id];
+      if (previous === next) continue;
+      if (!next) changes.push(`הוסר: ${choice.name}`);
+      else changes.push(`${previous ? 'מיקום עודכן' : 'נוסף'}: ${choice.name}${group.placement ? ` · ${PLACEMENTS[next].label}` : ''}`);
+    }
+  }
+  if (beforeQty !== afterQty) changes.push(`כמות: מ־${beforeQty} ל־${afterQty}`);
+  if (before.label !== after.label) changes.push(after.label ? `שם הפריט: ${after.label}` : 'שם הפריט הוסר');
+  if (before.note !== after.note) changes.push(after.note ? 'ההוראות למטבח עודכנו' : 'ההוראות למטבח הוסרו');
+  const previousTotal = unitPrice(product, before) * beforeQty;
+  const total = unitPrice(product, after) * afterQty;
+  return { changes, previousTotal, total, delta: total - previousTotal };
 }
 
 // שומר על תצורה תקינה גם אם המוצר השתנה מאז שנשמרה בסל.
@@ -63,6 +130,19 @@ export function swapHalves(product, config) {
       else if (placement === 'left') next.options[group.id][id] = 'right';
     }
   }
+  return next;
+}
+
+// חלופה מחליפה את התוספת במקום המקורי; כיסוי בשני חצאים מתאחד לפיצה שלמה.
+export function replaceExtra(product, config, groupId, from, to, fallbackPlacement = 'whole') {
+  const next = normalizeConfig(product, config);
+  const group = product.optionGroups?.find((item) => item.id === groupId);
+  if (!group || group.type !== 'multi' || from === to || !group.choices.some((choice) => choice.id === from) || !isAvailable(group.choices.find((choice) => choice.id === to))) return next;
+  const choices = next.options[groupId];
+  const placement = choices[from] || (group.placement && PLACEMENTS[fallbackPlacement] ? fallbackPlacement : 'whole');
+  const existing = choices[to];
+  delete choices[from];
+  choices[to] = existing && existing !== placement ? 'whole' : placement;
   return next;
 }
 

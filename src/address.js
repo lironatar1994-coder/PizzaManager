@@ -1,4 +1,4 @@
-import { shop } from './data.js?v=20260928-speed1';
+import { shop } from './data.js?v=20260928-flow1';
 
 const normalize = (text) => String(text || '').normalize('NFKC').trim().replace(/[\s\u05be\u2010-\u2015-]+/g, ' ');
 const cache = new Map();
