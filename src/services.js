@@ -1,6 +1,7 @@
 // חיפוש כתובת אמיתי; קליטת ההזמנה והתשלום עדיין מדומים. שרת אמיתי יחשב ויאמת הכול מחדש.
-import { demoFlags } from './data.js?v=20260928-flow1';
-import { verifySelectedAddress } from './address.js?v=20260928-flow1';
+import { demoFlags } from './data.js?v=20260928-convenience1';
+import { openingStatus } from './schedule.js?v=20260928-convenience1';
+import { verifySelectedAddress } from './address.js?v=20260928-convenience1';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 export const verifyAddress = verifySelectedAddress;
@@ -19,7 +20,7 @@ export function formatPhone(value) {
 }
 
 export function isOpen() {
-  return !demoFlags().closed;
+  return openingStatus().open;
 }
 
 export async function submitOrder(order) {

@@ -538,9 +538,9 @@ legend.field-group__head { float: inline-start; }
 .topping__placement-toggle .icon { width: 16px; height: 16px; transition: transform .2s var(--ease-out); }
 .topping__placement-toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
 .topping__placement-toggle:hover { color: var(--text); }
-.topping:not(:has(.topping__main input:checked)) .topping__placement-toggle { display: none; }
+
 .placement { display: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-1); padding: 0 var(--space-2) var(--space-2); animation: placement-in .3s var(--ease-out); }
-.topping.is-editing:has(.topping__main input:checked) .placement { display: grid; }
+.topping.is-editing .placement { display: grid; }
 @keyframes placement-in { from { opacity: 0; transform: translateY(-4px); } }
 .placement__option { position: relative; cursor: pointer; }
 .placement__option > span:first-of-type { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 2px var(--space-2); border-radius: var(--radius-s); color: var(--text-3); font-size: var(--fs-tiny); font-weight: 600; transition: background .15s, color .15s; }
@@ -995,3 +995,64 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
 .info__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); margin-block-start: var(--space-2); }
 .info__call { grid-column: 1 / -1; }
 .pickup-card__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block-start: var(--space-3); }
+
+/* מחיר חצי, שעות ואיסוף — אותה היררכיה חמה ושקטה של ההזמנה */
+.hero__hours { border: 0; font-family: inherit; text-align: start; max-width: calc(100% - 40px); cursor: pointer; min-height: 44px; }
+.hero__hours:hover { background: var(--stage); }
+.hero__closed[hidden] { display: none; }
+.placement__option small { display: block; font-size: var(--fs-tiny); color: var(--text-2); font-weight: 700; font-variant-numeric: tabular-nums; }
+.selected-extras__editor [data-quick-placement] > span { display: grid; gap: var(--space-1); }
+.selected-extras__editor [data-quick-placement] small { font-size: var(--fs-tiny); color: inherit; font-variant-numeric: tabular-nums; }
+.food-info { margin-block-start: var(--space-2); max-width: 65ch; font-size: var(--fs-small); color: var(--text-2); }
+.food-info > summary { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; width: fit-content; cursor: pointer; list-style: none; font-weight: 600; }
+.food-info > summary::-webkit-details-marker { display: none; }
+.food-info > summary .icon { width: 18px; height: 18px; }
+.food-info > summary .icon:last-child { width: 15px; height: 15px; transition: transform .2s var(--ease-out); }
+.food-info[open] > summary .icon:last-child { transform: rotate(180deg); }
+.food-info > div { padding: var(--space-3) var(--space-4); border-radius: var(--radius-m); background: var(--surface-2); }
+.food-info__notice { color: var(--warm-text); font-weight: 600; }
+.food-info dl { margin-block: var(--space-3); display: grid; gap: var(--space-2); }
+.food-info dl > div { display: grid; grid-template-columns: minmax(64px, max-content) 1fr; gap: var(--space-3); }
+.food-info dt { font-weight: 700; }
+.food-info dd { margin: 0; }
+.food-info div > p { margin-block: var(--space-2); }
+.food-info__contact { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 44px; color: var(--text); }
+.food-info__contact .icon { width: 18px; height: 18px; }
+.weekly-hours { margin-block: var(--space-4); }
+.weekly-hours > div { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); padding-block: var(--space-2); border-block-end: 1px solid var(--line); font-size: var(--fs-small); }
+.weekly-hours dd { margin: 0; font-variant-numeric: tabular-nums; text-align: end; }
+.weekly-hours dt small { display: block; color: var(--text-3); font-size: var(--fs-tiny); }
+.weekly-hours .is-today { font-weight: 800; }
+.hours-exceptions > summary { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); min-height: 44px; cursor: pointer; list-style: none; font-size: var(--fs-small); }
+.hours-exceptions > summary::-webkit-details-marker { display: none; }
+.hours-exceptions .icon { width: 16px; height: 16px; }
+.minimum-offers { margin: 0; padding: 0; list-style: none; }
+.minimum-offers > li { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding-block: var(--space-3); border-block-start: 1px solid var(--line-strong); }
+.minimum-offers > li > div { flex: 1; min-width: 0; }
+.minimum-offers strong { display: block; color: var(--text); font-size: var(--fs-small); font-weight: 700; }
+.minimum-offers p { margin-block: var(--space-1); color: var(--text-2); font-size: var(--fs-small); }
+.minimum-offers small { color: var(--warm-text); font-size: var(--fs-tiny); }
+.minimum-offers .button { flex: none; min-height: 44px; font-size: var(--fs-small); white-space: nowrap; }
+.minimum-recovery { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); margin-block-start: var(--space-3); color: var(--text-2); font-size: var(--fs-small); }
+.minimum-recovery .link-button { min-height: 44px; }
+.pickup-timing .tile__surface { min-height: 90px; }
+.pickup-date-row { display: flex; gap: var(--space-2); overflow-x: auto; padding-block: var(--space-4) var(--space-2); scrollbar-width: thin; }
+.pickup-date-row > button { flex: none; min-height: 44px; border: 0; border-radius: var(--radius-s); background: var(--surface-2); color: var(--text-2); padding: var(--space-2) var(--space-3); font: inherit; font-size: var(--fs-small); font-weight: 600; }
+.pickup-date-row > button[aria-pressed="true"] { color: var(--select-ink); background: var(--select); }
+.pickup-date-row > button:hover:not([aria-pressed="true"]) { background: var(--surface-3); }
+.pickup-slot-label { display: block; margin-block: var(--space-3) var(--space-2); color: var(--text); font-size: var(--fs-small); font-weight: 700; }
+.pickup-schedule select { min-height: 52px; width: 100%; font-variant-numeric: tabular-nums; }
+.pickup-schedule__hint { margin-block-start: var(--space-2); color: var(--text-2); font-size: var(--fs-small); line-height: 1.6; }
+.pickup-schedule__hint.is-error { color: var(--danger); }
+.summary__pickup { display: flex; align-items: baseline; gap: var(--space-2); margin-block: var(--space-4); color: var(--text); font-size: var(--fs-small); font-weight: 700; }
+.summary__pickup .icon { width: 18px; height: 18px; align-self: center; }
+[data-business-status]:not(:empty) { margin-block-end: var(--space-5); }
+[data-repeat-preference] { margin-block: var(--space-4); }
+@media (max-width: 380px) {
+  .minimum-offers > li { align-items: stretch; flex-direction: column; gap: var(--space-2); }
+  .minimum-offers .button { align-self: start; }
+  .food-info dl > div { grid-template-columns: 1fr; gap: 0; }
+}
+
+.checkout__form { min-inline-size: 0; }
+.pickup-schedule select { text-align: end; }

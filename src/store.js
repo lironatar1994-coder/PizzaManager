@@ -1,8 +1,11 @@
-import { findProduct } from './data.js?v=20260928-flow1';
-import { lineTotal, normalizeConfig } from './order.js?v=20260928-flow1';
+import { findProduct } from './data.js?v=20260928-convenience1';
+import { lineTotal, normalizeConfig } from './order.js?v=20260928-convenience1';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
+const REPEAT_KEY = 'pizza-demo-repeat-order-v1';
+const REPEAT_PREFERENCE_KEY = 'pizza-demo-repeat-consent-v1';
+const REPEAT_LIFETIME = 90 * 24 * 60 * 60 * 1000;
 const DRAFT_KEY = 'pizza-demo-builder-drafts-v1';
 const MODE_KEY = 'pizza-demo-order-mode-v1';
 const FAVORITES_KEY = 'pizza-demo-favorites-v1';
@@ -197,5 +200,42 @@ export function clearCart() {
 }
 
 let lastOrder = read('sessionStorage', ORDER_KEY, null);
-export const saveLastOrder = (order) => { lastOrder = order; return write('sessionStorage', ORDER_KEY, order); };
+export const saveLastOrder = (order) => {
+  lastOrder = order;
+  write('sessionStorage', ORDER_KEY, order);
+  return repeatConsent ? persistRepeat(order) : true;
+};
 export const getLastOrder = () => lastOrder;
+
+// שומרים רק הרכב וכמויות בהסכמה; ללא פרטי קשר, כתובת, שם אישי, הערה, תשלום או מחיר היסטורי.
+let repeatConsent = read('localStorage', REPEAT_PREFERENCE_KEY, false) === true;
+let savedRepeat = read('localStorage', REPEAT_KEY, null);
+if (!savedRepeat || !Number.isFinite(savedRepeat.savedAt) || Date.now() - savedRepeat.savedAt > REPEAT_LIFETIME || !Array.isArray(savedRepeat.lines)) savedRepeat = null;
+export const remembersRepeatOrder = () => repeatConsent;
+export const getRepeatOrder = () => lastOrder || (repeatConsent ? savedRepeat : null);
+
+function persistRepeat(order) {
+  const lines = (order?.lines || []).slice(0, 50).flatMap((line) => {
+    const product = findProduct(line.config?.productId);
+    if (!product) return [];
+    const config = normalizeConfig(product, line.config);
+    return [{ config: { productId: config.productId, variantId: config.variantId, options: structuredClone(config.options), note: '', label: '' }, qty: boundedQty(line.qty) }];
+  });
+  if (!lines.length) return false;
+  const record = { version: 1, savedAt: Date.now(), lines };
+  const ok = write('localStorage', REPEAT_KEY, record);
+  if (ok) savedRepeat = record;
+  return ok;
+}
+
+export function rememberRepeatOrder(enabled) {
+  repeatConsent = Boolean(enabled);
+  const preferenceSaved = write('localStorage', REPEAT_PREFERENCE_KEY, repeatConsent);
+  if (!repeatConsent) {
+    const deleted = write('localStorage', REPEAT_KEY, null);
+    if (deleted) savedRepeat = null;
+    return { ok: preferenceSaved && deleted, saved: false };
+  }
+  const saved = lastOrder ? persistRepeat(lastOrder) : Boolean(savedRepeat);
+  return { ok: preferenceSaved && (!lastOrder || saved), saved };
+}

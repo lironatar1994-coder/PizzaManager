@@ -19,7 +19,12 @@ export const shop = {
   location: { address: 'רחוב הדוגמה 1, תל אביב' },
   // תוספת על חצי פיצה עולה חצי ממחיר התוספת, מעוגל כלפי מעלה.
   halfToppingFactor: 0.5,
-  pickup: { readyHint: 'בהזמנה אמיתית תישלח הודעה כשהאיסוף מוכן' },
+  pickup: {
+    readyHint: 'בהזמנה אמיתית תישלח הודעה כשהאיסוף מוכן',
+    // חלונות וקיבולת לדוגמה. booked יתעדכן בשרת ההזמנות כשיחובר; הדפדפן אינו מקצה מקום.
+    schedule: { enabled: true, slotMinutes: 15, preparationMinutes: 30, daysAhead: 7, ordersPerSlot: 6, slots: {} },
+    // אפשר להוסיף weekly או exceptions כדי לצמצם איסוף בתוך שעות העסק.
+  },
   // השלמת כתובות אמיתיות מ־OpenStreetMap. שירות ציבורי להדגמה; ניתן להחליף בשרת פרטי.
   addressLookup: { endpoint: 'https://photon.komoot.io/api/', countryCode: 'IL', center: [34.80, 32.08] },
   // תחומי שירות משוערים לדוגמה בלבד, בקואורדינטות [קו אורך, קו רוחב].
@@ -28,7 +33,23 @@ export const shop = {
     { id: 'zone-a', name: 'אזור משלוח א׳', cities: ['תל אביב', 'תל אביב-יפו', 'תל אביב יפו', 'יפו'], polygon: [[34.742, 32.035], [34.810, 32.035], [34.810, 32.130], [34.742, 32.130]], fee: 12, minOrder: 60 },
     { id: 'zone-b', name: 'אזור משלוח ב׳', cities: ['רמת גן', 'גבעתיים'], polygon: [[34.790, 32.048], [34.862, 32.048], [34.862, 32.120], [34.790, 32.120]], fee: 18, minOrder: 80 },
   ],
-  hours: { opensAt: '12:00', closesAt: '23:00' },
+  // שעות דוגמה בלבד. מספרי הימים: ראשון 0 עד שבת 6; ניתן להגדיר כמה מקטעים ביום.
+  hours: {
+    timeZone: 'Asia/Jerusalem',
+    weekly: {
+      0: [{ open: '12:00', close: '23:00' }],
+      1: [{ open: '12:00', close: '23:00' }],
+      2: [{ open: '12:00', close: '23:00' }],
+      3: [{ open: '12:00', close: '23:00' }],
+      4: [{ open: '12:00', close: '23:00' }],
+      5: [{ open: '12:00', close: '16:00' }],
+      6: [{ open: '18:00', close: '23:00' }],
+    },
+    exceptions: {
+      '2026-10-05': { closed: true, note: 'סגירה לדוגמה' },
+      '2026-10-06': { intervals: [{ open: '16:00', close: '23:00' }], note: 'פתיחה מאוחרת לדוגמה' },
+    },
+  },
 };
 
 export const products = [
@@ -40,6 +61,8 @@ export const products = [
     visual: 'pizza',
     image: null,
     imageAlt: 'הדמיית הפיצה לפי הבחירות',
+    // להמחשה בלבד. מידע אמיתי יוצג רק לאחר אישור העסק: reviewed: true.
+    foodInfo: { reviewed: false, ingredients: ['בצק חיטה', 'רוטב עגבניות', 'מוצרלה'], allergens: ['חיטה (גלוטן)', 'חלב'], crossContact: 'מידע על סביבת ההכנה טרם נמסר מהעסק.' },
     // מידות, חיתוך וקיצורי הערות להמחשה. ייערכו יחד עם המוצר בממשק הניהול.
     notePresets: ['לחתוך לריבועים', 'בלי לחתוך', 'לחלק ל־8 משולשים'],
     variants: [
@@ -54,8 +77,8 @@ export const products = [
         type: 'single',
         visualRole: 'crust',
         choices: [
-          { id: 'classic', name: 'קלאסי', detail: 'שוליים אווריריים', price: 0, crust: 'classic' },
-          { id: 'thin', name: 'דק', detail: 'פריך וקליל', price: 0, crust: 'thin' },
+          { id: 'classic', name: 'קלאסי', detail: 'שוליים אווריריים', price: 0, crust: 'classic', foodInfo: { reviewed: false, ingredients: ['בצק חיטה'], allergens: ['חיטה (גלוטן)'] } },
+          { id: 'thin', name: 'דק', detail: 'פריך וקליל', price: 0, crust: 'thin', foodInfo: { reviewed: false, ingredients: ['בצק חיטה דק'], allergens: ['חיטה (גלוטן)'] } },
         ],
       },
       {
@@ -64,14 +87,14 @@ export const products = [
         type: 'multi',
         placement: true,
         choices: [
-          { id: 'olives', name: 'זיתים', price: 6, shape: 'olive' },
-          { id: 'mushrooms', name: 'פטריות', price: 6, shape: 'mushroom' },
-          { id: 'corn', name: 'תירס', price: 5, shape: 'corn' },
-          { id: 'onion', name: 'בצל סגול', price: 5, shape: 'onion' },
+          { id: 'olives', name: 'זיתים', price: 6, shape: 'olive', foodInfo: { reviewed: false, ingredients: ['זיתים'], allergens: [] } },
+          { id: 'mushrooms', name: 'פטריות', price: 6, shape: 'mushroom', foodInfo: { reviewed: false, ingredients: ['פטריות'], allergens: [] } },
+          { id: 'corn', name: 'תירס', price: 5, shape: 'corn', foodInfo: { reviewed: false, ingredients: ['תירס'], allergens: [] } },
+          { id: 'onion', name: 'בצל סגול', price: 5, shape: 'onion', foodInfo: { reviewed: false, ingredients: ['בצל סגול'], allergens: [] } },
           // available: false מסמן חוסר זמני; alternatives הם מזהים מאותה קבוצת תוספות.
           // דוגמת חוסר מוצגת רק עם ?demo=soldout; אינה טוענת דבר על מלאי עסק אמיתי.
-          { id: 'jalapeno', name: 'חלפיניו', price: 6, shape: 'jalapeno', available: true, demoSoldOut: true, alternatives: ['onion'] },
-          { id: 'feta', name: 'בולגרית', price: 9, shape: 'feta' },
+          { id: 'jalapeno', name: 'חלפיניו', price: 6, shape: 'jalapeno', available: true, demoSoldOut: true, alternatives: ['onion'], foodInfo: { reviewed: false, ingredients: ['פלפל חלפיניו'], allergens: [] } },
+          { id: 'feta', name: 'בולגרית', price: 9, shape: 'feta', foodInfo: { reviewed: false, ingredients: ['גבינה בולגרית'], allergens: ['חלב'] } },
         ],
       },
     ],
@@ -83,6 +106,7 @@ export const products = [
     description: 'לחם שום עם חמאה ועשבי תיבול. תיאור לדוגמה.',
     image: './assets/garlic-bread-demo.webp',
     imageAlt: 'צילום לדוגמה של לחם שום',
+    foodInfo: { reviewed: false, ingredients: ['לחם חיטה', 'חמאה', 'שום', 'עשבי תיבול'], allergens: ['חיטה (גלוטן)', 'חלב'], crossContact: 'מידע על סביבת ההכנה טרם נמסר מהעסק.' },
     price: 24,
     notePresets: ['לחלק לשניים', 'בלי לחתוך'],
     optionGroups: [
@@ -90,7 +114,7 @@ export const products = [
         id: 'extras',
         name: 'תוספות',
         type: 'multi',
-        choices: [{ id: 'cheese', name: 'תוספת גבינה', price: 5 }],
+        choices: [{ id: 'cheese', name: 'תוספת גבינה', price: 5, foodInfo: { reviewed: false, ingredients: ['גבינה'], allergens: ['חלב'] } }],
       },
     ],
   },

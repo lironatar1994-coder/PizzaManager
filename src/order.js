@@ -1,4 +1,4 @@
-import { shop, isAvailable } from './data.js?v=20260928-flow1';
+import { shop, isAvailable, findProduct } from './data.js?v=20260928-convenience1';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 
@@ -210,4 +210,35 @@ export function describe(product, config) {
 
 export function lineTotal(line, product) {
   return unitPrice(product, line.config) * line.qty;
+}
+
+// כל הצעה היא שינוי יחיד מפורש, מחושב לפי אותו מחירון של הסל.
+export function minimumSuggestions(lines, products, minimum) {
+  const subtotal = lines.reduce((sum, line) => sum + lineTotal(line, products.find((product) => product.id === line.config.productId) || findProduct(line.config.productId)), 0);
+  if (subtotal >= minimum) return [];
+  const candidates = [];
+  const offer = (candidate) => {
+    if (candidate.delta <= 0) return;
+    candidates.push({ ...candidate, subtotal: subtotal + candidate.delta, shortBy: Math.max(0, minimum - subtotal - candidate.delta) });
+  };
+  for (const line of lines) {
+    const product = products.find((item) => item.id === line.config.productId);
+    if (!product || !isAvailable(product) || configurationIssues(product, line.config).length) continue;
+    const current = selectedVariant(product, line.config);
+    const label = line.config.label || product.name;
+    for (const variant of variantsFor(product).filter((item) => isAvailable(item) && item.price > current.price)) {
+      const config = { ...line.config, variantId: variant.id };
+      offer({ key: `size:${line.id}:${variant.id}`, kind: 'size', lineId: line.id, config, qty: line.qty, title: `הגדלת ${label} ל${variant.name}${line.qty > 1 ? ` · ${line.qty} יח׳` : ''}`, delta: lineTotal({ config, qty: line.qty }, product) - lineTotal(line, product) });
+    }
+    if (line.qty < 99) offer({ key: `qty:${line.id}`, kind: 'quantity', lineId: line.id, config: line.config, qty: line.qty + 1, title: `עוד יחידה של ${label} · באותו הרכב`, delta: unitPrice(product, line.config) });
+  }
+  for (const product of products.filter(isAvailable)) {
+    if (lines.some((line) => line.config.productId === product.id)) continue;
+    const config = defaultConfig(product);
+    if (configurationIssues(product, config).length) continue;
+    offer({ key: `product:${product.id}`, kind: 'product', config, qty: 1, title: `צירוף ${product.name} · ההרכב הבסיסי`, delta: unitPrice(product, config) });
+  }
+  const complete = candidates.filter((item) => !item.shortBy).sort((a, b) => a.delta - b.delta);
+  const partial = candidates.filter((item) => item.shortBy > 0).sort((a, b) => a.delta - b.delta);
+  return [complete[0], partial[0] || complete[1], !complete.length ? partial[1] : null].filter(Boolean).slice(0, 2);
 }
