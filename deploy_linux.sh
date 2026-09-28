@@ -13,6 +13,11 @@ install -d -m 755 "$base" "$base/incoming" "$base/releases" "$base/backups"
 exec 9>"$base/deploy.lock"
 flock -n 9 || { echo 'Another PizzaManager deployment is running' >&2; exit 1; }
 
+# The public route can belong to the tenant platform. Never install a competing
+# static Nginx location or replace its server/API with the demonstration app.
+platform_route=0
+if grep -Fq 'include /etc/nginx/snippets/pizza-manager-platform.conf;' "$site_link"; then platform_route=1; fi
+
 atomic_link() {
     local target=$1 destination=$2 next
     next="${destination}.next.$$"
@@ -54,6 +59,10 @@ verify_with_retries() {
 }
 
 if [[ "$action" == rollback ]]; then
+    if (( platform_route )); then
+        bash "$base/incoming/platform-ui.sh" rollback
+        exit 0
+    fi
     test -L "$base/current" && test -L "$base/previous" || { echo 'No rollback release exists' >&2; exit 1; }
     current=$(readlink "$base/current")
     previous=$(readlink "$base/previous")
@@ -77,6 +86,16 @@ digest=${3:-}
 archive="$base/incoming/$revision.tar.gz"
 test -f "$archive" || { echo 'Missing release archive' >&2; exit 1; }
 printf '%s  %s\n' "$digest" "$archive" | sha256sum -c -
+
+if (( platform_route )); then
+    stage=$(mktemp -d "$base/.stage.XXXXXXXX")
+    trap 'case "$stage" in "$base"/.stage.*) rm -rf -- "$stage" ;; esac' EXIT
+    tar -xzf "$archive" -C "$stage"
+    test -f "$stage/deploy/platform-ui.sh"
+    install -m 755 "$stage/deploy/platform-ui.sh" "$base/incoming/platform-ui.sh"
+    bash "$stage/deploy/platform-ui.sh" deploy "$stage" "$revision"
+    exit 0
+fi
 
 stage=$(mktemp -d "$base/.stage.XXXXXXXX")
 site=$(readlink -f "$site_link")

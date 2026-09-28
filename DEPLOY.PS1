@@ -24,20 +24,36 @@ function ReadNative([string]$Command, [string[]]$Arguments) {
 
 function VerifyLive([string]$ExpectedRevision) {
     $version = (Invoke-WebRequest -Uri "${SiteUrl}version.txt" -UseBasicParsing -TimeoutSec 20).Content.Trim()
-    if ($ExpectedRevision -and $version -ne $ExpectedRevision) { throw "Live revision mismatch: $version" }
     $page = Invoke-WebRequest -Uri $SiteUrl -UseBasicParsing -TimeoutSec 20
     if ($page.StatusCode -ne 200 -or $page.Content -notmatch '<html lang="he" dir="rtl">' -or $page.Content -notmatch 'noindex,nofollow') {
         throw 'Public demo page verification failed'
     }
-    foreach ($asset in @('src/app.js', 'src/styles.css', 'src/order.js', 'src/store.js', 'src/address.js', 'src/config-links.js', 'src/schedule.js', 'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')) {
+    $sourcePrefix = 'src/'
+    $revision = $version
+    if ($page.Content -match '/storefront/src/app.js') {
+        $sourcePrefix = 'storefront/src/'
+        try {
+            $manifest = (Invoke-WebRequest -Uri "${SiteUrl}assets/menu-ui-version.json" -UseBasicParsing -TimeoutSec 20).Content | ConvertFrom-Json
+            $revision = $manifest.revision
+        } catch {
+            if ($ExpectedRevision) { throw 'Platform frontend revision could not be verified' }
+        }
+        $health = (Invoke-WebRequest -Uri "${SiteUrl}api/health" -UseBasicParsing -TimeoutSec 20).Content | ConvertFrom-Json
+        if (-not $health.ok) { throw 'Platform is unavailable' }
+    }
+    if ($ExpectedRevision -and $revision -ne $ExpectedRevision) { throw "Live frontend revision mismatch: $revision" }
+    $assets = @('app.js', 'styles.css', 'order.js', 'store.js', 'address.js', 'config-links.js') | ForEach-Object { $sourcePrefix + $_ }
+    if ($sourcePrefix -eq 'src/') { $assets += 'src/schedule.js' }
+    $assets += @('assets/brand/oven-mark.svg', 'assets/brand/favicon.svg', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')
+    foreach ($asset in $assets) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live asset: $asset" }
     }
-    foreach ($menuPhoto in @('pizza', 'garlic', 'family', 'combo')) {
+    foreach ($menuPhoto in $(if ($ExpectedRevision) { @('pizza', 'garlic', 'family', 'combo') } else { @() })) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}assets/menu-${menuPhoto}-v1.webp" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live menu photo: $menuPhoto" }
     }
-    Write-Host "Live demo: $SiteUrl ($version)" -ForegroundColor Green
+    Write-Host "Live site: $SiteUrl (frontend $revision; runtime $version)" -ForegroundColor Green
 }
 
 if ($SSHHost -notmatch '^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+$') { throw 'Invalid SSH host' }
