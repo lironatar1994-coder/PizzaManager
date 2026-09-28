@@ -29,6 +29,8 @@ verify_web() {
     curl -fs --max-time 20 -o /dev/null "$url/src/styles.css"
     curl -fs --max-time 20 -o /dev/null "$url/src/order.js"
     curl -fs --max-time 20 -o /dev/null "$url/src/store.js"
+    curl -fs --max-time 20 -o /dev/null "$url/src/address.js"
+    curl -fs --max-time 20 -o /dev/null "$url/src/config-links.js"
     curl -fs --max-time 20 -o /dev/null "$url/assets/brand/oven-mark.svg"
     curl -fs --max-time 20 -o /dev/null "$url/assets/brand/favicon.svg"
     curl -fs --max-time 20 -o /dev/null "$url/assets/pizza-hero-mobile.jpg"

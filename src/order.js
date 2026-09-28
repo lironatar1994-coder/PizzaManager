@@ -1,4 +1,4 @@
-import { shop } from './data.js?v=20260928-flow1';
+import { shop } from './data.js?v=20260928-flow2';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 
@@ -36,7 +36,7 @@ export function normalizeConfig(product, config) {
       }
     }
   }
-  return { productId: product.id, variantId, options, note: typeof config.note === 'string' ? config.note : '' };
+  return { productId: product.id, variantId, options, note: typeof config.note === 'string' ? config.note.slice(0, 200) : '' };
 }
 
 export function choicePrice(choice, placement = 'whole') {

@@ -1,15 +1,9 @@
-// שירותי הדגמה. במערכת האמיתית: אימות כתובת בשירות מפות, קליטת הזמנה בשרת ומעבר לספק סליקה.
-import { shop, demoFlags } from './data.js?v=20260928-flow1';
+// חיפוש כתובת אמיתי; קליטת ההזמנה והתשלום עדיין מדומים. שרת אמיתי יחשב ויאמת הכול מחדש.
+import { demoFlags } from './data.js?v=20260928-flow2';
+import { verifySelectedAddress } from './address.js?v=20260928-flow2';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const normalize = (text) => text.trim().replace(/[\s־-]+/g, ' ');
-
-export async function verifyAddress({ city, street, number }) {
-  await wait(650);
-  if (!city.trim() || !street.trim() || !number.trim()) return { status: 'invalid' };
-  const zone = shop.deliveryZones.find((item) => item.cities.some((name) => normalize(name) === normalize(city)));
-  return zone ? { status: 'ok', zone } : { status: 'out' };
-}
+export const verifyAddress = verifySelectedAddress;
 
 export function isOpen() {
   return !demoFlags().closed;

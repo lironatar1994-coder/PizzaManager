@@ -1,10 +1,11 @@
-import { findProduct } from './data.js?v=20260928-flow1';
-import { lineTotal, normalizeConfig } from './order.js?v=20260928-flow1';
+import { findProduct } from './data.js?v=20260928-flow2';
+import { lineTotal, normalizeConfig } from './order.js?v=20260928-flow2';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
 const DRAFT_KEY = 'pizza-demo-builder-drafts-v1';
 const MODE_KEY = 'pizza-demo-order-mode-v1';
+const FAVORITES_KEY = 'pizza-demo-favorites-v1';
 const DRAFT_LIFETIME = 24 * 60 * 60 * 1000;
 const listeners = new Set();
 
@@ -29,11 +30,13 @@ function read(storageName, key, fallback) {
 function write(storageName, key, value) {
   try {
     const storage = storageOf(storageName);
-    if (!storage) return;
+    if (!storage) return false;
     if (value === null) storage.removeItem(key);
     else storage.setItem(key, JSON.stringify(value));
+    return true;
   } catch {
     // אחסון חסום (למשל גלישה פרטית): הסל ממשיך לעבוד בזיכרון.
+    return false;
   }
 }
 
@@ -75,6 +78,43 @@ export function clearDraft(key) {
 
 export const getMode = () => read('sessionStorage', MODE_KEY, 'delivery') === 'pickup' ? 'pickup' : 'delivery';
 export const saveMode = (mode) => write('sessionStorage', MODE_KEY, mode === 'pickup' ? 'pickup' : 'delivery');
+
+const savedFavorites = read('localStorage', FAVORITES_KEY, []);
+let favorites = (Array.isArray(savedFavorites) ? savedFavorites : [])
+  .filter((item) => item && typeof item.id === 'string' && findProduct(item.config?.productId))
+  .slice(0, 12);
+const favoriteListeners = new Set();
+let favoritesPersistent = true;
+const cleanFavorite = (item) => ({
+  id: item.id,
+  name: String(item.name || 'ההרכב שלי').slice(0, 40),
+  qty: boundedQty(item.qty),
+  config: normalizeConfig(findProduct(item.config.productId), item.config),
+});
+
+export const getFavorites = () => favorites.map(cleanFavorite);
+export const getFavorite = (id) => { const item = favorites.find((favorite) => favorite.id === id); return item ? cleanFavorite(item) : null; };
+export const favoriteStorageIsPersistent = () => favoritesPersistent;
+export function onFavoritesChange(listener) { favoriteListeners.add(listener); return () => favoriteListeners.delete(listener); }
+const favoriteSignature = (config, qty) => JSON.stringify([config, boundedQty(qty)]);
+export const matchingFavorite = (product, config, qty) => getFavorites().find((item) => favoriteSignature(item.config, item.qty) === favoriteSignature(normalizeConfig(product, config), qty));
+
+export function saveFavorite(product, { name, config, qty }) {
+  const normalized = normalizeConfig(product, config);
+  const existing = matchingFavorite(product, normalized, qty);
+  if (!existing && favorites.length >= 12) return { ok: false, reason: 'limit' };
+  const favorite = { id: existing?.id || newId(), name: String(name || 'ההרכב שלי').trim().slice(0, 40) || 'ההרכב שלי', config: normalized, qty: boundedQty(qty) };
+  favorites = [favorite, ...favorites.filter((item) => item.id !== favorite.id)];
+  favoritesPersistent = write('localStorage', FAVORITES_KEY, favorites);
+  favoriteListeners.forEach((listener) => listener());
+  return { ok: true, favorite: cleanFavorite(favorite), persisted: favoritesPersistent };
+}
+
+export function removeFavorite(id) {
+  favorites = favorites.filter((item) => item.id !== id);
+  favoritesPersistent = write('localStorage', FAVORITES_KEY, favorites);
+  favoriteListeners.forEach((listener) => listener());
+}
 
 function commit(detail) {
   write('localStorage', CART_KEY, cart);

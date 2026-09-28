@@ -7,7 +7,7 @@ const root = new URL('..', import.meta.url);
 const path = (relative) => new URL(relative, root);
 const required = [
   'index.html', 'src/app.js', 'src/data.js', 'src/order.js',
-  'src/pizza.js', 'src/store.js', 'src/services.js', 'src/styles.css',
+  'src/pizza.js', 'src/store.js', 'src/services.js', 'src/address.js', 'src/config-links.js', 'src/styles.css',
   'assets/pizza-hero-desktop.jpg', 'assets/pizza-hero-mobile.jpg',
   'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp',
   'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg',

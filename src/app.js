@@ -1,8 +1,10 @@
-import { shop, activeProducts, findProduct } from './data.js?v=20260928-flow1';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal } from './order.js?v=20260928-flow1';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-flow1';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode } from './store.js?v=20260928-flow1';
-import { verifyAddress, isOpen, submitOrder } from './services.js?v=20260928-flow1';
+import { shop, activeProducts, findProduct } from './data.js?v=20260928-flow2';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal } from './order.js?v=20260928-flow2';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-flow2';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent } from './store.js?v=20260928-flow2';
+import { verifyAddress, isOpen, submitOrder } from './services.js?v=20260928-flow2';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-flow2';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260928-flow2';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -11,6 +13,7 @@ const safe = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => (
 })[character]);
 let teardown = [];
 let freshBuilder = false;
+let stopAddressLookup = () => {};
 
 /* ---------- אייקונים ---------- */
 
@@ -33,6 +36,8 @@ const ICONS = {
   down: '<path d="m7 9.5 5 5 5-5"/>',
   receipt: '<path d="M6 3.5h12V21l-3-1.5L12 21l-3-1.5L6 21Z"/><path d="M9 8h6m-6 4h6m-6 4h3"/>',
   copy: '<path d="M8 8h12v12H8Z"/><path d="M16 8V4H4v12h4m4-2h4m-2-2v4"/>',
+  heart: '<path d="m12 20-7.2-7.1C.5 8.7 6.3 2.4 12 7.4c5.7-5 11.5 1.3 7.2 5.5Z"/>',
+  share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.7 7.6-4.4m-7.6 7 7.6 4.4"/>',
 };
 const icon = (name, className = '') => `<svg class="icon${className ? ` ${className}` : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 const placementIcon = (placement) => `<svg class="placement__icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.6" fill="none" stroke="currentColor" stroke-width="1.6"/>${{
@@ -125,6 +130,7 @@ function home() {
       <div class="hero__utilities" role="group" aria-label="טלפון ומיקום">
         <button type="button" class="hero__utility" data-hero-contact="phone" aria-label="הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel">${icon('phone')}</button>
         <button type="button" class="hero__utility" data-hero-contact="location" aria-label="הצגת הכתובת והניווט" aria-expanded="false" aria-controls="hero-contact-panel">${icon('pin')}</button>
+        ${getFavorites().length ? `<button type="button" class="hero__utility" data-open-favorites aria-label="המועדפים שלי">${icon('heart')}</button>` : ''}
         <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
       </div>
     </div>
@@ -177,6 +183,7 @@ function menu() {
   app.innerHTML = `${topbar('#/')}
     <main class="page menu-page"><div class="wrap">
       <header class="page-head"><h1>מה מכינים היום?</h1><p>בוחרים מוצר, ואז מרכיבים אותו בדיוק כמו שאוהבים.</p></header>
+      ${getFavorites().length ? `<button type="button" class="link-button menu-favorites" data-open-favorites>${icon('heart')}המועדפים שלי</button>` : ''}
       <ul class="menu-list">${list.map((product) => {
         const price = Math.min(...variantsFor(product).map((variant) => variant.price));
         return `<li><a class="menu-item" href="#/product/${safe(product.id)}">
@@ -198,7 +205,8 @@ function variantSection(product, config) {
       <input type="radio" name="variant" value="${safe(variant.id)}" ${variant.id === config.variantId ? 'checked' : ''} />
       <span class="tile__surface">
         ${product.visual === 'pizza' ? `<span class="size-disc" style="--s:${variant.scale ?? 1}" aria-hidden="true"></span>` : ''}
-        <strong>${safe(variant.name)}</strong>${variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}<bdi>${money(variant.price)}</bdi>
+        <strong>${safe(variant.name)}</strong>${variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}
+        ${variant.diameterCm > 0 || variant.slices > 0 ? `<span class="tile__measure">${variant.diameterCm > 0 ? `<span><bdi>${safe(variant.diameterCm)}</bdi> ס״מ</span>` : ''}${variant.slices > 0 ? `<span><bdi>${safe(variant.slices)}</bdi> משולשים</span>` : ''}</span>` : ''}<bdi>${money(variant.price)}</bdi>
       </span>
     </label>`).join('')}</div></fieldset>`;
 }
@@ -257,13 +265,13 @@ function readConfig(form, product) {
   return normalizeConfig(product, config);
 }
 
-function productPage(product, editLine, copyLine) {
+function productPage(product, editLine, copyLine, source) {
   const list = activeProducts();
   const back = list.length > 1 ? '#/menu' : '#/';
-  let draftKey = editLine ? `edit:${editLine.id}` : copyLine ? `copy:${copyLine.id}` : `product:${product.id}`;
+  let draftKey = source?.key || (editLine ? `edit:${editLine.id}` : copyLine ? `copy:${copyLine.id}` : `product:${product.id}`);
   const draft = getDraft(draftKey, product);
-  let config = draft?.config || (editLine || copyLine ? normalizeConfig(product, (editLine || copyLine).config) : defaultConfig(product));
-  let quantity = draft?.qty ?? editLine?.qty ?? 1;
+  let config = draft?.config || source?.config || (editLine || copyLine ? normalizeConfig(product, (editLine || copyLine).config) : defaultConfig(product));
+  let quantity = draft?.qty ?? source?.qty ?? editLine?.qty ?? 1;
   let hasDraft = Boolean(draft);
   let savedScroll = draft?.scroll || 0;
   const isPizza = product.visual === 'pizza';
@@ -278,17 +286,38 @@ function productPage(product, editLine, copyLine) {
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
-        <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p>${copyLine ? `<p class="builder__resume">${icon('copy')}<span>עותק חדש לעריכה · המקור נשאר בסל</span></p>` : ''}</header>
+        <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p>${copyLine ? `<p class="builder__resume">${icon('copy')}<span>עותק חדש לעריכה · המקור נשאר בסל</span></p>` : ''}${source ? `<p class="builder__resume">${icon(source.kind === 'favorite' ? 'heart' : 'share')}<span>${safe(source.label)} · המחיר לפי התפריט הנוכחי</span></p>` : ''}</header>
+        <section class="builder-tools" aria-label="שמירה ושיתוף של ההרכב">
+          <div class="builder-tools__actions">
+            <button type="button" data-save-toggle aria-expanded="false" aria-controls="favorite-editor">${icon('heart')}<span data-save-label>שמירה</span></button>
+            <button type="button" data-open-favorites><span>המועדפים שלי</span><span class="builder-tools__count" data-favorite-count hidden></span></button>
+            <button type="button" data-share-toggle aria-expanded="false" aria-controls="share-editor">${icon('share')}<span>שיתוף</span></button>
+          </div>
+          <div class="builder-tools__panel" id="favorite-editor" hidden>
+            <label for="favorite-name">איך לקרוא להרכב הקבוע?</label>
+            <div class="builder-tools__save"><input class="input" id="favorite-name" maxlength="40" dir="auto" value="${safe(source?.kind === 'favorite' ? source.name : 'הקבועה שלי')}" autocomplete="off" /><button type="button" class="button button--quiet button--small" data-save-favorite>שמירה</button></div>
+            <p>שמור במכשיר הזה, בלי לפתוח חשבון.</p>
+            <p class="builder-tools__status" data-favorite-status role="status"></p>
+          </div>
+          <div class="builder-tools__panel" id="share-editor" hidden>
+            <label for="share-link">קישור להרכב שלכם</label>
+            <input class="input share-link" id="share-link" dir="ltr" type="url" readonly aria-describedby="share-hint" />
+            <div class="builder-tools__share"><button type="button" class="button button--quiet button--small" data-copy-link>${icon('copy')}העתקת קישור</button>${typeof navigator.share === 'function' ? `<button type="button" class="link-button" data-native-share>${icon('share')}שיתוף</button>` : ''}</div>
+            <p id="share-hint">רק ההרכב והכמות. הערות ופרטים אישיים אינם בקישור.</p>
+            <p class="builder-tools__status" data-share-status role="status"></p>
+          </div>
+        </section>
         ${variantSection(product, config)}
         ${(product.optionGroups || []).map((group) => (group.type === 'single' ? singleGroup(group, config.options[group.id]) : multiGroup(group, config.options[group.id]))).join('')}
         <div class="field-group">
           <label class="field-group__head" for="kitchen-note"><span class="field-group__title">משהו שחשוב שנדע?</span><span class="field-group__hint">הערה למטבח, לא חובה</span></label>
           <textarea class="input" id="kitchen-note" name="note" dir="auto" rows="2" maxlength="200" placeholder="למשל: לחתוך לריבועים">${safe(config.note)}</textarea>
+          ${(product.notePresets || []).length ? `<div class="note-presets" role="group" aria-label="קיצורי הערות למטבח, אפשר לבחור קיצור אחד">${product.notePresets.map((note) => `<button type="button" data-note-preset="${safe(note)}" aria-pressed="false">${icon('plus')}<span>${safe(note)}</span></button>`).join('')}</div><p class="note-presets__status" data-note-status role="status"></p>` : ''}
         </div>
         <div class="field-group field-group--inline"><span class="field-group__title" id="qty-title">כמות</span>${stepper({ value: quantity, label: 'כמות' })}</div>
       </form>
     </main>
-    <div class="buybar"><div class="buybar__inner">
+    <div class="buybar"><p class="buybar__recovery" data-edit-recovery role="status" hidden></p><div class="buybar__basket" data-builder-basket hidden><button type="button" data-open-cart><span data-basket-current></span>${icon('down')}</button><span data-basket-projected></span></div><div class="buybar__inner">
       <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}דמי משלוח, אם נבחר, מחושבים בקופה.</p></div>
       <button type="button" class="buybar__total buybar__price" data-price-toggle aria-expanded="false" aria-controls="price-panel"><span>פירוט מחיר ${icon('down')}</span><strong id="bar-total"></strong></button>
       <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span id="add-label"></span>${icon('forward')}</button>
@@ -296,8 +325,58 @@ function productPage(product, editLine, copyLine) {
     <p class="visually-hidden" aria-live="polite" id="builder-status"></p>`;
 
   const form = document.querySelector('#builder-form');
+  // הגודל הוא הבחירה הראשונה. פעולות שמירה ושיתוף מצטרפות אחרי הבחירה הזו.
+  if ((product.variants || []).length > 1) form.querySelector('fieldset').after(form.querySelector('.builder-tools'));
   const art = document.querySelector('#stage-art');
   const status = document.querySelector('#builder-status');
+  const saveToggle = form.querySelector('[data-save-toggle]');
+  const shareToggle = form.querySelector('[data-share-toggle]');
+  const favoriteEditor = form.querySelector('#favorite-editor');
+  const shareEditor = form.querySelector('#share-editor');
+  const noteInput = form.elements.note;
+  const presetActive = (preset) => config.note.split('\n').some((line) => line.trim() === preset);
+  const syncNotePresets = () => form.querySelectorAll('[data-note-preset]').forEach((button) => {
+    const active = presetActive(button.dataset.notePreset);
+    button.setAttribute('aria-pressed', String(active));
+    button.querySelector('svg').outerHTML = icon(active ? 'check' : 'plus');
+  });
+  const syncSaved = () => {
+    const match = matchingFavorite(product, config, quantity);
+    saveToggle.classList.toggle('is-saved', Boolean(match));
+    saveToggle.querySelector('[data-save-label]').textContent = match ? 'שמורה' : 'שמירה';
+    const count = getFavorites().length;
+    const countNode = form.querySelector('[data-favorite-count]');
+    countNode.textContent = count;
+    countNode.hidden = !count;
+  };
+  const resolveEditedLine = () => {
+    const original = editLine ? getLine(editLine.id) : null;
+    if (editLine && !original) {
+      editLine = null;
+      clearDraft(draftKey);
+      draftKey = `product:${product.id}`;
+      hasDraft = true;
+      saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll });
+      history.replaceState(null, '', `#/product/${product.id}`);
+      const recovery = document.querySelector('[data-edit-recovery]');
+      recovery.textContent = 'הפריט הוסר מהסל. הבחירות נשמרו להוספה מחדש.';
+      recovery.hidden = false;
+      document.querySelector('#add-label').textContent = 'הוספה לסל';
+    }
+    return original;
+  };
+  const syncBasket = () => {
+    const basket = document.querySelector('[data-builder-basket]');
+    if (!basket) return;
+    const count = cartCount();
+    const subtotal = cartSubtotal();
+    const original = resolveEditedLine();
+    const projected = subtotal - (original ? lineTotal(original, product) : 0) + unitPrice(product, config) * quantity;
+    basket.hidden = !count;
+    basket.querySelector('[data-basket-current]').innerHTML = `בסל · ${itemsText(count)} · <bdi>${money(subtotal)}</bdi>`;
+    basket.querySelector('[data-basket-projected]').innerHTML = `${editLine ? 'לאחר העדכון' : 'עם הבחירה הזו'} <strong><bdi>${money(projected)}</bdi></strong>`;
+  };
+  teardown.push(onFavoritesChange(syncSaved), onCartChange(syncBasket));
   let drawn = isPizza ? pizzaState(product, config) : null;
   let scrollTimer;
   const flushDraft = () => {
@@ -342,6 +421,10 @@ function productPage(product, editLine, copyLine) {
     document.querySelector('#add-label').textContent = editLine ? 'עדכון בסל' : 'הוספה לסל';
     document.querySelector('[data-price-toggle]').setAttribute('aria-label', `פירוט המחיר, ${money(total)}`);
     document.querySelector('[data-price-content]').innerHTML = priceMarkup(product, config, quantity);
+    syncSaved();
+    syncNotePresets();
+    syncBasket();
+    form.querySelector('#share-link').value = configurationLink(window.location.href, product, config, quantity, !product.active);
     form.querySelector('output').textContent = quantity;
     form.querySelector('[data-qty="minus"]').disabled = quantity <= 1;
     form.querySelector('[data-qty="plus"]').disabled = quantity >= 99;
@@ -390,9 +473,25 @@ function productPage(product, editLine, copyLine) {
     if (target.matches('input[type="radio"], input[type="checkbox"]')) reactToChoice(art, true);
   });
   form.addEventListener('input', (event) => {
-    if (event.target.name === 'note') { config = { ...config, note: event.target.value }; rememberSelection(); }
+    if (event.target.name === 'note') { config = { ...config, note: event.target.value }; syncNotePresets(); syncSaved(); rememberSelection(); }
   });
   form.addEventListener('click', (event) => {
+    const preset = event.target.closest('[data-note-preset]');
+    if (preset) {
+      const note = preset.dataset.notePreset;
+      const removing = presetActive(note);
+      const lines = config.note.split('\n');
+      const remaining = lines.filter((line) => removing ? line.trim() !== note : !(product.notePresets || []).includes(line.trim())).join('\n').trim();
+      const value = removing ? remaining : [remaining, note].filter(Boolean).join('\n');
+      const hint = form.querySelector('[data-note-status]');
+      if (value.length > noteInput.maxLength) { hint.textContent = 'ההערה ארוכה מדי. קצרו אותה ואז הוסיפו את הקיצור.'; return; }
+      hint.textContent = '';
+      noteInput.value = value;
+      config = { ...config, note: value };
+      refresh(); rememberSelection();
+      status.textContent = removing ? `הוסר מההערה: ${note}` : `נוסף להערה: ${note}`;
+      return;
+    }
     if (event.target.matches('.placement input')) {
       const topping = event.target.closest('.topping');
       closePlacement(topping);
@@ -418,6 +517,43 @@ function productPage(product, editLine, copyLine) {
     status.textContent = `כמות: ${quantity}`;
     reactToChoice(art, false);
   });
+
+  const toggleTools = (kind) => {
+    const panel = kind === 'save' ? favoriteEditor : shareEditor;
+    const toggle = kind === 'save' ? saveToggle : shareToggle;
+    const opening = panel.hidden;
+    favoriteEditor.hidden = true; shareEditor.hidden = true;
+    saveToggle.setAttribute('aria-expanded', 'false'); shareToggle.setAttribute('aria-expanded', 'false');
+    if (opening) {
+      panel.hidden = false; toggle.setAttribute('aria-expanded', 'true');
+      if (kind === 'save') {
+        const match = matchingFavorite(product, config, quantity);
+        if (match) form.querySelector('#favorite-name').value = match.name;
+        form.querySelector('#favorite-name').focus({ preventScroll: true });
+      }
+    }
+  };
+  saveToggle.addEventListener('click', () => toggleTools('save'));
+  shareToggle.addEventListener('click', () => toggleTools('share'));
+  form.querySelector('[data-save-favorite]').addEventListener('click', () => {
+    const result = saveFavorite(product, { name: form.querySelector('#favorite-name').value, config, qty: quantity });
+    form.querySelector('[data-favorite-status]').textContent = !result.ok ? 'אפשר לשמור עד 12 הרכבים. פתחו את המועדפים כדי לפנות מקום.' : result.persisted ? 'נשמר במועדפים שלכם. אפשר לחזור אליו גם בביקור הבא.' : 'האחסון במכשיר חסום. ההרכב נשמר רק כל עוד העמוד הזה פתוח.';
+  });
+  form.querySelector('[data-copy-link]').addEventListener('click', async () => {
+    const input = form.querySelector('#share-link');
+    const message = form.querySelector('[data-share-status]');
+    try { await navigator.clipboard.writeText(input.value); message.textContent = 'הקישור הועתק. אפשר לשלוח למי שמזמין איתכם.'; }
+    catch { input.focus({ preventScroll: true }); input.select(); message.textContent = 'העתקה אוטומטית אינה זמינה. הקישור מסומן להעתקה ידנית.'; }
+  });
+  form.querySelector('[data-native-share]')?.addEventListener('click', async () => {
+    try { await navigator.share({ title: `ההרכב שלי · ${product.name}`, url: form.querySelector('#share-link').value }); }
+    catch (error) { if (error.name !== 'AbortError') form.querySelector('[data-share-status]').textContent = 'השיתוף לא נפתח. אפשר להעתיק את הקישור.'; }
+  });
+  form.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && event.target.id === 'favorite-name') { event.preventDefault(); form.querySelector('[data-save-favorite]').click(); }
+    if (event.key === 'Escape' && (!favoriteEditor.hidden || !shareEditor.hidden)) { const toggle = favoriteEditor.hidden ? shareToggle : saveToggle; favoriteEditor.hidden = true; shareEditor.hidden = true; toggle.setAttribute('aria-expanded', 'false'); toggle.focus({ preventScroll: true }); }
+  });
+  form.addEventListener('submit', (event) => event.preventDefault());
 
   const setPreviewConfig = (nextConfig) => {
     config = normalizeConfig(product, nextConfig);
@@ -457,6 +593,7 @@ function productPage(product, editLine, copyLine) {
     button.disabled = true;
     closePrice();
     config = readConfig(form, product);
+    resolveEditedLine();
     const updated = Boolean(editLine);
     let line;
     if (editLine) {
@@ -464,6 +601,8 @@ function productPage(product, editLine, copyLine) {
       line = getLine(editLine.id);
       editLine = null;
     } else line = addLine(config, quantity);
+    if (!line) { button.disabled = false; refresh(); return; }
+    document.querySelector('[data-edit-recovery]').hidden = true;
     clearDraft(draftKey);
     draftKey = `product:${product.id}`;
     hasDraft = false;
@@ -776,6 +915,7 @@ document.addEventListener('click', (event) => {
   if (!event.target.closest('.hero__utilities')) closeHeroContact();
   if (event.target.closest('[data-open-cart]')) openCart();
   if (event.target.closest('[data-open-info]')) openInfo();
+  if (event.target.closest('[data-open-favorites]')) openFavorites();
   const modeLink = event.target.closest('[data-mode]');
   if (modeLink) rememberMode(modeLink.dataset.mode);
 });
@@ -807,6 +947,49 @@ function openInfo() {
 info.addEventListener('click', (event) => {
   if (event.target === info || event.target.closest('[data-close-info]')) info.close();
 });
+
+/* ---------- הרכבים שמורים במכשיר ---------- */
+
+const favoritesDialog = document.createElement('dialog');
+favoritesDialog.className = 'sheet favorites-sheet';
+favoritesDialog.setAttribute('aria-labelledby', 'favorites-title');
+document.body.append(favoritesDialog);
+
+function renderFavorites() {
+  const favorites = getFavorites();
+  const available = activeProducts();
+  favoritesDialog.innerHTML = `<div class="sheet__panel">
+    <header class="sheet__head"><h2 id="favorites-title">המועדפים שלי</h2><button type="button" class="icon-button" data-close-favorites aria-label="סגירת המועדפים">${icon('close')}</button></header>
+    <div class="sheet__body"><p class="favorites-hint">${favoriteStorageIsPersistent() ? 'ההרכבים שמורים במכשיר הזה. המחיר מתעדכן לפי התפריט הנוכחי.' : 'האחסון במכשיר חסום. ההרכבים זמינים רק כל עוד העמוד פתוח.'}</p>
+      ${favorites.length ? `<ul class="favorite-list">${favorites.map((favorite) => {
+        const product = findProduct(favorite.config.productId);
+        const info = describe(product, favorite.config);
+        const active = available.some((item) => item.id === product.id);
+        return `<li class="favorite-line"><span class="favorite-line__art">${productArt(product, favorite.config)}</span><div class="favorite-line__text"><h3>${safe(favorite.name)}</h3><p>${safe(info.title)}${favorite.qty > 1 ? ` · ${favorite.qty} יח׳` : ''}</p><strong><bdi>${money(unitPrice(product, favorite.config) * favorite.qty)}</bdi></strong>${active ? `<a class="link-button" href="#/product/${safe(product.id)}/favorite/${safe(favorite.id)}" data-load-favorite="${safe(favorite.id)}">בחירה ושינוי ${icon('forward')}</a>` : '<span class="favorite-line__unavailable">המוצר אינו זמין כרגע</span>'}</div><button type="button" class="icon-button" data-remove-favorite="${safe(favorite.id)}" aria-label="מחיקת ${safe(favorite.name)} מהמועדפים">${icon('close')}</button><details class="favorite-line__details"><summary>פירוט ההרכב ${icon('down')}</summary><p>${safe(detailText(info) || 'בלי תוספות')}</p>${favorite.config.note ? `<p>הערה: ${safe(favorite.config.note)}</p>` : ''}</details></li>`;
+      }).join('')}</ul>` : `<div class="empty-state"><span class="favorites-empty" aria-hidden="true">${icon('heart')}</span><p><strong>ההרכב הקבוע מתחיל כאן</strong>מרכיבים בדיוק כמו שאוהבים ולוחצים על „שמירה”.</p><button type="button" class="button button--quiet" data-close-favorites>חזרה להרכבה</button></div>`}
+    </div>
+  </div>`;
+}
+
+function openFavorites() {
+  closeHeroContact();
+  renderFavorites();
+  if (!favoritesDialog.open) favoritesDialog.showModal();
+  favoritesDialog.querySelector('[data-load-favorite], [data-close-favorites]').focus({ preventScroll: true });
+}
+
+favoritesDialog.addEventListener('click', (event) => {
+  if (event.target === favoritesDialog || event.target.closest('[data-close-favorites]')) favoritesDialog.close();
+  const remove = event.target.closest('[data-remove-favorite]');
+  if (remove) { removeFavorite(remove.dataset.removeFavorite); favoritesDialog.querySelector('[data-load-favorite], [data-close-favorites]').focus({ preventScroll: true }); }
+  const load = event.target.closest('[data-load-favorite]');
+  if (load) {
+    clearDraft(`favorite:${load.dataset.loadFavorite}`);
+    favoritesDialog.close();
+    if (window.location.hash === load.getAttribute('href')) { event.preventDefault(); navigate(); }
+  }
+});
+onFavoritesChange(() => { if (favoritesDialog.open) renderFavorites(); });
 
 onCartChange((change) => {
   const count = cartCount();
@@ -842,7 +1025,7 @@ function rememberMode(mode) {
 
 const checkout = {
   mode: getMode(),
-  address: { city: '', street: '', number: '', apartment: '', floor: '', instructions: '' },
+  address: { query: '', place: null, city: '', street: '', number: '', apartment: '', floor: '', instructions: '' },
   contact: { name: '', phone: '' },
   check: { status: 'idle' },
   errors: {},
@@ -874,20 +1057,22 @@ function addressStatus() {
   if (status === 'checking') return `<div class="notice notice--pending"><span class="spinner" aria-hidden="true"></span><span>בודקים את הכתובת…</span></div>`;
   if (status === 'ok') {
     const { shortBy } = checkoutTotals();
-    return `<div class="notice notice--ok">${icon('check')}<span><strong>הכתובת באזור המשלוחים.</strong> דמי משלוח ${money(zone.fee)} · מינימום להזמנה ${money(zone.minOrder)}</span></div>
+    return `<div class="notice notice--ok">${icon('check')}<span><strong>הכתובת בתוך אזור השירות לדוגמה.</strong> דמי משלוח <bdi>${money(zone.fee)}</bdi> · מינימום להזמנה <bdi>${money(zone.minOrder)}</bdi></span></div>
       ${shortBy ? `<div class="notice notice--warn">${icon('alert')}<span><strong>חסרים <bdi>${money(shortBy)}</bdi> למינימום המשלוח.</strong> אפשר להוסיף עוד או לבחור איסוף עצמי.</span><a class="button button--small" href="${productHref()}">להוסיף עוד</a></div>` : ''}`;
   }
   if (status === 'out') return `<div class="notice notice--warn">${icon('alert')}<span><strong>הכתובת מחוץ לאזור המשלוחים.</strong> אפשר להזמין ולאסוף בעצמכם.</span><button type="button" class="button button--small" id="switch-pickup" data-switch-pickup>מעבר לאיסוף עצמי</button></div>`;
-  if (status === 'invalid') return `<div class="notice notice--warn">${icon('alert')}<span>כדי לבדוק צריך עיר, רחוב ומספר בית.</span></div>`;
-  return `<button type="button" class="button button--quiet button--small" id="check-address" data-check-address>${icon('pin')}<span>בדיקה שהכתובת באזור המשלוחים</span></button>`;
+  if (status === 'invalid') return `<div class="notice notice--warn">${icon('alert')}<span>לא הצלחנו לאמת כתובת מלאה. בחרו שוב כתובת עם מספר בית מהרשימה.</span><button type="button" class="button button--small" data-switch-pickup>מעבר לאיסוף עצמי</button></div>`;
+  if (status === 'unavailable') return `<div class="notice notice--warn">${icon('alert')}<span>שירות הכתובות לא זמין כרגע. אפשר לנסות שוב או לבחור איסוף עצמי.</span><button type="button" class="button button--small" data-check-address>ניסיון נוסף</button><button type="button" class="button button--small" data-switch-pickup>איסוף עצמי</button></div>`;
+  return checkout.address.place ? `<button type="button" class="button button--quiet button--small" data-check-address>${icon('pin')}<span>בדיקת אזור השירות</span></button>` : '<p class="address-check__hint">בחרו כתובת מלאה מהרשימה כדי לחשב משלוח.</p>';
 }
 
 function checkoutState() {
   const open = isOpen();
   const totals = checkoutTotals();
   const out = checkout.mode === 'delivery' && checkout.check.status === 'out';
-  const blocked = !open || totals.shortBy > 0 || out;
-  const reason = !open ? `סגור כרגע · נפתח ב־${shop.hours.opensAt}` : totals.shortBy ? `חסרים ${money(totals.shortBy)} למינימום` : out ? 'הכתובת מחוץ לאזור' : '';
+  const needsAddress = checkout.mode === 'delivery' && checkout.check.status !== 'ok';
+  const blocked = !open || totals.shortBy > 0 || needsAddress;
+  const reason = !open ? `סגור כרגע · נפתח ב־${shop.hours.opensAt}` : totals.shortBy ? `חסרים ${money(totals.shortBy)} למינימום` : out ? 'הכתובת מחוץ לאזור' : needsAddress ? checkout.check.status === 'checking' ? 'בודקים את הכתובת…' : 'בחרו כתובת למשלוח' : '';
   return { open, totals, blocked, reason };
 }
 
@@ -929,6 +1114,7 @@ function summaryMarkup() {
 }
 
 function checkoutPage(focusId) {
+  stopAddressLookup();
   const cart = getCart();
   const focused = focusId || document.activeElement?.id;
   if (!cart.length) {
@@ -945,7 +1131,7 @@ function checkoutPage(focusId) {
     <main class="page checkout"><div class="wrap checkout__layout">
       <form class="checkout__form" id="checkout-form" novalidate>
         <header class="page-head"><h1>קופה לדוגמה</h1><p>אפשר לשנות כאן את אופן הקבלה ולמלא פרטי קשר.</p></header>
-        <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>הדגמה בלבד:</strong> הפרטים נשמרים בדפדפן. לא נשלחת הזמנה ולא מתבצע חיוב.</span></div>
+        <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>הדגמה בלבד:</strong> לא נשלחת הזמנה ולא מתבצע חיוב. אזורי השירות והמחירים הם דוגמאות.</span></div>
         ${!open ? `<div class="notice notice--warn" role="alert">${icon('alert')}<span><strong>הפיצרייה סגורה כרגע.</strong> ההזמנות נפתחות ב־${shop.hours.opensAt} (שעות לדוגמה). הסל נשמר בינתיים.</span></div>` : ''}
         ${checkout.failure ? `<div class="notice notice--error" role="alert" tabindex="-1" id="failure">${icon('alert')}<span><strong>בהדגמה דימינו תשלום שנכשל.</strong> לא בוצע חיוב ואפשר לנסות שוב.</span></div>` : ''}
         <fieldset class="field-group">
@@ -956,12 +1142,16 @@ function checkoutPage(focusId) {
           </div>
         </fieldset>
         ${checkout.mode === 'delivery' ? `<fieldset class="field-group">
-          <legend class="field-group__head"><span class="field-group__title">לאן לשלוח?</span><span class="field-group__hint">בהדגמה: תל אביב, רמת גן או גבעתיים</span></legend>
-          <div class="field-grid">
-            ${field({ name: 'city', label: 'עיר', value: address.city, group: 'address', autocomplete: 'address-level2', wide: true })}
-            ${field({ name: 'street', label: 'רחוב', value: address.street, group: 'address', autocomplete: 'address-line1' })}
-            ${field({ name: 'number', label: 'מספר בית', value: address.number, group: 'address', inputmode: 'numeric' })}
+          <legend class="field-group__head"><span class="field-group__title">לאן לשלוח?</span><span class="field-group__hint">האזור והמחיר נקבעים לפי הכתובת</span></legend>
+          <div class="field address-search${checkout.errors.addressQuery ? ' field--invalid' : ''}">
+            <label for="f-addressQuery">רחוב, מספר בית ועיר</label>
+            <div class="address-search__input"><input class="input" id="f-addressQuery" name="addressQuery" value="${safe(address.query)}" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="address-results" aria-describedby="address-search-hint${checkout.errors.addressQuery ? ' e-addressQuery' : ''}" ${checkout.errors.addressQuery ? 'aria-invalid="true"' : ''} dir="auto" autocomplete="off" spellcheck="false" enterkeyhint="search" maxlength="160" placeholder="למשל: רוטשילד 10, תל אביב" /><button type="button" class="icon-button address-search__clear" data-clear-address aria-label="מחיקת הכתובת" ${address.query ? '' : 'hidden'}>${icon('close')}</button></div>
+            <ul class="address-results" id="address-results" role="listbox" aria-label="הצעות לכתובת" hidden></ul>
+            <p class="address-search__message" data-address-message role="status"></p>
+            ${checkout.errors.addressQuery ? `<p class="field__error" id="e-addressQuery">${safe(checkout.errors.addressQuery)}</p>` : ''}
           </div>
+          <div class="address-selected" data-address-selected ${address.place ? '' : 'hidden'}>${selectedAddressMarkup()}</div>
+          <p class="address-search__hint" id="address-search-hint">חיפוש באמצעות <a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> ו־<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. הכתובת נשלחת לשירות החיפוש. תחומי המשלוח להמחשה בלבד.</p>
           <div class="address-check" id="address-check" tabindex="-1" aria-live="polite">${addressStatus()}</div>
           <div class="field-grid">
             ${field({ name: 'apartment', label: 'דירה', value: address.apartment, group: 'address', optional: true })}
@@ -1016,18 +1206,108 @@ function checkoutPage(focusId) {
     if (event.target.closest('[data-switch-pickup]')) { rememberMode('pickup'); checkout.errors = {}; checkoutPage('mode-pickup'); }
   });
   form.addEventListener('submit', (event) => { event.preventDefault(); placeOrder(); });
+  if (checkout.mode === 'delivery') bindAddressLookup(form);
   if (focused) document.getElementById(focused)?.focus();
 }
 
-const addressKey = () => ['city', 'street', 'number'].map((key) => checkout.address[key].trim()).join('|');
+function selectedAddressMarkup() {
+  const place = checkout.address.place;
+  return place ? `${icon('pin')}<span><strong>${safe(place.street)} ${safe(place.number)}</strong><small>${safe(place.city)} · כתובת שנבחרה מהמפה</small></span>` : '';
+}
+
+let addressCheckController;
+let addressCheckRevision = 0;
+const addressKey = () => JSON.stringify([checkout.mode, checkout.address.query, checkout.address.place?.id, checkout.address.city, checkout.address.street, checkout.address.number]);
+
+function bindAddressLookup(form) {
+  const input = form.querySelector('#f-addressQuery');
+  const list = form.querySelector('#address-results');
+  const message = form.querySelector('[data-address-message]');
+  const chosen = form.querySelector('[data-address-selected]');
+  const clear = form.querySelector('[data-clear-address]');
+  let controller, timer, revision = 0, candidates = [], active = -1, disposed = false;
+  const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+  const showSelection = () => { chosen.innerHTML = selectedAddressMarkup(); chosen.hidden = !checkout.address.place; clear.hidden = !input.value; };
+  const select = (index) => {
+    const place = candidates[index];
+    if (!place) return;
+    clearTimeout(timer); controller?.abort(); revision++;
+    checkout.address = { ...checkout.address, query: place.label, place, city: place.city, street: place.street, number: place.number };
+    input.value = place.label;
+    message.textContent = '';
+    close(); showSelection();
+    delete checkout.errors.addressQuery;
+    input.removeAttribute('aria-invalid');
+    form.querySelector('#e-addressQuery')?.remove();
+    input.closest('.field').classList.remove('field--invalid');
+    runAddressCheck();
+  };
+  const mark = () => {
+    list.querySelectorAll('[role="option"]').forEach((option, index) => option.setAttribute('aria-selected', String(index === active)));
+    if (active >= 0) { input.setAttribute('aria-activedescendant', `address-option-${active}`); list.children[active]?.scrollIntoView({ block: 'nearest' }); }
+  };
+  const search = async () => {
+    clearTimeout(timer); controller?.abort();
+    const query = input.value.trim();
+    const request = ++revision;
+    close(); candidates = [];
+    if (query.length < 4) { message.textContent = query ? 'הקלידו רחוב, מספר בית ועיר.' : ''; return; }
+    controller = new AbortController();
+    message.textContent = 'מחפשים כתובות…';
+    try {
+      const found = await searchAddresses(query, { signal: controller.signal });
+      if (disposed || request !== revision || query !== input.value.trim()) return;
+      candidates = found;
+      list.innerHTML = found.map((place, index) => `<li id="address-option-${index}" role="option" aria-selected="false" data-address-option="${index}">${icon('pin')}<span><strong>${safe(place.street)} ${safe(place.number)}</strong><small>${safe(place.city)}</small></span>${zoneForAddress(place) ? '' : '<span class="address-results__outside">מחוץ לאזור לדוגמה</span>'}</li>`).join('');
+      list.hidden = !found.length;
+      input.setAttribute('aria-expanded', String(Boolean(found.length)));
+      message.textContent = found.length ? `${found.length} כתובות נמצאו. בחרו את הכתובת המלאה.` : 'לא נמצאה כתובת מלאה. נסו שם רחוב אחר והוסיפו מספר בית ועיר, או בחרו איסוף עצמי.';
+    } catch {
+      if (disposed || request !== revision || controller.signal.aborted) return;
+      message.innerHTML = 'שירות החיפוש לא זמין כרגע. <button type="button" class="link-button" data-retry-search>ניסיון נוסף</button> או <button type="button" class="link-button" data-switch-pickup>איסוף עצמי</button>.';
+    }
+  };
+  const change = () => {
+    controller?.abort(); clearTimeout(timer); revision++;
+    addressCheckController?.abort(); addressCheckRevision++;
+    checkout.address = { ...checkout.address, query: input.value, place: null, city: '', street: '', number: '' };
+    checkout.check = { status: 'idle' };
+    close(); showSelection(); refreshCheckoutParts();
+    message.textContent = input.value.trim().length >= 4 ? 'מחפשים כתובות…' : input.value ? 'הקלידו רחוב, מספר בית ועיר.' : '';
+    timer = setTimeout(search, 450);
+  };
+  input.addEventListener('input', change);
+  input.addEventListener('keydown', (event) => {
+    if (['ArrowDown', 'ArrowUp'].includes(event.key) && candidates.length && !list.hidden) {
+      event.preventDefault(); active = (active + (event.key === 'ArrowDown' ? 1 : -1) + candidates.length) % candidates.length; mark();
+    } else if (event.key === 'Enter') { event.preventDefault(); if (!list.hidden && candidates.length) select(active < 0 ? 0 : active); else if (!checkout.address.place) search(); }
+    else if (event.key === 'Escape' || event.key === 'Tab') close();
+  });
+  input.addEventListener('focus', () => { if (!checkout.address.place && candidates.length) { list.hidden = false; input.setAttribute('aria-expanded', 'true'); } });
+  input.addEventListener('blur', close);
+  list.addEventListener('pointerdown', (event) => { if (event.target.closest('[data-address-option]')) event.preventDefault(); });
+  list.addEventListener('click', (event) => { const option = event.target.closest('[data-address-option]'); if (option) select(Number(option.dataset.addressOption)); });
+  clear.addEventListener('click', () => { input.value = ''; change(); input.focus({ preventScroll: true }); });
+  message.addEventListener('click', (event) => { if (event.target.closest('[data-retry-search]')) search(); });
+  stopAddressLookup = () => {
+    disposed = true; revision++; clearTimeout(timer); controller?.abort(); addressCheckController?.abort(); addressCheckRevision++;
+    if (checkout.check.status === 'checking') checkout.check = { status: 'idle' };
+    stopAddressLookup = () => {};
+  };
+}
 
 async function runAddressCheck() {
+  addressCheckController?.abort();
+  const request = ++addressCheckRevision;
+  addressCheckController = new AbortController();
   const key = addressKey();
   checkout.check = { status: 'checking' };
   refreshCheckoutParts();
-  const result = await verifyAddress(checkout.address);
+  let result;
+  try { result = await verifyAddress(checkout.address, { signal: addressCheckController.signal }); }
+  catch { return 'stale'; }
   // אם הכתובת השתנתה בזמן הבדיקה, התוצאה כבר לא שייכת לה.
-  if (key !== addressKey() || checkout.check.status !== 'checking') return 'stale';
+  if (request !== addressCheckRevision || key !== addressKey() || checkout.check.status !== 'checking') return 'stale';
   checkout.check = result.status === 'ok' ? { status: 'ok', zone: result.zone } : { status: result.status };
   if (getRoute().page === 'checkout') refreshCheckoutParts();
   return result.status;
@@ -1035,11 +1315,10 @@ async function runAddressCheck() {
 
 async function placeOrder() {
   if (checkout.submitting) return;
+  if (!isOpen() || !getCart().length) { refreshCheckoutParts(); return; }
   const errors = {};
   if (checkout.mode === 'delivery') {
-    if (!checkout.address.city.trim()) errors.city = 'איזו עיר?';
-    if (!checkout.address.street.trim()) errors.street = 'איזה רחוב?';
-    if (!checkout.address.number.trim()) errors.number = 'מה מספר הבית?';
+    if (!checkout.address.place) errors.addressQuery = 'בחרו כתובת מלאה עם מספר בית מתוך הרשימה.';
   }
   if (!checkout.contact.name.trim()) errors.name = 'איך לפנות אליכם?';
   if (!checkout.contact.phone.trim()) errors.phone = 'צריך טלפון כדי לעדכן על ההזמנה.';
@@ -1153,6 +1432,8 @@ function render() {
   if (info.open) info.close();
   if (pizzaPreview.open) pizzaPreview.close();
   if (added.open) added.close();
+  if (favoritesDialog.open) favoritesDialog.close();
+  stopAddressLookup();
   let restoreScroll = 0;
   const route = getRoute();
   // מסך הפתיחה כהה, שאר הזרימה בהירה: צבע סרגל הדפדפן בטלפון עוקב.
@@ -1162,12 +1443,23 @@ function render() {
   else if (route.page === 'product') {
     const product = list.find((item) => item.id === route.id);
     const source = ['edit', 'copy'].includes(route.action) ? getLine(route.lineId) : null;
-    const validSource = !route.action || source?.config.productId === product?.id;
-    if (product && validSource) restoreScroll = productPage(product, route.action === 'edit' ? source : null, route.action === 'copy' ? source : null);
+    const favorite = route.action === 'favorite' ? getFavorite(route.lineId) : null;
+    const shared = product && route.action === 'share' ? decodeConfiguration(product, route.lineId) : null;
+    const incoming = favorite && product && favorite.config.productId === product.id ? { ...favorite, key: `favorite:${favorite.id}`, kind: 'favorite', label: `מהמועדפים: ${favorite.name}` } : shared ? { ...shared, key: `share:${product.id}:${route.lineId}`, kind: 'share', label: 'הרכב ששיתפו איתכם' } : null;
+    const validSource = !route.action || ['edit', 'copy'].includes(route.action) && source?.config.productId === product?.id || ['favorite', 'share'].includes(route.action) && incoming;
+    if (product && validSource) restoreScroll = productPage(product, route.action === 'edit' ? source : null, route.action === 'copy' ? source : null, incoming);
     else notFound();
   } else if (route.page === 'checkout') checkoutPage();
   else if (route.page === 'done') donePage();
   else home();
+  const bar = document.querySelector('.buybar');
+  if (bar) {
+    const measure = () => document.documentElement.style.setProperty('--buybar-h', `${bar.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(bar);
+    teardown.push(() => observer.disconnect());
+  } else document.documentElement.style.removeProperty('--buybar-h');
   window.scrollTo({ top: restoreScroll, behavior: 'instant' });
 }
 
