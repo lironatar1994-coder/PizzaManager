@@ -1,11 +1,12 @@
-import { findProduct } from './data.js?v=20260928-family1';
-import { lineTotal, normalizeConfig } from './order.js?v=20260928-family1';
+import { findProduct } from './data.js?v=20260928-speed1';
+import { lineTotal, normalizeConfig } from './order.js?v=20260928-speed1';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
 const DRAFT_KEY = 'pizza-demo-builder-drafts-v1';
 const MODE_KEY = 'pizza-demo-order-mode-v1';
 const FAVORITES_KEY = 'pizza-demo-favorites-v1';
+const CUSTOMER_KEY = 'pizza-demo-customer-v1';
 const DRAFT_LIFETIME = 24 * 60 * 60 * 1000;
 const listeners = new Set();
 let removedLines = [];
@@ -41,6 +42,28 @@ function write(storageName, key, value) {
   }
 }
 
+// נשמר רק בעקבות בחירה מפורשת. אזור, תעריף ואימות כתובת לעולם לא נשמרים כאן.
+function cleanCustomer(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const text = (input, limit) => typeof input === 'string' ? input.slice(0, limit) : '';
+  const address = value.address || {};
+  const candidate = address.place;
+  const place = candidate && /^[NWR]:\d+$/.test(candidate.id) && candidate.countryCode === 'IL'
+    && Array.isArray(candidate.coordinates) && candidate.coordinates.length === 2 && candidate.coordinates.every(Number.isFinite)
+    ? { id: candidate.id, countryCode: 'IL', coordinates: [...candidate.coordinates], city: text(candidate.city, 80), street: text(candidate.street, 120), number: text(candidate.number, 20), label: text(candidate.label, 160) } : null;
+  return {
+    contact: { name: text(value.contact?.name, 80), phone: text(value.contact?.phone, 24) },
+    address: { query: text(address.query, 160), place, city: text(address.city, 80), street: text(address.street, 120), number: text(address.number, 20), apartment: text(address.apartment, 20), floor: text(address.floor, 20), instructions: text(address.instructions, 200) },
+  };
+}
+
+export const getCustomerDetails = () => cleanCustomer(read('localStorage', CUSTOMER_KEY, null));
+export const saveCustomerDetails = (details) => {
+  const value = cleanCustomer(details);
+  return value ? write('localStorage', CUSTOMER_KEY, value) : false;
+};
+export const forgetCustomerDetails = () => write('localStorage', CUSTOMER_KEY, null);
+
 const savedCart = read('localStorage', CART_KEY, []);
 let cart = (Array.isArray(savedCart) ? savedCart : [])
   .filter((line) => line && findProduct(line.config?.productId))
@@ -63,11 +86,12 @@ export function getDraft(key, product) {
     config: normalizeConfig(product, draft.config),
     qty: boundedQty(draft.qty),
     scroll: Number.isFinite(draft.scroll) ? Math.max(0, draft.scroll) : 0,
+    personalOpen: Boolean(draft.personalOpen),
   };
 }
 
-export function saveDraft(key, product, { config, qty, scroll }) {
-  drafts[key] = { config: normalizeConfig(product, config), qty: boundedQty(qty), scroll: Math.max(0, scroll || 0), updatedAt: Date.now() };
+export function saveDraft(key, product, { config, qty, scroll, personalOpen = false }) {
+  drafts[key] = { config: normalizeConfig(product, config), qty: boundedQty(qty), scroll: Math.max(0, scroll || 0), personalOpen: Boolean(personalOpen), updatedAt: Date.now() };
   for (const [id, draft] of Object.entries(drafts)) if (!draft || Date.now() - draft.updatedAt > DRAFT_LIFETIME) delete drafts[id];
   write('localStorage', DRAFT_KEY, drafts);
 }

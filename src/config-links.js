@@ -1,4 +1,4 @@
-import { normalizeConfig } from './order.js?v=20260928-family1';
+import { normalizeConfig } from './order.js?v=20260928-speed1';
 
 // קישור מכיל הרכב וכמות בלבד. הערות, סל, פרטי קשר וכתובת אינם נכנסים אליו.
 export function encodeConfiguration(product, config, qty) {

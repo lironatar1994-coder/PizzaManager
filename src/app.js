@@ -1,10 +1,10 @@
-import { shop, activeProducts, findProduct } from './data.js?v=20260928-family1';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, clearExtras } from './order.js?v=20260928-family1';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-family1';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent } from './store.js?v=20260928-family1';
-import { verifyAddress, isOpen, submitOrder } from './services.js?v=20260928-family1';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-family1';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260928-family1';
+import { shop, activeProducts, findProduct } from './data.js?v=20260928-speed1';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, clearExtras } from './order.js?v=20260928-speed1';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-speed1';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-speed1';
+import { verifyAddress, isOpen, submitOrder } from './services.js?v=20260928-speed1';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-speed1';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260928-speed1';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -40,6 +40,7 @@ const ICONS = {
   share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.7 7.6-4.4m-7.6 7 7.6 4.4"/>',
   undo: '<path d="M9 5 4 10l5 5M4 10h9a6 6 0 0 1 0 12"/>',
   swap: '<path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/>',
+  edit: '<path d="m15.5 4.5 4 4M4 20l4.5-1L20 7.5a2.8 2.8 0 0 0-4-4L4.5 15Z"/>',
 };
 const icon = (name, className = '') => `<svg class="icon${className ? ` ${className}` : ''}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
 const placementIcon = (placement) => `<svg class="placement__icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.6" fill="none" stroke="currentColor" stroke-width="1.6"/>${{
@@ -104,6 +105,15 @@ function compositionMarkup(info) {
 }
 
 const itemLabelMarkup = (label, className = 'item-label') => label ? `<span class="${className}"><bdi>${safe(label)}</bdi></span>` : '';
+
+function selectedExtrasMarkup(group, value, editing) {
+  const choices = group.choices.filter((choice) => value?.[choice.id]);
+  const selected = choices.find((choice) => choice.id === editing);
+  return `<ul class="selected-extras__list" aria-label="${safe(group.name)} שנבחרו">${choices.map((choice) => `<li>
+    ${group.placement ? `<button type="button" data-extra-edit="${safe(choice.id)}" aria-expanded="${choice.id === editing}" aria-label="שינוי מיקום ${safe(choice.name)}">${placementIcon(value[choice.id])}<span>${safe(choice.name)}<small>${placementLabel(value[choice.id])}</small></span></button>` : `<span class="selected-extras__name">${safe(choice.name)}</span>`}
+    <button type="button" class="selected-extras__remove" data-extra-remove="${safe(choice.id)}" aria-label="הסרת ${safe(choice.name)}">${icon('close')}</button>
+  </li>`).join('')}</ul>${selected ? `<section class="selected-extras__editor" aria-label="מיקום ${safe(selected.name)}"><header><strong>${safe(selected.name)}</strong><button type="button" class="icon-button" data-close-extra aria-label="סגירת מיקום התוספת">${icon('close')}</button></header><div role="group" aria-label="בחירת מיקום ${safe(selected.name)}">${['right', 'whole', 'left'].map((part) => `<button type="button" data-quick-placement="${part}" aria-pressed="${value[selected.id] === part}">${placementIcon(part)}${PLACEMENTS[part].label}</button>`).join('')}</div></section>` : ''}`;
+}
 
 function priceMarkup(product, config, quantity) {
   const price = priceBreakdown(product, config, quantity);
@@ -234,8 +244,9 @@ function singleGroup(group, value) {
 }
 
 function multiGroup(group, value) {
-  return `<fieldset class="field-group"><legend class="field-group__head"><span class="field-group__title">${safe(group.name)}</span><span class="field-group__hint">${group.placement ? 'אפשר לבחור כמה, גם על חצי פיצה' : 'אפשר לבחור כמה'}</span><button type="button" class="link-button extras-clear" data-clear-group="${safe(group.id)}" ${Object.keys(value || {}).length ? '' : 'disabled'}>ניקוי ${safe(group.name)}</button></legend>
+  return `<fieldset class="field-group" data-option-group="${safe(group.id)}"><legend class="field-group__head"><span class="field-group__title">${safe(group.name)}</span><span class="field-group__hint">${group.placement ? 'אפשר לבחור כמה, גם על חצי פיצה' : 'אפשר לבחור כמה'}</span><button type="button" class="link-button extras-clear" data-clear-group="${safe(group.id)}" ${Object.keys(value || {}).length ? '' : 'disabled'}>ניקוי ${safe(group.name)}</button></legend>
     <div class="extras-recovery" data-clear-recovery="${safe(group.id)}" hidden><span>התוספות נוקו</span><button type="button" class="link-button" data-undo-clear>${icon('undo')}החזרה</button></div>
+    <div class="selected-extras" data-selected-extras="${safe(group.id)}" hidden></div>
     <div class="topping-grid">${group.choices.map((choice) => {
       const placement = value?.[choice.id];
       return `<div class="topping" data-choice="${safe(choice.id)}">
@@ -277,9 +288,9 @@ function readConfig(form, product) {
   return normalizeConfig(product, config);
 }
 
-function productPage(product, editLine, copyLine, source) {
+function productPage(product, editLine, copyLine, source, returnToCheckout = false) {
   const list = activeProducts();
-  const back = list.length > 1 ? '#/menu' : '#/';
+  const back = returnToCheckout ? '#/checkout' : list.length > 1 ? '#/menu' : '#/';
   let draftKey = source?.key || (editLine ? `edit:${editLine.id}` : copyLine ? `copy:${copyLine.id}` : `product:${product.id}`);
   const draft = getDraft(draftKey, product);
   let config = draft?.config || source?.config || (editLine || copyLine ? normalizeConfig(product, (editLine || copyLine).config) : defaultConfig(product));
@@ -288,6 +299,10 @@ function productPage(product, editLine, copyLine, source) {
   let savedScroll = draft?.scroll || 0;
   let clearedExtras = null;
   let recoveredEditId = null;
+  let selectedExtraEditor = null;
+  let personalOpen = draft?.personalOpen ?? false;
+  const returnSuffix = returnToCheckout ? '?return=checkout' : '';
+  const submitLabel = () => returnToCheckout ? editLine ? 'שמירה וחזרה לקופה' : 'הוספה וחזרה לקופה' : editLine ? 'עדכון בסל' : 'הוספה לסל';
   const isPizza = product.visual === 'pizza';
   const variantScales = variantsFor(product).length > 1 ? variantsFor(product).map((variant) => variant.scale ?? 1) : [];
 
@@ -300,7 +315,7 @@ function productPage(product, editLine, copyLine, source) {
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p><div class="stage__composition" data-stage-composition></div>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
-        <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p>${copyLine ? `<p class="builder__resume">${icon('copy')}<span>עותק חדש לעריכה · המקור נשאר בסל</span></p>` : ''}${source ? `<p class="builder__resume">${icon(source.kind === 'favorite' ? 'heart' : 'share')}<span>${safe(source.label)} · המחיר לפי התפריט הנוכחי</span></p>` : ''}</header>
+        <header class="builder__intro"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p>${returnToCheckout ? `<a class="builder__return" href="#/checkout">${icon('back')}חזרה לקופה</a>` : ''}${copyLine ? `<p class="builder__resume">${icon('copy')}<span>עותק חדש לעריכה · המקור נשאר בסל</span></p>` : ''}${source ? `<p class="builder__resume">${icon(source.kind === 'favorite' ? 'heart' : 'share')}<span>${safe(source.label)} · המחיר לפי התפריט הנוכחי</span></p>` : ''}</header>
         <section class="builder-tools" aria-label="שמירה ושיתוף של ההרכב">
           <div class="builder-tools__actions">
             <button type="button" data-save-toggle aria-expanded="false" aria-controls="favorite-editor">${icon('heart')}<span data-save-label>שמירה</span></button>
@@ -323,18 +338,22 @@ function productPage(product, editLine, copyLine, source) {
         </section>
         ${variantSection(product, config)}
         ${(product.optionGroups || []).map((group) => (group.type === 'single' ? singleGroup(group, config.options[group.id]) : multiGroup(group, config.options[group.id]))).join('')}
+        <details class="builder-personal" data-personal ${personalOpen ? 'open' : ''}>
+        <summary><span><strong>שם והוראות למטבח</strong><small data-personal-summary></small></span>${icon('down')}</summary>
+        <div class="builder-personal__fields">
         <div class="field-group item-name-field"><label class="field-group__head" for="item-name"><span class="field-group__title">למי זה?</span><span class="field-group__hint">שם לפריט, לא חובה</span></label><input class="input" id="item-name" name="itemName" dir="auto" maxlength="40" autocomplete="off" placeholder="למשל: של הילדים" value="${safe(config.label)}" /><p class="field-group__hint">יופיע בסל ובפירוט למטבח.</p></div>
         <div class="field-group">
           <label class="field-group__head" for="kitchen-note"><span class="field-group__title">משהו שחשוב שנדע?</span><span class="field-group__hint">הערה למטבח, לא חובה</span></label>
           <textarea class="input" id="kitchen-note" name="note" dir="auto" rows="2" maxlength="200" placeholder="למשל: לחתוך לריבועים">${safe(config.note)}</textarea>
           ${(product.notePresets || []).length ? `<div class="note-presets" role="group" aria-label="קיצורי הערות למטבח, אפשר לבחור קיצור אחד">${product.notePresets.map((note) => `<button type="button" data-note-preset="${safe(note)}" aria-pressed="false">${icon('plus')}<span>${safe(note)}</span></button>`).join('')}</div><p class="note-presets__status" data-note-status role="status"></p>` : ''}
         </div>
-        <div class="field-group field-group--inline"><span class="field-group__title" id="qty-title">כמות</span>${stepper({ value: quantity, label: 'כמות' })}</div>
+        </div></details>
       </form>
     </main>
-    <div class="buybar"><p class="buybar__recovery" data-edit-recovery role="status" hidden></p><div class="buybar__basket" data-builder-basket hidden><button type="button" data-open-cart><span data-basket-current></span>${icon('down')}</button><span data-basket-projected></span></div><div class="buybar__inner">
+    <div class="buybar buybar--builder"><p class="buybar__recovery" data-edit-recovery role="status" hidden></p><div class="buybar__basket" data-builder-basket hidden><button type="button" data-open-cart><span data-basket-current></span>${icon('down')}</button><span data-basket-projected></span></div><div class="buybar__inner">
       <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}דמי משלוח, אם נבחר, מחושבים בקופה.</p></div>
       <button type="button" class="buybar__total buybar__price" data-price-toggle aria-expanded="false" aria-controls="price-panel"><span>פירוט מחיר ${icon('down')}</span><strong id="bar-total"></strong></button>
+      <div class="buybar__quantity" data-builder-quantity><span>כמות</span>${stepper({ value: quantity, label: 'כמות' })}</div>
       <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span id="add-label"></span>${icon('forward')}</button>
     </div></div>
     <p class="visually-hidden" aria-live="polite" id="builder-status"></p>`;
@@ -349,6 +368,7 @@ function productPage(product, editLine, copyLine, source) {
   const favoriteEditor = form.querySelector('#favorite-editor');
   const shareEditor = form.querySelector('#share-editor');
   const noteInput = form.elements.note;
+  const personal = form.querySelector('[data-personal]');
   const presetActive = (preset) => config.note.split('\n').some((line) => line.trim() === preset);
   const syncNotePresets = () => form.querySelectorAll('[data-note-preset]').forEach((button) => {
     const active = presetActive(button.dataset.notePreset);
@@ -371,12 +391,12 @@ function productPage(product, editLine, copyLine, source) {
       recoveredEditId = null;
       clearDraft(draftKey);
       draftKey = `edit:${restored.id}`;
-      saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll });
-      history.replaceState(null, '', `#/product/${product.id}/edit/${restored.id}`);
+      saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll, personalOpen });
+      history.replaceState(null, '', `#/product/${product.id}/edit/${restored.id}${returnSuffix}`);
       const recovery = document.querySelector('[data-edit-recovery]');
       recovery.textContent = 'הפריט הוחזר לסל. אפשר להמשיך לערוך.';
       recovery.hidden = false;
-      document.querySelector('#add-label').textContent = 'עדכון בסל';
+      document.querySelector('#add-label').textContent = submitLabel();
     }
     const original = editLine ? getLine(editLine.id) : null;
     if (editLine && !original) {
@@ -385,12 +405,12 @@ function productPage(product, editLine, copyLine, source) {
       clearDraft(draftKey);
       draftKey = `product:${product.id}`;
       hasDraft = true;
-      saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll });
-      history.replaceState(null, '', `#/product/${product.id}`);
+      saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll, personalOpen });
+      history.replaceState(null, '', `#/product/${product.id}${returnSuffix}`);
       const recovery = document.querySelector('[data-edit-recovery]');
       recovery.textContent = 'הפריט הוסר מהסל. הבחירות נשמרו להוספה מחדש.';
       recovery.hidden = false;
-      document.querySelector('#add-label').textContent = 'הוספה לסל';
+      document.querySelector('#add-label').textContent = submitLabel();
     }
     return original;
   };
@@ -411,9 +431,10 @@ function productPage(product, editLine, copyLine, source) {
   const flushDraft = () => {
     clearTimeout(scrollTimer);
     if (!document.querySelector('dialog[open]')) savedScroll = window.scrollY;
-    if (hasDraft && !freshBuilder) saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll });
+    if (hasDraft && !freshBuilder) saveDraft(draftKey, product, { config, qty: quantity, scroll: savedScroll, personalOpen });
   };
   const rememberSelection = () => { hasDraft = true; flushDraft(); };
+  personal.addEventListener('toggle', () => { personalOpen = personal.open; rememberSelection(); });
   const rememberScroll = () => {
     if (document.querySelector('dialog[open]')) return;
     savedScroll = window.scrollY;
@@ -443,6 +464,18 @@ function productPage(product, editLine, copyLine, source) {
       : details || 'בלי תוספות';
     form.querySelectorAll('[data-clear-recovery]').forEach((node) => { node.hidden = clearedExtras?.groupIds[0] !== node.dataset.clearRecovery; });
     form.querySelectorAll('[data-clear-group]').forEach((button) => { button.disabled = !Object.keys(config.options[button.dataset.clearGroup] || {}).length; });
+    for (const group of product.optionGroups || []) {
+      if (group.type !== 'multi') continue;
+      const node = form.querySelector(`[data-selected-extras="${CSS.escape(group.id)}"]`);
+      const value = config.options[group.id];
+      const editing = selectedExtraEditor?.groupId === group.id && value[selectedExtraEditor.choiceId] ? selectedExtraEditor.choiceId : null;
+      const markup = selectedExtrasMarkup(group, value, editing);
+      node.hidden = !Object.keys(value).length;
+      if (node.innerHTML !== markup) node.innerHTML = markup;
+    }
+    const personalSummary = [config.label, config.note.replace(/\s+/g, ' ')].filter(Boolean).join(' · ');
+    personal.querySelector('[data-personal-summary]').textContent = personalSummary || 'לא חובה · למשל, ״של הילדים״ או חיתוך לריבועים';
+    personal.classList.toggle('has-content', Boolean(personalSummary));
     document.querySelector('[data-stage-composition]').innerHTML = info.extras.some((extra) => extra.divided) ? compositionMarkup(info) : '';
     if (isPizza) {
       const toppingCount = info.extras.length;
@@ -450,16 +483,16 @@ function productPage(product, editLine, copyLine, source) {
       document.querySelector('#stage-compact').textContent = [info.singles[0], toppingSummary].filter(Boolean).join(' · ');
     }
     document.querySelector('#bar-total').textContent = money(total);
-    document.querySelector('#add-label').textContent = editLine ? 'עדכון בסל' : 'הוספה לסל';
+    document.querySelector('#add-label').textContent = submitLabel();
     document.querySelector('[data-price-toggle]').setAttribute('aria-label', `פירוט המחיר, ${money(total)}`);
     document.querySelector('[data-price-content]').innerHTML = priceMarkup(product, config, quantity);
     syncSaved();
     syncNotePresets();
     syncBasket();
     form.querySelector('#share-link').value = configurationLink(window.location.href, product, config, quantity, !product.active);
-    form.querySelector('output').textContent = quantity;
-    form.querySelector('[data-qty="minus"]').disabled = quantity <= 1;
-    form.querySelector('[data-qty="plus"]').disabled = quantity >= 99;
+    document.querySelector('[data-builder-quantity] output').textContent = quantity;
+    document.querySelector('[data-builder-quantity] [data-qty="minus"]').disabled = quantity <= 1;
+    document.querySelector('[data-builder-quantity] [data-qty="plus"]').disabled = quantity >= 99;
     for (const group of product.optionGroups || []) {
       if (group.type !== 'multi') continue;
       for (const choice of group.choices) {
@@ -475,6 +508,15 @@ function productPage(product, editLine, copyLine, source) {
       }
     }
   };
+
+  document.querySelector('[data-builder-quantity]').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-qty]');
+    if (!button) return;
+    quantity = Math.max(1, Math.min(99, quantity + (button.dataset.qty === 'plus' ? 1 : -1)));
+    refresh(); rememberSelection();
+    status.textContent = `כמות: ${quantity}`;
+    reactToChoice(art, false);
+  });
 
   form.addEventListener('change', (event) => {
     const previous = config;
@@ -506,10 +548,41 @@ function productPage(product, editLine, copyLine, source) {
     if (target.matches('input[type="radio"], input[type="checkbox"]')) reactToChoice(art, true);
   });
   form.addEventListener('input', (event) => {
-    if (event.target.name === 'note') { config = { ...config, note: event.target.value }; syncNotePresets(); syncSaved(); rememberSelection(); }
+    if (event.target.name === 'note') { config = { ...config, note: event.target.value }; refresh(); rememberSelection(); }
     if (event.target.name === 'itemName') { config = normalizeConfig(product, { ...config, label: event.target.value }); refresh(); rememberSelection(); }
   });
   form.addEventListener('click', (event) => {
+    const selected = event.target.closest('[data-selected-extras]');
+    if (selected) {
+      const groupId = selected.dataset.selectedExtras;
+      const edit = event.target.closest('[data-extra-edit]');
+      const remove = event.target.closest('[data-extra-remove]');
+      const placement = event.target.closest('[data-quick-placement]');
+      if (edit) {
+        selectedExtraEditor = selectedExtraEditor?.groupId === groupId && selectedExtraEditor.choiceId === edit.dataset.extraEdit ? null : { groupId, choiceId: edit.dataset.extraEdit };
+        refresh();
+        (selected.querySelector('[data-quick-placement][aria-pressed="true"]') || selected.querySelector(`[data-extra-edit="${CSS.escape(edit.dataset.extraEdit)}"]`))?.focus({ preventScroll: true });
+        return;
+      }
+      if (remove || placement) {
+        const choiceId = remove?.dataset.extraRemove || selectedExtraEditor?.choiceId;
+        if (!choiceId) return;
+        const options = structuredClone(config.options);
+        const name = product.optionGroups.find((group) => group.id === groupId).choices.find((choice) => choice.id === choiceId).name;
+        if (remove) { delete options[groupId][choiceId]; selectedExtraEditor = null; }
+        else options[groupId][choiceId] = placement.dataset.quickPlacement;
+        setPreviewConfig({ ...config, options });
+        status.textContent = remove ? `הוסר: ${name}` : `${name}: ${PLACEMENTS[placement.dataset.quickPlacement].label}`;
+        (placement ? selected.querySelector('[data-quick-placement][aria-pressed="true"]') : selected.querySelector('[data-extra-edit], [data-extra-remove]') || form.querySelector(`[data-clear-group="${CSS.escape(groupId)}"]`))?.focus({ preventScroll: true });
+        return;
+      }
+      if (event.target.closest('[data-close-extra]')) {
+        const choiceId = selectedExtraEditor.choiceId;
+        selectedExtraEditor = null; refresh();
+        selected.querySelector(`[data-extra-edit="${CSS.escape(choiceId)}"]`)?.focus({ preventScroll: true });
+        return;
+      }
+    }
     const clear = event.target.closest('[data-clear-group]');
     if (clear) { setPreviewConfig(config, { type: 'clear', groupId: clear.dataset.clearGroup }); form.querySelector(`[data-clear-recovery="${CSS.escape(clear.dataset.clearGroup)}"] [data-undo-clear]`)?.focus({ preventScroll: true }); return; }
     if (event.target.closest('[data-undo-clear]')) { const groupId = clearedExtras?.groupIds[0]; setPreviewConfig(config, { type: 'undo-clear' }); if (groupId) form.querySelector(`[data-clear-group="${CSS.escape(groupId)}"]`)?.focus({ preventScroll: true }); return; }
@@ -546,13 +619,6 @@ function productPage(product, editLine, copyLine, source) {
       }
       return;
     }
-    const button = event.target.closest('[data-qty]');
-    if (!button) return;
-    quantity = Math.max(1, Math.min(99, quantity + (button.dataset.qty === 'plus' ? 1 : -1)));
-    refresh();
-    rememberSelection();
-    status.textContent = `כמות: ${quantity}`;
-    reactToChoice(art, false);
   });
 
   const toggleTools = (kind) => {
@@ -587,6 +653,12 @@ function productPage(product, editLine, copyLine, source) {
     catch (error) { if (error.name !== 'AbortError') form.querySelector('[data-share-status]').textContent = 'השיתוף לא נפתח. אפשר להעתיק את הקישור.'; }
   });
   form.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && event.target.closest('.selected-extras__editor')) {
+      event.preventDefault();
+      const { groupId, choiceId } = selectedExtraEditor;
+      selectedExtraEditor = null; refresh();
+      form.querySelector(`[data-selected-extras="${CSS.escape(groupId)}"] [data-extra-edit="${CSS.escape(choiceId)}"]`)?.focus({ preventScroll: true });
+    }
     if (event.key === 'Enter' && event.target.id === 'favorite-name') { event.preventDefault(); form.querySelector('[data-save-favorite]').click(); }
     if (event.key === 'Escape' && (!favoriteEditor.hidden || !shareEditor.hidden)) { const toggle = favoriteEditor.hidden ? shareToggle : saveToggle; favoriteEditor.hidden = true; shareEditor.hidden = true; toggle.setAttribute('aria-expanded', 'false'); toggle.focus({ preventScroll: true }); }
   });
@@ -657,6 +729,11 @@ function productPage(product, editLine, copyLine, source) {
     clearDraft(draftKey);
     draftKey = `product:${product.id}`;
     hasDraft = false;
+    if (returnToCheckout) {
+      checkout.updatedLine = line.id;
+      window.location.hash = '#/checkout';
+      return;
+    }
     history.replaceState(null, '', `#/product/${product.id}`);
     refresh();
     const route = window.location.hash;
@@ -916,16 +993,19 @@ sheet.className = 'sheet';
 sheet.setAttribute('aria-labelledby', 'cart-title');
 document.body.append(sheet);
 
-function cartLineMarkup(line) {
+const cartExpanded = new Set();
+
+function cartLineMarkup(line, compact = false) {
   const product = findProduct(line.config.productId);
   const info = describe(product, line.config);
+  const extrasSummary = info.extras.length === 1 ? 'תוספת אחת' : `${info.extras.length} תוספות`;
   return `<li class="cart-line" data-line="${safe(line.id)}">
     <span class="cart-line__art">${productArt(product, line.config)}</span>
     <div class="cart-line__body">
       ${itemLabelMarkup(line.config.label)}<h3>${safe(info.title)}</h3>
     </div>
-    <div class="cart-line__side"><bdi class="cart-line__price" data-line-price>${money(lineTotal(line, product))}</bdi>${stepper({ value: line.qty, label: `כמות של ${info.title}`, attr: 'data-line-qty', small: true })}</div>
-    <div class="cart-line__details">${compositionMarkup(info)}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}</div>
+    <div class="cart-line__side"><bdi class="cart-line__price" data-line-price>${money(lineTotal(line, product))}</bdi>${stepper({ value: line.qty, label: `כמות: ${line.config.label || info.title}`, attr: 'data-line-qty', small: true })}</div>
+    ${compact ? `<details class="cart-line__details cart-line__disclosure" data-cart-composition="${safe(line.id)}" ${cartExpanded.has(line.id) ? 'open' : ''}><summary aria-label="פירוט ההרכב: ${safe(line.config.label || info.title)}"><span>פירוט ההרכב${info.extras.length ? ` · ${extrasSummary}` : ''}${line.config.note ? ' והערה' : ''}</span>${icon('down')}</summary>` : '<div class="cart-line__details">'}${compositionMarkup(info)}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}${compact ? '</details>' : '</div>'}
     <div class="cart-line__actions"><a href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet>עריכה</a><a href="#/product/${safe(product.id)}/copy/${safe(line.id)}" data-copy-line="${safe(line.id)}" data-close-sheet>${icon('copy')}שכפול ושינוי</a><button type="button" data-remove>הסרה</button></div>
   </li>`;
 }
@@ -938,7 +1018,7 @@ function renderCart() {
   sheet.innerHTML = `<div class="sheet__panel">
     <header class="sheet__head"><h2 id="cart-title">הסל שלכם</h2><span class="sheet__count" data-sheet-count>${count ? itemsText(count) : ''}</span><button type="button" class="icon-button" data-close-sheet aria-label="סגירת הסל">${icon('close')}</button></header>
     ${removed ? `<div class="cart-undo" role="status"><span>הפריט הוסר <bdi>${safe(removedTitle)}</bdi></span><button type="button" class="link-button" data-undo-remove>${icon('undo')}החזרה</button></div>` : ''}
-    ${cart.length ? `<ul class="cart-lines">${cart.map(cartLineMarkup).join('')}</ul>
+    ${cart.length ? `<ul class="cart-lines${cart.length >= 3 ? ' cart-lines--compact' : ''}">${cart.map((line) => cartLineMarkup(line, cart.length >= 3)).join('')}</ul>
       <footer class="sheet__foot">
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
         <p class="sheet__hint">${checkout.mode === 'pickup' ? 'איסוף עצמי נבחר. אפשר לשנות בקופה.' : 'משלוח נבחר. דמי המשלוח ייקבעו לפי הכתובת בקופה.'}</p>
@@ -978,7 +1058,17 @@ sheet.addEventListener('click', (event) => {
   if (qtyButton) updateLine(line.id, { qty: line.qty + (qtyButton.dataset.lineQty === 'plus' ? 1 : -1) });
 });
 
+sheet.addEventListener('toggle', (event) => {
+  const id = event.target.dataset?.cartComposition;
+  if (id) event.target.open ? cartExpanded.add(id) : cartExpanded.delete(id);
+}, true);
+
 document.addEventListener('click', (event) => {
+  const editFromCheckout = event.target.closest('[data-checkout-edit]');
+  if (editFromCheckout) {
+    checkout.returnFromEdit = { lineId: editFromCheckout.dataset.checkoutEdit, scroll: window.scrollY };
+    checkout.updatedLine = null;
+  }
   const heroContact = event.target.closest('[data-hero-contact]');
   if (heroContact) { toggleHeroContact(heroContact.dataset.heroContact); return; }
   if (event.target.closest('[data-hero-contact-close]')) {
@@ -1099,10 +1189,15 @@ function rememberMode(mode) {
   saveMode(mode);
 }
 
+const rememberedCustomer = getCustomerDetails();
 const checkout = {
   mode: getMode(),
-  address: { query: '', place: null, city: '', street: '', number: '', apartment: '', floor: '', instructions: '' },
-  contact: { name: '', phone: '' },
+  address: rememberedCustomer?.address || { query: '', place: null, city: '', street: '', number: '', apartment: '', floor: '', instructions: '' },
+  contact: rememberedCustomer?.contact || { name: '', phone: '' },
+  remember: Boolean(rememberedCustomer),
+  hasRemembered: Boolean(rememberedCustomer),
+  memoryMessage: rememberedCustomer ? 'הפרטים השמורים מולאו. כתובת למשלוח תיבדק מחדש.' : '',
+  memoryError: false,
   check: { status: 'idle' },
   errors: {},
   submitting: false,
@@ -1110,6 +1205,34 @@ const checkout = {
 };
 
 const validPhone = (value) => /^0(5\d{8}|[2-489]\d{7}|7\d{8})$/.test(value.replace(/[\s-]/g, ''));
+
+function customerPreferenceMarkup() {
+  return `<label class="customer-memory__choice"><input type="checkbox" name="rememberDetails" ${checkout.remember ? 'checked' : ''} /><span><strong>לשמור פרטים להזמנה הבאה</strong><small>פרטי קשר וכתובת במכשיר הזה, רק לפי בחירתכם.</small></span></label>
+    <button type="button" class="link-button" data-forget-customer ${checkout.hasRemembered ? '' : 'hidden'}>${icon('close')}מחיקת הפרטים השמורים</button>
+    <p class="customer-memory__status${checkout.memoryError ? ' is-error' : ''}" data-memory-status role="status">${safe(checkout.memoryMessage)}</p>`;
+}
+
+function syncCustomerMemory(action = 'save') {
+  if (action === 'forget') {
+    const cleared = forgetCustomerDetails();
+    checkout.remember = false;
+    if (cleared) checkout.hasRemembered = false;
+    checkout.memoryError = !cleared;
+    checkout.memoryMessage = cleared ? 'הפרטים השמורים נמחקו. פרטי ההזמנה הנוכחית נשארו.' : 'לא הצלחנו למחוק את הפרטים השמורים. אפשר לנסות שוב.';
+  } else if (checkout.remember) {
+    const saved = saveCustomerDetails({ contact: checkout.contact, address: checkout.address });
+    if (saved) checkout.hasRemembered = true;
+    checkout.memoryError = !saved;
+    checkout.memoryMessage = saved ? 'הפרטים נשמרו במכשיר. אפשר למחוק אותם בכל רגע.' : 'האחסון במכשיר חסום. הפרטים זמינים להזמנה הזו בלבד.';
+  } else return;
+  const preference = document.querySelector('[data-customer-preference]');
+  if (!preference) return;
+  preference.querySelector('input').checked = checkout.remember;
+  preference.querySelector('[data-forget-customer]').hidden = !checkout.hasRemembered;
+  const status = preference.querySelector('[data-memory-status]');
+  if (status.textContent !== checkout.memoryMessage) status.textContent = checkout.memoryMessage;
+  status.classList.toggle('is-error', checkout.memoryError);
+}
 
 function checkoutTotals() {
   const subtotal = cartSubtotal();
@@ -1135,9 +1258,9 @@ function addressStatus() {
     const { shortBy, subtotal } = checkoutTotals();
     const activeIds = new Set(activeProducts().map((product) => product.id));
     const editable = [...getCart()].reverse().find((line) => activeIds.has(line.config.productId));
-    const href = editable ? `#/product/${editable.config.productId}/edit/${editable.id}` : productHref();
+    const href = editable ? `#/product/${editable.config.productId}/edit/${editable.id}?return=checkout` : productHref();
     return `<div class="notice notice--ok">${icon('check')}<span><strong>הכתובת בתוך אזור השירות לדוגמה.</strong> דמי משלוח <bdi>${money(zone.fee)}</bdi> · מינימום להזמנה <bdi>${money(zone.minOrder)}</bdi></span></div>
-      ${shortBy ? `<section class="delivery-minimum" data-delivery-minimum aria-label="מינימום הזמנה למשלוח"><strong>חסרים <bdi>${money(shortBy)}</bdi> למשלוח</strong><p>סכום המוצרים <bdi>${money(subtotal)}</bdi> · מינימום באזור <bdi>${money(zone.minOrder)}</bdi></p><div><a class="button button--quiet button--small" href="${safe(href)}">חזרה להרכבה ${icon('back')}</a><button type="button" class="link-button" data-switch-pickup>מעבר לאיסוף עצמי</button></div></section>` : ''}`;
+      ${shortBy ? `<section class="delivery-minimum" data-delivery-minimum aria-label="מינימום הזמנה למשלוח"><strong>חסרים <bdi>${money(shortBy)}</bdi> למשלוח</strong><p>סכום המוצרים <bdi>${money(subtotal)}</bdi> · מינימום באזור <bdi>${money(zone.minOrder)}</bdi></p><div><a class="button button--quiet button--small" href="${safe(href)}" ${editable ? `data-checkout-edit="${safe(editable.id)}"` : ''}>חזרה להרכבה ${icon('back')}</a><button type="button" class="link-button" data-switch-pickup>מעבר לאיסוף עצמי</button></div></section>` : ''}`;
   }
   if (status === 'out') return `<div class="notice notice--warn">${icon('alert')}<span><strong>הכתובת מחוץ לאזור המשלוחים.</strong> אפשר להזמין ולאסוף בעצמכם.</span><button type="button" class="button button--small" id="switch-pickup" data-switch-pickup>מעבר לאיסוף עצמי</button></div>`;
   if (status === 'invalid') return `<div class="notice notice--warn">${icon('alert')}<span>לא הצלחנו לאמת כתובת מלאה. בחרו שוב כתובת עם מספר בית מהרשימה.</span><button type="button" class="button button--small" data-switch-pickup>מעבר לאיסוף עצמי</button></div>`;
@@ -1181,7 +1304,7 @@ function summaryMarkup() {
     <ul class="summary__lines">${getCart().map((line) => {
       const product = findProduct(line.config.productId);
       const info = describe(product, line.config);
-      return `<li><span class="summary__art">${productArt(product, line.config)}</span><div class="summary__text">${itemLabelMarkup(line.config.label)}<strong>${line.qty > 1 ? `${line.qty} × ` : ''}${safe(info.title)}</strong>${compositionMarkup(info)}</div><bdi>${money(lineTotal(line, product))}</bdi></li>`;
+      return `<li><a class="summary__edit" href="#/product/${safe(product.id)}/edit/${safe(line.id)}?return=checkout" data-checkout-edit="${safe(line.id)}" aria-label="עריכת ${safe(line.config.label || info.title)} וחזרה לקופה"><span class="summary__art">${productArt(product, line.config)}</span><div class="summary__text">${itemLabelMarkup(line.config.label)}<strong>${line.qty > 1 ? `${line.qty} × ` : ''}${safe(info.title)}</strong>${checkout.updatedLine === line.id ? '<small class="summary__updated" role="status">הפריט עודכן</small>' : ''}</div><span class="summary__line-side"><bdi>${money(lineTotal(line, product))}</bdi><small>עריכה ${icon('edit')}</small></span><div class="summary__composition">${compositionMarkup(info)}</div></a></li>`;
     }).join('')}</ul>
     <button type="button" class="link-button" data-open-cart>עריכת הסל</button>
     <dl class="summary__totals">
@@ -1247,6 +1370,7 @@ function checkoutPage(focusId) {
             ${field({ name: 'phone', label: 'טלפון', value: contact.phone, group: 'contact', autocomplete: 'tel', inputmode: 'tel', type: 'tel' })}
           </div>
         </fieldset>
+        <section class="customer-memory" data-customer-preference aria-label="שמירת פרטים במכשיר">${customerPreferenceMarkup()}</section>
         <section class="field-group pay-note">
           ${icon('lock', 'pay-note__icon')}<div><h2 class="field-group__title">תשלום באשראי — טרם חובר</h2><p>בהדגמה לא מזינים פרטי כרטיס ולא מתבצע חיוב.</p></div>
         </section>
@@ -1257,6 +1381,10 @@ function checkoutPage(focusId) {
 
   const form = document.querySelector('#checkout-form');
   form.addEventListener('change', (event) => {
+    if (event.target.name === 'rememberDetails') {
+      checkout.remember = event.target.checked;
+      syncCustomerMemory(checkout.remember ? 'save' : 'forget');
+    }
     if (event.target.name === 'mode') {
       rememberMode(event.target.value);
       checkout.errors = {};
@@ -1267,6 +1395,7 @@ function checkoutPage(focusId) {
     const { name, value, dataset } = event.target;
     if (!dataset.group) return;
     checkout[dataset.group][name] = value;
+    syncCustomerMemory();
     if (checkout.errors[name]) {
       delete checkout.errors[name];
       const wrapper = event.target.closest('.field');
@@ -1280,6 +1409,7 @@ function checkoutPage(focusId) {
     }
   });
   form.addEventListener('click', (event) => {
+    if (event.target.closest('[data-forget-customer]')) syncCustomerMemory('forget');
     if (event.target.closest('[data-check-address]')) runAddressCheck();
     if (event.target.closest('[data-switch-pickup]')) { rememberMode('pickup'); checkout.errors = {}; checkoutPage('mode-pickup'); }
   });
@@ -1311,6 +1441,7 @@ function bindAddressLookup(form) {
     if (!place) return;
     clearTimeout(timer); controller?.abort(); revision++;
     checkout.address = { ...checkout.address, query: place.label, place, city: place.city, street: place.street, number: place.number };
+    syncCustomerMemory();
     input.value = place.label;
     message.textContent = '';
     close(); showSelection();
@@ -1349,6 +1480,7 @@ function bindAddressLookup(form) {
     controller?.abort(); clearTimeout(timer); revision++;
     addressCheckController?.abort(); addressCheckRevision++;
     checkout.address = { ...checkout.address, query: input.value, place: null, city: '', street: '', number: '' };
+    syncCustomerMemory();
     checkout.check = { status: 'idle' };
     close(); showSelection(); refreshCheckoutParts();
     message.textContent = input.value.trim().length >= 4 ? 'מחפשים כתובות…' : input.value ? 'הקלידו רחוב, מספר בית ועיר.' : '';
@@ -1492,8 +1624,9 @@ function donePage() {
 /* ---------- ניתוב ---------- */
 
 function getRoute() {
-  const [, page = '', id, action, lineId] = window.location.hash.split('/');
-  return { page, id, action, lineId };
+  const [path, query = ''] = window.location.hash.split('?');
+  const [, page = '', id, action, lineId] = path.split('/');
+  return { page, id, action, lineId, returnToCheckout: new URLSearchParams(query).get('return') === 'checkout' };
 }
 
 function notFound() {
@@ -1525,9 +1658,13 @@ function render() {
     const shared = product && route.action === 'share' ? decodeConfiguration(product, route.lineId) : null;
     const incoming = favorite && product && favorite.config.productId === product.id ? { ...favorite, key: `favorite:${favorite.id}`, kind: 'favorite', label: `מהמועדפים: ${favorite.name}` } : shared ? { ...shared, key: `share:${product.id}:${route.lineId}`, kind: 'share', label: 'הרכב ששיתפו איתכם' } : null;
     const validSource = !route.action || ['edit', 'copy'].includes(route.action) && source?.config.productId === product?.id || ['favorite', 'share'].includes(route.action) && incoming;
-    if (product && validSource) restoreScroll = productPage(product, route.action === 'edit' ? source : null, route.action === 'copy' ? source : null, incoming);
+    if (product && validSource) restoreScroll = productPage(product, route.action === 'edit' ? source : null, route.action === 'copy' ? source : null, incoming, route.returnToCheckout);
     else notFound();
-  } else if (route.page === 'checkout') checkoutPage();
+  } else if (route.page === 'checkout') {
+    restoreScroll = checkout.returnFromEdit?.scroll || 0;
+    checkout.returnFromEdit = null;
+    checkoutPage();
+  }
   else if (route.page === 'done') donePage();
   else home();
   const bar = document.querySelector('.buybar');
