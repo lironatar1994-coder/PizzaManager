@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+
+// טוענים את אותה גרסת מודולים של האתר, כדי לשתף נתוני זמינות בין הבדיקות.
+const runtimeEntry = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
+const runtimeDataImport = runtimeEntry.match(/from ['"]\.\/data\.js([^'"]*)['"]/);
+assert.ok(runtimeDataImport, 'Cannot resolve the runtime data module');
+const loadRuntime = (file) => import(new URL(`../src/${file}${runtimeDataImport[1]}`, import.meta.url));
 
 const storage = () => {
   const values = new Map();
   return { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: (key) => values.delete(key) };
 };
 globalThis.window = { location: { search: '' }, localStorage: storage(), sessionStorage: storage() };
-const { products, activeProducts, findProduct } = await import('../src/data.js?v=20260928-combos1');
-const { defaultConfig, normalizeConfig, unitPrice, lineTotal, bundleParts, bundleSavings, describe, configurationIssues, prepareRepeatOrder, complementarySuggestion, compositionOnly, minimumSuggestions } = await import('../src/order.js?v=20260928-combos1');
-const { encodeConfiguration, decodeConfiguration } = await import('../src/config-links.js?v=20260928-combos1');
-const store = await import('../src/store.js?v=20260928-combos1');
+const { products, activeProducts, findProduct } = await loadRuntime('data.js');
+const { defaultConfig, normalizeConfig, unitPrice, lineTotal, bundleParts, bundleSavings, describe, configurationIssues, prepareRepeatOrder, complementarySuggestion, compositionOnly, minimumSuggestions } = await loadRuntime('order.js');
+const { encodeConfiguration, decodeConfiguration } = await loadRuntime('config-links.js');
+const store = await loadRuntime('store.js');
 const family = findProduct('family-meal');
 const pair = findProduct('pizza-and-garlic');
 const pizza = findProduct('house-pizza');
