@@ -33,6 +33,10 @@ function VerifyLive([string]$ExpectedRevision) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live asset: $asset" }
     }
+    foreach ($menuPhoto in @('pizza', 'garlic', 'family', 'combo')) {
+        $response = Invoke-WebRequest -Uri "${SiteUrl}assets/menu-${menuPhoto}-v1.webp" -Method Head -UseBasicParsing -TimeoutSec 20
+        if ($response.StatusCode -ne 200) { throw "Missing live menu photo: $menuPhoto" }
+    }
     Write-Host "Live demo: $SiteUrl ($version)" -ForegroundColor Green
 }
 

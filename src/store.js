@@ -1,5 +1,5 @@
-import { findProduct } from './data.js?v=20260928-menu2';
-import { lineTotal, normalizeConfig, compositionOnly } from './order.js?v=20260928-menu2';
+import { findProduct } from './data.js?v=20260928-menu3';
+import { lineTotal, normalizeConfig, compositionOnly } from './order.js?v=20260928-menu3';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';

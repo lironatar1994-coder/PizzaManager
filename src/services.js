@@ -1,7 +1,7 @@
 // חיפוש כתובת אמיתי; קליטת ההזמנה והתשלום עדיין מדומים. שרת אמיתי יחשב ויאמת הכול מחדש.
-import { demoFlags } from './data.js?v=20260928-menu2';
-import { openingStatus } from './schedule.js?v=20260928-menu2';
-import { verifySelectedAddress } from './address.js?v=20260928-menu2';
+import { demoFlags } from './data.js?v=20260928-menu3';
+import { openingStatus } from './schedule.js?v=20260928-menu3';
+import { verifySelectedAddress } from './address.js?v=20260928-menu3';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 export const verifyAddress = verifySelectedAddress;
