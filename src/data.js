@@ -19,6 +19,8 @@ export const shop = {
   location: { address: 'רחוב הדוגמה 1, תל אביב' },
   // תוספת על חצי פיצה עולה חצי ממחיר התוספת, מעוגל כלפי מעלה.
   halfToppingFactor: 0.5,
+  // הצעה משלימה אחת בסל, רק כשהמוצר זמין ואינו כבר כלול בהזמנה.
+  complementaryOffers: [{ whenProductIds: ['house-pizza'], productId: 'garlic-bread' }],
   pickup: {
     readyHint: 'בהזמנה אמיתית תישלח הודעה כשהאיסוף מוכן',
     // חלונות וקיבולת לדוגמה. booked יתעדכן בשרת ההזמנות כשיחובר; הדפדפן אינו מקצה מקום.
@@ -101,7 +103,7 @@ export const products = [
   },
   {
     id: 'garlic-bread',
-    active: false,
+    active: true,
     name: 'לחם שום',
     description: 'לחם שום עם חמאה ועשבי תיבול. תיאור לדוגמה.',
     image: './assets/garlic-bread-demo.webp',
@@ -118,6 +120,25 @@ export const products = [
       },
     ],
   },
+  {
+    id: 'pizza-and-garlic', active: true, name: 'פיצה ולחם שום',
+    description: 'פיצה בינונית בהרכבה אישית ולחם שום. קומבו ומחיר לדוגמה.',
+    price: 70,
+    bundle: [
+      { id: 'pizza', name: 'הפיצה', productId: 'house-pizza', variantId: 'medium', variantIds: ['medium', 'large'] },
+      { id: 'side', name: 'לחם השום', productId: 'garlic-bread' },
+    ],
+  },
+  {
+    id: 'family-meal', active: true, name: 'ארוחה משפחתית',
+    description: 'שתי פיצות גדולות, כל אחת בהרכב משלה, ולחם שום. ארוחה ומחיר לדוגמה.',
+    price: 145,
+    bundle: [
+      { id: 'pizza-one', name: 'הפיצה הראשונה', productId: 'house-pizza', variantId: 'large', variantIds: ['large'] },
+      { id: 'pizza-two', name: 'הפיצה השנייה', productId: 'house-pizza', variantId: 'large', variantIds: ['large'] },
+      { id: 'side', name: 'לחם השום', productId: 'garlic-bread' },
+    ],
+  },
 ];
 
 // מצבי הדגמה: multiple (תפריט), closed (סגור), payfail (כישלון תשלום), soldout (תוספת שאזלה)
@@ -130,7 +151,11 @@ export const isAvailable = (item) => Boolean(item) && item.available !== false &
 
 export function activeProducts() {
   const { multiple } = demoFlags();
-  return products.filter((product) => isAvailable(product) && (product.active || multiple));
+  return products.filter((product) => isAvailable(product) && (product.active || multiple)
+    && (!product.bundle || product.bundle.every((part) => {
+      const child = products.find((item) => item.id === part.productId);
+      return child && !child.bundle && isAvailable(child) && (child.active || multiple);
+    })));
 }
 
 export function findProduct(id) {

@@ -1,9 +1,9 @@
-import { normalizeConfig } from './order.js?v=20260928-refine1';
+import { normalizeConfig, compositionOnly } from './order.js?v=20260928-combos1';
 
 // קישור מכיל הרכב וכמות בלבד. הערות, סל, פרטי קשר וכתובת אינם נכנסים אליו.
 export function encodeConfiguration(product, config, qty) {
   const normalized = normalizeConfig(product, config);
-  const payload = JSON.stringify({ version: 1, variant: normalized.variantId, options: normalized.options, qty: Math.max(1, Math.min(99, Math.floor(Number(qty) || 1))) });
+  const payload = JSON.stringify({ version: 1, variant: normalized.variantId, options: normalized.options, items: compositionOnly(normalized).items, qty: Math.max(1, Math.min(99, Math.floor(Number(qty) || 1))) });
   const bytes = new TextEncoder().encode(payload);
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
@@ -14,7 +14,8 @@ export function decodeConfiguration(product, token) {
     const json = new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(atob(token.replace(/-/g, '+').replace(/_/g, '/')), (character) => character.charCodeAt(0)));
     const payload = JSON.parse(json);
     if (payload.version !== 1 || typeof payload.variant !== 'string' || !payload.options || typeof payload.options !== 'object' || Array.isArray(payload.options) || !Number.isInteger(payload.qty) || payload.qty < 1 || payload.qty > 99) return null;
-    return { config: normalizeConfig(product, { variantId: payload.variant, options: payload.options, note: '' }), qty: payload.qty };
+    if (payload.items !== undefined && (!Array.isArray(payload.items) || payload.items.length > 10)) return null;
+    return { config: compositionOnly(normalizeConfig(product, { variantId: payload.variant, options: payload.options, items: payload.items, note: '' })), qty: payload.qty };
   } catch { return null; }
 }
 

@@ -1,5 +1,5 @@
-import { findProduct } from './data.js?v=20260928-refine1';
-import { lineTotal, normalizeConfig } from './order.js?v=20260928-refine1';
+import { findProduct } from './data.js?v=20260928-combos1';
+import { lineTotal, normalizeConfig, compositionOnly } from './order.js?v=20260928-combos1';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
@@ -219,7 +219,7 @@ function persistRepeat(order) {
     const product = findProduct(line.config?.productId);
     if (!product) return [];
     const config = normalizeConfig(product, line.config);
-    return [{ config: { productId: config.productId, variantId: config.variantId, options: structuredClone(config.options), note: '', label: '' }, qty: boundedQty(line.qty) }];
+    return [{ config: compositionOnly(config), qty: boundedQty(line.qty) }];
   });
   if (!lines.length) return false;
   const record = { version: 1, savedAt: Date.now(), lines };

@@ -33,3 +33,4 @@ for (const file of readdirSync(sourceDir).filter((name) => name.endsWith('.js'))
 }
 
 console.log('Static demo checks passed. No backend or real payment is included.');
+await import('./bundles-check.mjs');

@@ -1,0 +1,85 @@
+import assert from 'node:assert/strict';
+
+const storage = () => {
+  const values = new Map();
+  return { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: (key) => values.delete(key) };
+};
+globalThis.window = { location: { search: '' }, localStorage: storage(), sessionStorage: storage() };
+const { products, activeProducts, findProduct } = await import('../src/data.js?v=20260928-combos1');
+const { defaultConfig, normalizeConfig, unitPrice, lineTotal, bundleParts, bundleSavings, describe, configurationIssues, prepareRepeatOrder, complementarySuggestion, compositionOnly, minimumSuggestions } = await import('../src/order.js?v=20260928-combos1');
+const { encodeConfiguration, decodeConfiguration } = await import('../src/config-links.js?v=20260928-combos1');
+const store = await import('../src/store.js?v=20260928-combos1');
+const family = findProduct('family-meal');
+const pair = findProduct('pizza-and-garlic');
+const pizza = findProduct('house-pizza');
+const side = findProduct('garlic-bread');
+
+assert.equal(unitPrice(pair, defaultConfig(pair)), 70);
+assert.equal(unitPrice(family, defaultConfig(family)), 145);
+assert.equal(bundleSavings(pair, defaultConfig(pair)), 6);
+assert.equal(bundleSavings(family, defaultConfig(family)), 15);
+const config = defaultConfig(family);
+config.items[0].config.options.toppings.olives = 'right';
+config.items[0].config.label = 'PRIVATE-NAME';
+config.items[0].config.note = 'PRIVATE-NOTE';
+config.items[1].config.options.toppings.mushrooms = 'whole';
+config.items[2].config.options.extras.cheese = 'whole';
+assert.equal(unitPrice(family, config), 159);
+assert.equal(lineTotal({ config, qty: 2 }, family), 318);
+assert.deepEqual(describe(family, config).components.map((item) => item.extras.map((extra) => extra.text)), [['זיתים בחצי הימני'], ['פטריות'], ['תוספת גבינה']]);
+assert.equal(config.items[1].config.options.toppings.olives, undefined);
+
+const tampered = structuredClone(config);
+tampered.items[0].config.variantId = 'small';
+tampered.items[0].price = -1000;
+tampered.items.push({ id: 'injected', config: defaultConfig(pizza), qty: 99 });
+const normalized = normalizeConfig(family, tampered);
+assert.equal(normalized.items.length, 3);
+assert.equal(normalized.items[0].config.variantId, 'large');
+assert.equal(unitPrice(family, normalized), 159);
+assert.equal(normalizeConfig(family, { items: {} }).items.length, 3);
+assert.equal(bundleParts(family, config).length, 3);
+
+const pizzaLine = { id: 'pizza-test', config: defaultConfig(pizza), qty: 1 };
+assert.equal(complementarySuggestion([pizzaLine], activeProducts()).product.id, side.id);
+assert.equal(complementarySuggestion([pizzaLine, { config: defaultConfig(side), qty: 1 }], activeProducts()), null);
+assert.equal(complementarySuggestion([{ config, qty: 1 }], activeProducts()), null);
+assert.equal(complementarySuggestion([], activeProducts()), null);
+side.available = false;
+assert.equal(complementarySuggestion([pizzaLine], activeProducts()), null);
+assert.ok(!activeProducts().some((item) => item.bundle));
+assert.ok(configurationIssues(family, config).some((issue) => issue.name.includes('לחם השום')));
+delete side.available;
+
+config.items[0].config.options.toppings.jalapeno = 'left';
+window.location.search = '?demo=soldout';
+assert.ok(configurationIssues(family, config).some((issue) => issue.name.includes('חלפיניו')));
+const repeated = prepareRepeatOrder({ lines: [{ config, qty: 2 }] }, activeProducts());
+assert.equal(repeated.lines[0].config.items[0].config.options.toppings.jalapeno, undefined);
+assert.ok(repeated.notices.some((notice) => notice.includes('חלפיניו')));
+window.location.search = '';
+delete config.items[0].config.options.toppings.jalapeno;
+
+const shared = decodeConfiguration(family, encodeConfiguration(family, config, 2));
+assert.equal(unitPrice(family, shared.config), 159);
+assert.equal(shared.qty, 2);
+assert.ok(!JSON.stringify(shared).includes('PRIVATE-'));
+assert.ok(!JSON.stringify(compositionOnly(config)).includes('PRIVATE-'));
+const line = store.addLine(config, 2);
+assert.equal(store.cartSubtotal(), 318);
+store.updateLine(line.id, { qty: 1 });
+assert.equal(store.cartSubtotal(), 159);
+store.removeLine(line.id);
+store.undoRemoveLine();
+assert.equal(store.cartSubtotal(), 159);
+const restoredStore = await import('../src/store.js?v=reload-check');
+assert.equal(restoredStore.cartSubtotal(), 159);
+store.rememberRepeatOrder(true);
+store.saveLastOrder({ lines: [{ config, qty: 2 }], reference: 'DEMO-test' });
+const saved = JSON.parse(window.localStorage.getItem('pizza-demo-repeat-order-v1'));
+assert.equal(saved.lines[0].config.items[0].config.options.toppings.olives, 'right');
+assert.ok(!JSON.stringify(saved).includes('PRIVATE-'));
+assert.equal(prepareRepeatOrder(saved, activeProducts()).total, 318);
+assert.ok(minimumSuggestions([pizzaLine], activeProducts(), 60).every((offer) => offer.delta > 0 && offer.subtotal === 38 + offer.delta));
+assert.equal(products.filter((product) => product.bundle).length, 2);
+console.log('Bundle checks passed: pricing, independent pizzas, availability, single offer, cart reload, repeat order, and shared-link privacy.');

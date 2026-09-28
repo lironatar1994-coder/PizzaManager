@@ -1,4 +1,4 @@
-import { shop, isAvailable, findProduct } from './data.js?v=20260928-refine1';
+import { shop, isAvailable, findProduct, demoFlags } from './data.js?v=20260928-combos1';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 
@@ -15,12 +15,41 @@ export function variantsFor(product) {
 export function defaultConfig(product) {
   const options = {};
   for (const group of product.optionGroups || []) options[group.id] = group.type === 'single' ? (group.choices.find(isAvailable) || group.choices[0])?.id : {};
-  return { productId: product.id, variantId: (variantsFor(product).find(isAvailable) || variantsFor(product)[0]).id, options, note: '', label: '' };
+  const config = { productId: product.id, variantId: (variantsFor(product).find(isAvailable) || variantsFor(product)[0]).id, options, note: '', label: '' };
+  if (product.bundle) config.items = product.bundle.flatMap((part) => {
+    const child = findProduct(part.productId);
+    if (!child || child.bundle) return [];
+    const included = defaultConfig(child);
+    if (part.variantId) included.variantId = part.variantId;
+    return [{ id: part.id, config: included }];
+  });
+  return config;
+}
+
+// הרכב הקומבו נגזר מהתפריט: אי אפשר להזריק רכיב, כמות או מחיר מתוך הסל השמור.
+export function bundleParts(product, config) {
+  return (product.bundle || []).map((part) => {
+    const child = findProduct(part.productId);
+    if (!child || child.bundle) return { ...part, product: null };
+    const included = defaultConfig(child);
+    if (part.variantId) included.variantId = part.variantId;
+    const saved = Array.isArray(config?.items) ? config.items.find((item) => item?.id === part.id && item.config?.productId === child.id) : null;
+    const selected = normalizeConfig(child, saved?.config || included);
+    const allowed = part.variantIds || variantsFor(child).map((variant) => variant.id);
+    if (!allowed.includes(selected.variantId)) selected.variantId = included.variantId;
+    return { ...part, product: child, config: selected, included };
+  });
 }
 
 // שומר תוספת שאזלה בהרכב קיים כדי להציג את הבעיה, במקום להסיר אותה בשקט.
 export function configurationIssues(product, config) {
   const issues = [];
+  if (product.bundle) {
+    for (const part of bundleParts(product, config)) {
+      if (!part.product || !isAvailable(part.product) || (!part.product.active && !demoFlags().multiple)) issues.push({ name: `${part.name}: המוצר אינו זמין`, kind: 'bundle' });
+      else for (const issue of configurationIssues(part.product, part.config)) issues.push({ ...issue, name: `${part.name}: ${issue.name}`, kind: 'bundle' });
+    }
+  }
   const variant = selectedVariant(product, config);
   if (!isAvailable(variant)) issues.push({ name: variant.name || product.name, kind: 'variant' });
   for (const group of product.optionGroups || []) {
@@ -34,6 +63,12 @@ export function configurationIssues(product, config) {
 
 export function availableConfig(product, config) {
   const next = normalizeConfig(product, config);
+  if (product.bundle) next.items = bundleParts(product, next).filter((part) => part.product).map((part) => {
+    const selected = availableConfig(part.product, part.config);
+    const allowed = part.variantIds || variantsFor(part.product).map((variant) => variant.id);
+    if (!allowed.includes(selected.variantId)) selected.variantId = allowed.find((id) => isAvailable(variantsFor(part.product).find((variant) => variant.id === id))) || part.included.variantId;
+    return { id: part.id, config: selected };
+  });
   if (!isAvailable(selectedVariant(product, next))) next.variantId = (variantsFor(product).find(isAvailable) || variantsFor(product)[0]).id;
   for (const group of product.optionGroups || []) {
     if (group.type === 'single') {
@@ -56,7 +91,7 @@ export function prepareRepeatOrder(order, products) {
     const config = availableConfig(product, normalized);
     if (configurationIssues(product, config).length) { notices.push(`${title}: אין כרגע אפשרויות זמינות להרכבה.`); continue; }
     for (const issue of issues) notices.push(`${title}: ${issue.name} אינו זמין היום; ההרכב עודכן.`);
-    if (JSON.stringify([saved.config.variantId, saved.config.options]) !== JSON.stringify([normalized.variantId, normalized.options])) notices.push(`${title}: אפשרויות שהוסרו מהתפריט הותאמו להרכב הנוכחי.`);
+    if (JSON.stringify(compositionOnly(saved.config)) !== JSON.stringify(compositionOnly(normalized))) notices.push(`${title}: אפשרויות שהוסרו מהתפריט הותאמו להרכב הנוכחי.`);
     const qty = Math.max(1, Math.min(99, Math.floor(Number(saved.qty) || 1)));
     lines.push({ config, qty, title: describe(product, config).title, total: unitPrice(product, config) * qty });
   }
@@ -65,6 +100,13 @@ export function prepareRepeatOrder(order, products) {
 
 export function configurationChanges(product, before, after, beforeQty = 1, afterQty = 1) {
   const changes = [];
+  if (product.bundle) {
+    const previous = bundleParts(product, before);
+    for (const part of bundleParts(product, after)) {
+      const old = previous.find((item) => item.id === part.id);
+      if (part.product && old?.config) changes.push(...configurationChanges(part.product, old.config, part.config).changes.map((change) => `${part.name}: ${change}`));
+    }
+  }
   if (before.variantId !== after.variantId) changes.push(`גודל: מ${selectedVariant(product, before).name || 'הגודל הקודם'} ל${selectedVariant(product, after).name || 'הגודל החדש'}`);
   for (const group of product.optionGroups || []) {
     if (group.type === 'single') {
@@ -103,7 +145,9 @@ export function normalizeConfig(product, config) {
       }
     }
   }
-  return { productId: product.id, variantId, options, note: typeof config.note === 'string' ? config.note.slice(0, 200) : '', label: typeof config.label === 'string' ? config.label.replace(/\s+/g, ' ').trim().slice(0, 40) : '' };
+  const normalized = { productId: product.id, variantId, options, note: typeof config.note === 'string' ? config.note.slice(0, 200) : '', label: typeof config.label === 'string' ? config.label.replace(/\s+/g, ' ').trim().slice(0, 40) : '' };
+  if (product.bundle) normalized.items = bundleParts(product, config).filter((part) => part.product).map((part) => ({ id: part.id, config: part.config }));
+  return normalized;
 }
 
 // שינויי חצאים נשארים כלליים: גדלים, בצק, שם והערה אינם משתנים.
@@ -168,6 +212,16 @@ export function unitPrice(product, config) {
 
 // אותו חישוב משמש את המחיר הכולל ואת הפירוט, כולל עיגול תוספות על חצי.
 export function priceBreakdown(product, config, qty = 1) {
+  if (product.bundle) {
+    const rows = [{ name: `${product.name} · מחיר הקומבו`, amount: product.price }];
+    for (const part of bundleParts(product, config)) {
+      if (!part.product) continue;
+      const delta = Math.max(0, unitPrice(part.product, part.config) - unitPrice(part.product, part.included));
+      rows.push({ name: `${part.name} · ${describe(part.product, part.config).title}${delta ? ' · שדרוגים ותוספות' : ' · כלול'}`, amount: delta });
+    }
+    const unit = rows.reduce((sum, row) => sum + row.amount, 0);
+    return { rows, unit, qty, total: unit * qty };
+  }
   const variant = selectedVariant(product, config);
   const rows = [{ name: variant.name ? `${product.name} · ${variant.name}` : product.name, amount: variant.price }];
   for (const group of product.optionGroups || []) {
@@ -188,6 +242,7 @@ export function priceBreakdown(product, config, qty = 1) {
 
 // שורות קריאות לסיכום, לסל ולכרטיס ההזמנה.
 export function describe(product, config) {
+  if (product.bundle) return { title: product.name, variant: selectedVariant(product, config), singles: [], extras: [], label: config.label || '', components: bundleParts(product, config).filter((part) => part.product).map((part) => ({ name: part.name, ...describe(part.product, part.config), note: part.config.note })) };
   const variant = selectedVariant(product, config);
   const singles = [];
   const extras = [];
@@ -210,6 +265,36 @@ export function describe(product, config) {
 
 export function lineTotal(line, product) {
   return unitPrice(product, line.config) * line.qty;
+}
+
+export function complementarySuggestion(lines, products, offers = shop.complementaryOffers || []) {
+  const included = new Set();
+  for (const line of lines) {
+    const product = products.find((item) => item.id === line.config.productId);
+    if (!product || configurationIssues(product, line.config).length) continue;
+    included.add(product.id);
+    for (const part of bundleParts(product, line.config)) if (part.product) included.add(part.product.id);
+  }
+  for (const rule of offers) {
+    if (!rule.whenProductIds.some((id) => included.has(id)) || included.has(rule.productId)) continue;
+    const product = products.find((item) => item.id === rule.productId && isAvailable(item));
+    if (!product) continue;
+    const config = defaultConfig(product);
+    if (!configurationIssues(product, config).length) return { product, config, price: unitPrice(product, config) };
+  }
+  return null;
+}
+
+export function bundleSavings(product, config) {
+  if (!product.bundle) return 0;
+  const separate = bundleParts(product, config).reduce((sum, part) => sum + (part.product ? unitPrice(part.product, part.config) : 0), 0);
+  return Math.max(0, separate - unitPrice(product, config));
+}
+
+export function compositionOnly(config) {
+  const clean = { productId: config.productId, variantId: config.variantId, options: structuredClone(config.options), note: '', label: '' };
+  if (Array.isArray(config.items)) clean.items = config.items.map((item) => ({ id: item.id, config: compositionOnly(item.config) }));
+  return clean;
 }
 
 // כל הצעה היא שינוי יחיד מפורש, מחושב לפי אותו מחירון של הסל.

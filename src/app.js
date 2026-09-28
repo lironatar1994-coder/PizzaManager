@@ -1,11 +1,11 @@
-import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260928-refine1';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions } from './order.js?v=20260928-refine1';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-refine1';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-refine1';
-import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260928-refine1';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-refine1';
-import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260928-refine1';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260928-refine1';
+import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260928-combos1';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260928-combos1';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-combos1';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-combos1';
+import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260928-combos1';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-combos1';
+import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260928-combos1';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260928-combos1';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -102,6 +102,7 @@ function contactButtons(className) {
 }
 
 function productArt(product, config, label = '') {
+  if (product.bundle) return `<span class="bundle-art"${label ? ` role="img" aria-label="${safe(label)}"` : ' aria-hidden="true"'}>${bundleParts(product, config).filter((part) => part.product).map((part) => `<span>${productArt(part.product, part.config)}</span>`).join('')}</span>`;
   if (product.visual === 'pizza') return pizzaSVG(pizzaState(product, config), { label });
   if (product.image) return `<img src="${safe(product.image)}" alt="${label ? safe(product.imageAlt || label) : ''}" loading="lazy" />`;
   return `<span class="art-placeholder" ${label ? `role="img" aria-label="${safe(label)}"` : 'aria-hidden="true"'}><span>תמונת מוצר</span></span>`;
@@ -115,9 +116,10 @@ function stepper({ value, min = 1, max = 99, label, attr = 'data-qty', small = f
   </div>`;
 }
 
-const detailText = (info) => [...info.singles, ...info.extras.map((extra) => extra.text)].join(' · ');
+const detailText = (info) => info.components ? info.components.map((part) => `${part.name}: ${part.title} · ${detailText(part)}${part.label ? ` · ${part.label}` : ''}${part.note ? ` · ${part.note}` : ''}`).join(' / ') : [...info.singles, ...info.extras.map((extra) => extra.text)].join(' · ');
 
 function compositionMarkup(info) {
+  if (info.components) return `<div class="bundle-composition">${info.components.map((part) => `<div><strong>${safe(part.name)} · ${safe(part.title)}</strong>${itemLabelMarkup(part.label)}${compositionMarkup(part)}${part.note ? `<p class="cart-line__note">הערה: <bdi>${safe(part.note)}</bdi></p>` : ''}</div>`).join('')}</div>`;
   const divided = info.extras.filter((extra) => extra.divided);
   if (!divided.length) return `<p class="composition-basics">${safe(detailText(info) || 'בלי תוספות')}</p>`;
   const basics = [...info.singles, ...info.extras.filter((extra) => !extra.divided).map((extra) => extra.name)];
@@ -270,21 +272,164 @@ function toggleHeroContact(kind) {
 
 function menu() {
   const list = activeProducts();
+  const menuItems = (items) => `<ul class="menu-list">${items.map((product) => {
+    const config = defaultConfig(product);
+    const price = product.bundle ? unitPrice(product, config) : Math.min(...variantsFor(product).filter(isAvailable).map((variant) => variant.price));
+    const saving = bundleSavings(product, config);
+    return `<li><a class="menu-item${product.bundle ? ' menu-item--bundle' : ''}" href="#/product/${safe(product.id)}">
+      <span class="menu-item__art">${productArt(product, { ...config, variantId: variantsFor(product).at(-1).id })}</span>
+      <span class="menu-item__text"><strong>${safe(product.name)}</strong><span>${safe(product.description)}</span>${saving ? `<small class="bundle-saving">חיסכון של <bdi>${money(saving)}</bdi> לעומת הפריטים בנפרד</small>` : ''}</span>
+      <span class="menu-item__price">${product.bundle ? '' : 'החל מ־'}<bdi>${money(price)}</bdi>${product.bundle ? '<small>לפני תוספות</small>' : ''}</span><span class="menu-item__go">${icon('forward')}</span>
+    </a></li>`;
+  }).join('')}</ul>`;
+  const bundles = list.filter((product) => product.bundle);
+  const individual = list.filter((product) => !product.bundle);
   app.innerHTML = `${topbar('#/')}
     <main class="page menu-page"><div class="wrap">
       ${orderProgress('compose')}
       <header class="page-head"><h1>מה מכינים היום?</h1><p>בוחרים מוצר, ואז מרכיבים אותו בדיוק כמו שאוהבים.</p></header>
       ${getFavorites().length ? `<button type="button" class="link-button menu-favorites" data-open-favorites>${icon('heart')}המועדפים שלי</button>` : ''}
-      <ul class="menu-list">${list.map((product) => {
-        const price = Math.min(...variantsFor(product).map((variant) => variant.price));
-        return `<li><a class="menu-item" href="#/product/${safe(product.id)}">
-          <span class="menu-item__art">${productArt(product, { ...defaultConfig(product), variantId: variantsFor(product).at(-1).id })}</span>
-          <span class="menu-item__text"><strong>${safe(product.name)}</strong><span>${safe(product.description)}</span></span>
-          <span class="menu-item__price">החל מ־<bdi>${money(price)}</bdi></span>
-          <span class="menu-item__go">${icon('forward')}</span>
-        </a></li>`;
-      }).join('')}</ul>
+      ${bundles.length ? `<section class="menu-section" aria-labelledby="combos-title"><header><h2 id="combos-title">ביחד בארוחה</h2><p>כל פיצה בהרכב שלה. ${shop.demoOnly ? 'קומבואים ומחירים לדוגמה.' : 'מחיר הארוחה לפני תוספות ושדרוגים.'}</p></header>${menuItems(bundles)}</section>` : ''}
+      ${individual.length ? `<section class="menu-section" aria-labelledby="individual-title"><h2 id="individual-title">להרכיב בנפרד</h2>${menuItems(individual)}</section>` : ''}
     </div></main>`;
+}
+
+/* ---------- קומבואים: כל פריט בהרכב משלו ---------- */
+
+function bundleItemMarkup(part, index) {
+  const { product, config } = part;
+  const prefix = `bundle-${part.id}`;
+  const allowed = part.variantIds || variantsFor(product).map((variant) => variant.id);
+  const sizes = variantsFor(product).filter((variant) => allowed.includes(variant.id));
+  const included = variantsFor(product).find((variant) => variant.id === part.included.variantId);
+  return `<details class="bundle-item" data-bundle-part="${safe(part.id)}"${index === 0 ? ' open' : ''}>
+    <summary><span class="bundle-item__art" data-part-art>${productArt(product, config)}</span><span class="bundle-item__heading"><strong>${safe(part.name)}</strong><span data-part-title>${safe(describe(product, config).title)}</span><small data-part-extra></small></span><span class="bundle-item__edit">התאמה ${icon('down')}</span></summary>
+    <div class="bundle-item__body">
+      ${sizes.length > 1 ? `<label class="bundle-field" for="${safe(prefix)}-size"><span>גודל · ${safe(part.name)}</span><select class="input" id="${safe(prefix)}-size" data-part-variant>${sizes.map((variant) => `<option value="${safe(variant.id)}"${config.variantId === variant.id ? ' selected' : ''}${!isAvailable(variant) ? ' disabled' : ''}>${safe(variant.name)}${variant.price > included.price ? ` · +${money(variant.price - included.price)}` : ' · כלול'}${!isAvailable(variant) ? ' · אזל להיום' : ''}</option>`).join('')}</select></label>` : `<p class="bundle-item__included">${safe(included?.name || product.name)} כלול בארוחה${included?.diameterCm ? ` · ${included.diameterCm} ס״מ` : ''}</p>`}
+      ${product.optionGroups?.map((group) => group.type === 'single'
+        ? `<label class="bundle-field" for="${safe(prefix)}-${safe(group.id)}"><span>${safe(group.name)}</span><select class="input" id="${safe(prefix)}-${safe(group.id)}" data-part-single="${safe(group.id)}">${group.choices.map((choice) => `<option value="${safe(choice.id)}"${config.options[group.id] === choice.id ? ' selected' : ''}${!isAvailable(choice) ? ' disabled' : ''}>${safe(choice.name)} · ${choice.price ? `+${money(choice.price)}` : 'כלול'}${!isAvailable(choice) ? ' · אזל להיום' : ''}</option>`).join('')}</select></label>`
+        : `<fieldset class="bundle-extras"><legend>${safe(group.name)} · ${safe(part.name)}</legend>${group.choices.map((choice) => {
+          const placement = config.options[group.id]?.[choice.id];
+          const available = isAvailable(choice);
+          const fieldId = `${prefix}-${group.id}-${choice.id}`;
+          return `<div class="bundle-extra"><label for="${safe(fieldId)}"><input type="checkbox" id="${safe(fieldId)}" data-part-extra="${safe(choice.id)}" data-part-group="${safe(group.id)}"${placement ? ' checked' : ''}${available || placement ? '' : ' disabled'}/>${choice.shape ? `<span class="bundle-extra__art">${shapeIcon(choice.shape)}</span>` : ''}<span>${safe(choice.name)}<small data-extra-price>${available ? `+${money(choicePrice(choice, placement || 'whole'))}` : 'אזל להיום'}</small></span></label>${group.placement ? `<select class="input" data-part-placement="${safe(choice.id)}" data-part-group="${safe(group.id)}" aria-label="מיקום ${safe(choice.name)} · ${safe(part.name)}"${placement && available ? '' : ' disabled'}>${['whole', 'right', 'left'].map((position) => `<option value="${position}"${(placement || 'whole') === position ? ' selected' : ''}>${PLACEMENTS[position].label} · +${money(choicePrice(choice, position))}</option>`).join('')}</select>` : ''}</div>`;
+        }).join('')}</fieldset>`).join('') || ''}
+      <details class="bundle-personal"><summary>שם והוראות למטבח · לא חובה ${icon('down')}</summary><label class="bundle-field" for="${safe(prefix)}-name"><span>למי זה?</span><input class="input" dir="auto" id="${safe(prefix)}-name" data-part-name maxlength="40" value="${safe(config.label)}" placeholder="למשל: של הילדים" autocomplete="off"/></label><label class="bundle-field" for="${safe(prefix)}-note"><span>הוראות למטבח</span><textarea class="input" dir="auto" id="${safe(prefix)}-note" data-part-note maxlength="200" rows="2">${safe(config.note)}</textarea></label></details>
+      ${foodInfoMarkup(product, config)}
+    </div>
+  </details>`;
+}
+
+function bundlePage(product, editLine, copyLine, source, returnToCheckout) {
+  let draftKey = source?.key || (editLine ? `edit:${editLine.id}` : copyLine ? `copy:${copyLine.id}` : `product:${product.id}`);
+  const draft = getDraft(draftKey, product);
+  let config = normalizeConfig(product, draft?.config || source?.config || editLine?.config || copyLine?.config);
+  let quantity = draft?.qty ?? source?.qty ?? editLine?.qty ?? 1;
+  let adding = false;
+  let persistEnabled = true;
+  const back = returnToCheckout ? '#/checkout' : '#/menu';
+  app.innerHTML = `${topbar(back)}<main class="page bundle-page"><div class="wrap bundle-layout">
+    <div>${orderProgress('compose', product.id)}<header class="page-head"><h1>${safe(product.name)}</h1><p>${safe(product.description)}</p></header>
+      <p class="bundle-intro">כל פריט ניתן להתאמה בנפרד. תוספות ושדרוגי גודל מתווספים למחיר הארוחה.</p>
+      <form id="bundle-form" class="bundle-items">${bundleParts(product, config).filter((part) => part.product).map(bundleItemMarkup).join('')}</form>
+      <p class="bundle-errors" role="status" data-bundle-errors hidden></p>
+      <p class="bundle-edit-status" role="status" data-bundle-edit-status hidden></p>
+    </div>
+    <aside class="bundle-overview" aria-label="סיכום ומחיר הארוחה"><div class="bundle-overview__art" data-bundle-art>${productArt(product, config)}</div><h2>מה בארוחה?</h2><div data-bundle-composition>${compositionMarkup(describe(product, config))}</div><p class="bundle-saving" data-bundle-saving></p><details class="bundle-price"><summary>פירוט המחיר ${icon('down')}</summary><div data-bundle-price>${priceMarkup(product, config, quantity)}</div></details></aside>
+  </div></main><div class="buybar buybar--bundle"><div class="buybar__inner"><div class="bundle-total"><span>סה״כ לארוחה${shop.demoOnly ? ' · לדוגמה' : ''}</span><strong data-bundle-total><bdi>${money(unitPrice(product, config) * quantity)}</bdi></strong><small>משלוח מחושב בקופה</small></div>${stepper({ value: quantity, label: 'כמות ארוחות', attr: 'data-bundle-qty' })}<button type="button" class="button button--primary" id="add-bundle">${editLine ? returnToCheckout ? 'שמירה וחזרה לקופה' : 'עדכון הארוחה בסל' : 'הוספת הארוחה לסל'} ${icon('forward')}</button></div></div>`;
+  const form = document.querySelector('#bundle-form');
+  const persist = () => persistEnabled && saveDraft(draftKey, product, { config, qty: quantity, scroll: window.scrollY });
+  const refresh = () => {
+    const parts = bundleParts(product, config);
+    const issues = configurationIssues(product, config);
+    document.querySelector('[data-bundle-total]').innerHTML = `<bdi>${money(unitPrice(product, config) * quantity)}</bdi>`;
+    document.querySelector('[data-bundle-price]').innerHTML = priceMarkup(product, config, quantity);
+    document.querySelector('[data-bundle-composition]').innerHTML = compositionMarkup(describe(product, config));
+    document.querySelector('[data-bundle-art]').innerHTML = productArt(product, config);
+    const saving = bundleSavings(product, config) * quantity;
+    document.querySelector('[data-bundle-saving]').textContent = saving ? `חיסכון של ${money(saving)} לעומת אותם פריטים בנפרד${shop.demoOnly ? ' · מחירי הדגמה' : ''}` : '';
+    const errors = document.querySelector('[data-bundle-errors]');
+    errors.hidden = !issues.length;
+    errors.textContent = issues.length ? `צריך לעדכן: ${issues.map((issue) => issue.name).join(', ')}.` : '';
+    const existing = editLine && getLine(editLine.id);
+    const button = document.querySelector('#add-bundle');
+    button.disabled = adding || Boolean(issues.length) || !activeProducts().some((item) => item.id === product.id);
+    button.firstChild.textContent = existing ? returnToCheckout ? 'שמירה וחזרה לקופה ' : 'עדכון הארוחה בסל ' : 'הוספת הארוחה לסל ';
+    const status = document.querySelector('[data-bundle-edit-status]');
+    const change = existing ? configurationChanges(product, normalizeConfig(product, existing.config), config, existing.qty, quantity) : null;
+    status.hidden = !editLine || Boolean(existing && !change.changes.length);
+    status.textContent = editLine && !existing ? 'הארוחה הוסרה מהסל. אפשר להוסיף מחדש את ההרכב הזה.' : change?.changes.length ? `${change.changes.join(' · ')}. ${priceDifference(change.delta)}.` : '';
+    document.querySelector('.buybar--bundle output').textContent = quantity;
+    document.querySelector('[data-bundle-qty="minus"]').disabled = quantity <= 1;
+    document.querySelector('[data-bundle-qty="plus"]').disabled = quantity >= 99;
+    for (const part of parts) {
+      const node = form.querySelector(`[data-bundle-part="${CSS.escape(part.id)}"]`);
+      if (!node || !part.product) continue;
+      node.querySelector('[data-part-art]').innerHTML = productArt(part.product, part.config);
+      node.querySelector('[data-part-title]').textContent = describe(part.product, part.config).title;
+      const extra = Math.max(0, unitPrice(part.product, part.config) - unitPrice(part.product, part.included));
+      node.querySelector('[data-part-extra]').textContent = extra ? `שדרוגים ותוספות: +${money(extra)}` : 'כלול במחיר הארוחה';
+      node.querySelectorAll('[data-part-placement]').forEach((select) => {
+        const choice = part.product.optionGroups.find((group) => group.id === select.dataset.partGroup)?.choices.find((item) => item.id === select.dataset.partPlacement);
+        const placement = part.config.options[select.dataset.partGroup]?.[select.dataset.partPlacement];
+        select.disabled = !placement || !isAvailable(choice);
+      });
+      node.querySelectorAll('[data-part-extra]').forEach((input) => {
+        if (input.tagName !== 'INPUT') return;
+        const group = part.product.optionGroups.find((item) => item.id === input.dataset.partGroup);
+        const choice = group.choices.find((item) => item.id === input.dataset.partExtra);
+        const placement = part.config.options[group.id]?.[choice.id];
+        input.disabled = !isAvailable(choice) && !placement;
+        input.closest('.bundle-extra').querySelector('[data-extra-price]').textContent = isAvailable(choice) ? `+${money(choicePrice(choice, placement || 'whole'))}` : 'אזל להיום';
+      });
+      const food = node.querySelector('.food-info');
+      if (food) { const open = food.open; food.outerHTML = foodInfoMarkup(part.product, part.config); node.querySelector('.food-info').open = open; }
+    }
+  };
+  const update = (event) => {
+    const input = event.target;
+    const node = input.closest('[data-bundle-part]');
+    if (!node) return;
+    const part = bundleParts(product, config).find((item) => item.id === node.dataset.bundlePart);
+    if (!part?.product) return;
+    const next = structuredClone(part.config);
+    if (input.hasAttribute('data-part-variant')) next.variantId = input.value;
+    else if (input.hasAttribute('data-part-single')) next.options[input.dataset.partSingle] = input.value;
+    else if (input.hasAttribute('data-part-extra')) {
+      if (input.checked) next.options[input.dataset.partGroup][input.dataset.partExtra] = node.querySelector(`[data-part-placement="${CSS.escape(input.dataset.partExtra)}"]`)?.value || 'whole';
+      else delete next.options[input.dataset.partGroup][input.dataset.partExtra];
+    } else if (input.hasAttribute('data-part-placement')) next.options[input.dataset.partGroup][input.dataset.partPlacement] = input.value;
+    else if (input.hasAttribute('data-part-name')) next.label = input.value;
+    else if (input.hasAttribute('data-part-note')) next.note = input.value;
+    else return;
+    config.items = config.items.map((item) => item.id === part.id ? { id: part.id, config: next } : item);
+    config = normalizeConfig(product, config);
+    persistEnabled = true;
+    persist(); refresh();
+  };
+  form.addEventListener('change', update);
+  form.addEventListener('input', (event) => { if (event.target.matches('[data-part-name], [data-part-note]')) update(event); });
+  form.addEventListener('submit', (event) => event.preventDefault());
+  document.querySelectorAll('[data-bundle-qty]').forEach((button) => button.addEventListener('click', () => { quantity = Math.max(1, Math.min(99, quantity + (button.dataset.bundleQty === 'plus' ? 1 : -1))); persistEnabled = true; persist(); refresh(); }));
+  document.querySelector('#add-bundle').addEventListener('click', () => {
+    if (adding || configurationIssues(product, config).length || !activeProducts().some((item) => item.id === product.id)) return;
+    adding = true;
+    const updated = Boolean(editLine && getLine(editLine.id));
+    let line;
+    if (updated) { updateLine(editLine.id, { config, qty: quantity }); line = getLine(editLine.id); }
+    else line = addLine(config, quantity);
+    clearDraft(draftKey); editLine = null; draftKey = `product:${product.id}`; persistEnabled = false;
+    adding = false;
+    if (returnToCheckout) { checkout.updatedLine = line.id; window.location.hash = '#/checkout'; return; }
+    history.replaceState(null, '', `#/product/${product.id}`);
+    refresh(); openAdded(line, updated);
+  });
+  teardown.push(onCartChange(refresh));
+  const rememberScroll = () => persist();
+  window.addEventListener('scroll', rememberScroll, { passive: true });
+  teardown.push(() => window.removeEventListener('scroll', rememberScroll));
+  refresh();
+  return draft?.scroll || 0;
 }
 
 function repeatPage() {
@@ -396,6 +541,7 @@ function readConfig(form, product) {
 }
 
 function productPage(product, editLine, copyLine, source, returnToCheckout = false) {
+  if (product.bundle) return bundlePage(product, editLine, copyLine, source, returnToCheckout);
   const list = activeProducts();
   const back = returnToCheckout ? '#/checkout' : list.length > 1 ? '#/menu' : '#/';
   let draftKey = source?.key || (editLine ? `edit:${editLine.id}` : copyLine ? `copy:${copyLine.id}` : `product:${product.id}`);
@@ -1219,6 +1365,7 @@ function renderCart() {
     <header class="sheet__head"><h2 id="cart-title">הסל שלכם</h2><span class="sheet__count" data-sheet-count>${count ? itemsText(count) : ''}</span><button type="button" class="icon-button" data-close-sheet aria-label="סגירת הסל">${icon('close')}</button>${orderProgress('cart')}</header>
     ${removed ? `<div class="cart-undo" role="status"><span>הפריט הוסר <bdi>${safe(removedTitle)}</bdi></span><button type="button" class="link-button" data-undo-remove>${icon('undo')}החזרה</button></div>` : ''}
     ${cart.length ? `<ul class="cart-lines${cart.length >= 3 ? ' cart-lines--compact' : ''}">${cart.map((line) => cartLineMarkup(line, cart.length >= 3)).join('')}</ul>
+      <div data-cart-offer>${cartOfferMarkup()}</div>
       <footer class="sheet__foot">
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
         <p class="sheet__hint">${checkout.mode === 'pickup' ? 'איסוף עצמי נבחר. אפשר לשנות בקופה.' : 'משלוח נבחר. דמי המשלוח ייקבעו לפי הכתובת בקופה.'}</p>
@@ -1233,6 +1380,12 @@ function renderCart() {
   </div>`;
 }
 
+function cartOfferMarkup() {
+  const offer = complementarySuggestion(getCart(), activeProducts());
+  if (!offer) return '';
+  return `<section class="cart-offer" aria-labelledby="cart-offer-title"><span class="cart-offer__art">${productArt(offer.product, offer.config)}</span><div><h3 id="cart-offer-title">להוסיף משהו ליד?</h3><p>${safe(offer.product.name)} · <bdi>${money(offer.price)}</bdi>${shop.demoOnly ? '<small>מחיר לדוגמה</small>' : ''}</p></div><button type="button" class="button button--quiet button--small" data-add-complement="${safe(offer.product.id)}" aria-label="הוספת ${safe(offer.product.name)} לסל ב־${money(offer.price)}">הוספה ${icon('plus')}</button></section>`;
+}
+
 function openCart() {
   renderCart();
   if (!sheet.open) sheet.showModal();
@@ -1240,6 +1393,15 @@ function openCart() {
 }
 
 sheet.addEventListener('click', (event) => {
+  const complement = event.target.closest('[data-add-complement]');
+  if (complement) {
+    const offer = complementarySuggestion(getCart(), activeProducts());
+    if (!offer || offer.product.id !== complement.dataset.addComplement) { renderCart(); return; }
+    complement.disabled = true;
+    const line = addLine(offer.config, 1);
+    sheet.querySelector(`[data-line="${CSS.escape(line.id)}"] .cart-line__actions a`)?.focus();
+    return;
+  }
   if (event.target.closest('[data-undo-remove]')) { undoRemoveLine(); return; }
   if (event.target.closest('[data-fresh-product]')) { event.preventDefault(); sheet.close(); freshProduct(); return; }
   const copy = event.target.closest('[data-copy-line]');
@@ -1386,6 +1548,7 @@ onCartChange((change) => {
       }
       sheet.querySelector('[data-sheet-subtotal]').textContent = money(cartSubtotal());
       sheet.querySelector('[data-sheet-count]').textContent = itemsText(count);
+      sheet.querySelector('[data-cart-offer]').innerHTML = cartOfferMarkup();
     } else {
       renderCart();
       if (change.type === 'remove') sheet.querySelector('[data-undo-remove], .cart-line button, .sheet__foot .button, .empty-state .button')?.focus();
@@ -1920,7 +2083,7 @@ async function placeOrder() {
     lines: getCart().map((line) => {
       const product = findProduct(line.config.productId);
       const info = describe(product, line.config);
-      return { title: info.title, label: line.config.label, singles: info.singles, extras: info.extras, details: detailText(info), note: line.config.note, qty: line.qty, total: lineTotal(line, product), config: line.config };
+      return { title: info.title, label: line.config.label, singles: info.singles, extras: info.extras, components: info.components, details: detailText(info), note: line.config.note, qty: line.qty, total: lineTotal(line, product), config: line.config };
     }),
     subtotal: totals.subtotal,
     fee: totals.fee || 0,
@@ -1971,7 +2134,7 @@ function donePage() {
         <header class="ticket__head"><strong>${safe(shop.name)}</strong><span>הזמנה <bdi>${safe(order.reference)}</bdi></span><span><bdi>${when}</bdi></span></header>
         <ul class="ticket__lines">${order.lines.map((line) => `<li>
           <span class="ticket__qty"><bdi>${line.qty}×</bdi></span>
-          <div class="ticket__item">${itemLabelMarkup(line.label)}<strong>${safe(line.title)}</strong>${line.extras ? compositionMarkup({ singles: line.singles || [], extras: line.extras }) : line.details ? `<small>${safe(line.details)}</small>` : ''}${line.note ? `<small>הערה: <bdi>${safe(line.note)}</bdi></small>` : ''}</div>
+          <div class="ticket__item">${itemLabelMarkup(line.label)}<strong>${safe(line.title)}</strong>${line.extras ? compositionMarkup({ singles: line.singles || [], extras: line.extras, components: line.components }) : line.details ? `<small>${safe(line.details)}</small>` : ''}${line.note ? `<small>הערה: <bdi>${safe(line.note)}</bdi></small>` : ''}</div>
           <bdi class="ticket__price">${money(line.total)}</bdi>
         </li>`).join('')}</ul>
         <dl class="ticket__totals">
