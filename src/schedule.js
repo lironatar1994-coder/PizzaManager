@@ -1,4 +1,4 @@
-import { shop, demoFlags } from './data.js?v=20260928-menu3';
+import { shop, demoFlags } from './data.js?v=20260929-menu4';
 
 const DAY = 1440;
 export const WEEKDAYS = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];

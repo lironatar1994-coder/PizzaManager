@@ -65,6 +65,9 @@ verify() {
     remote=$(curl -fsS --max-time 20 "$url/storefront/src/styles.css?v=$expected" | sha256sum | cut -d' ' -f1)
     test "$remote" = "$(sha256sum "$storefront/src/styles.css" | cut -d' ' -f1)"
     curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-v1.webp"
+    if grep -q 'menu-pizza-editorial-v2.webp' "$storefront/src/app.js"; then
+      curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-editorial-v2.webp"
+    fi
   fi
 }
 recover() {
@@ -112,6 +115,8 @@ for photo in pizza garlic family combo; do
   install -m 644 "$repository/assets/menu-$photo-v1.webp" "$release/assets/"
   install -m 644 "$repository/assets/menu-$photo-v1.webp.json" "$release/assets/"
 done
+install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/assets/"
+install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
 node "$repository/deploy/platform-storefront.mjs" "$repository" "$old_target" "$release" "$revision"
 chmod -R a+rX "$release"
 test "$source_hash" = "$(sha256sum "$storefront/src/app.js" "$storefront/src/styles.css" "$storefront/index.html")" || { echo 'Storefront source changed during preparation' >&2; exit 1; }

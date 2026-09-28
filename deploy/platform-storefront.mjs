@@ -10,7 +10,7 @@ if (!repository || !source || !output || !/^[0-9a-f]{40}$/.test(revision || ''))
 if (source === output) throw Error('Compile to a separate, inactive storefront');
 const read = (root, path) => readFileSync(join(root, path), 'utf8');
 const write = (path, content) => writeFileSync(join(output, path), content);
-const tag = `menu3-${revision.slice(0, 12)}`;
+const tag = `menu4-${revision.slice(0, 12)}`;
 const rootApp = read(repository, 'src/app.js');
 let app = read(source, 'src/app.js');
 for (const contract of ["from '../../shared/runtime.js'", 'function productHref()', 'function menu()', 'onCartChange((change)', 'submitOrder(', '#/status/']) {
@@ -26,7 +26,7 @@ menu = menu.replace(
 ).replace('const saving = bundleSavings(product, config);', 'const saving = 0; // The platform has no bundle discount adapter; never invent a saving.').replace(
   "const fromPrice = !product.bundle && variantsFor(product).filter(isAvailable).some((variant) => variant.price > price);",
   'const fromPrice = prices.some((variant) => variant.price > price);',
-).replace('const featured = Boolean(product.menuFeatured && product.menuImage);', `const demoPhoto = shop.demoOnly ? (product.visual === 'pizza' ? '/assets/menu-pizza-v1.webp' : product.id === 'garlic-bread' ? '/assets/menu-garlic-v1.webp' : '') : '';
+).replace('const featured = Boolean(product.menuFeatured && product.menuImage);', `const demoPhoto = shop.demoOnly ? (product.visual === 'pizza' ? lead ? '/assets/menu-pizza-editorial-v2.webp' : '/assets/menu-pizza-v1.webp' : product.id === 'garlic-bread' ? '/assets/menu-garlic-v1.webp' : '') : '';
     const photo = product.image || product.menuImage || demoPhoto;
     const photoAlt = product.image ? product.imageAlt || product.name : product.menuImage ? product.menuImageAlt || product.name : 'צילום שנוצר בבינה מלאכותית להמחשה בלבד';
     const featured = Boolean(product.menuFeatured && photo);`).replace(

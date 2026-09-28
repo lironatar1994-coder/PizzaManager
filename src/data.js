@@ -61,7 +61,7 @@ export const products = [
     name: 'הפיצה שלנו',
     description: 'רוטב עגבניות, מוצרלה ובצק שנאפה במקום. תיאור לדוגמה.',
     menuDescription: 'גודל ותוספות לבחירה',
-    menuImage: './assets/menu-pizza-v1.webp',
+    menuImage: './assets/menu-pizza-editorial-v2.webp',
     menuImageAlt: 'תמונת הדגמה של פיצה עם מוצרלה ורוטב עגבניות',
     visual: 'pizza',
     image: null,

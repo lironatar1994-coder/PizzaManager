@@ -11,6 +11,7 @@ const required = [
   'assets/pizza-hero-desktop.jpg', 'assets/pizza-hero-mobile.jpg',
   'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp',
   ...['pizza', 'garlic', 'family', 'combo'].map((name) => 'assets/menu-' + name + '-v1.webp'),
+  'assets/menu-pizza-editorial-v2.webp',
   'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg',
   ...['olive', 'mushroom', 'corn', 'onion', 'jalapeno', 'feta'].map((name) => `assets/toppings/${name}.webp`),
   'deploy_linux.sh', 'deploy/pizza-manager-locations.conf',

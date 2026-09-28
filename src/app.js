@@ -1,11 +1,11 @@
-import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260928-menu3';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260928-menu3';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260928-menu3';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260928-menu3';
-import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260928-menu3';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260928-menu3';
-import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260928-menu3';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260928-menu3';
+import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-menu4';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-menu4';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-menu4';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260929-menu4';
+import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260929-menu4';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260929-menu4';
+import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260929-menu4';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260929-menu4';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -272,35 +272,38 @@ function toggleHeroContact(kind) {
 
 function menu() {
   const list = activeProducts();
-  const menuItems = (items, group) => `<ul class="menu-list menu-list--${group}">${items.map((product) => {
+  const menuItems = (items, group) => `<ul class="menu-list menu-list--${group}">${items.map((product, index) => {
+    const lead = group === 'products' && index === 0;
     const config = defaultConfig(product);
     const price = product.bundle ? unitPrice(product, config) : Math.min(...variantsFor(product).filter(isAvailable).map((variant) => variant.price));
     const saving = bundleSavings(product, config);
-    const description = product.menuDescription || product.description;
+    const hasExtras = product.optionGroups?.some((option) => option.type === 'multi');
+    const sizeDescription = variantsFor(product).length > 1 ? (hasExtras ? 'גודל ותוספות לבחירה' : 'גדלים לבחירה') : hasExtras ? 'תוספות לבחירה' : '';
+    const description = product.menuDescription || (product.bundle ? product.description : lead ? sizeDescription : '');
     const fromPrice = !product.bundle && variantsFor(product).filter(isAvailable).some((variant) => variant.price > price);
     const featured = Boolean(product.menuFeatured && product.menuImage);
     const art = product.menuImage ? `<img src="${safe(product.menuImage)}" alt="${safe(product.menuImageAlt || product.imageAlt || product.name)}" width="960" height="640" decoding="async" />` : productArt(product, { ...config, variantId: variantsFor(product).at(-1).id });
-    return `<li${featured ? ' class="menu-list__featured"' : ''}><a class="menu-item menu-item--${product.bundle ? 'meal' : 'product'}${featured ? ' menu-item--featured' : ''}" href="#/product/${safe(product.id)}">
+    return `<li${lead ? ' class="menu-list__lead"' : featured ? ' class="menu-list__featured"' : ''}><a class="menu-item menu-item--${product.bundle ? 'meal' : 'product'}${lead ? ' menu-item--lead' : !product.bundle ? ' menu-item--secondary' : ''}${featured ? ' menu-item--featured' : ''}" href="#/product/${safe(product.id)}">
       <span class="menu-item__art${product.menuImage ? ' menu-item__art--photo' : ''}">${art}</span>
-      <span class="menu-item__text"><strong class="menu-item__name">${safe(product.name)}</strong>${description ? `<span class="menu-item__description">${safe(description)}</span>` : ''}<span class="menu-item__bottom"><span class="menu-item__price">${fromPrice ? 'מ־' : ''}<bdi>${money(price)}</bdi></span><span class="menu-item__go">${icon('forward')}</span></span>${saving ? `<small class="menu-item__saving">חוסכים <bdi>${money(saving)}</bdi></small>` : ''}</span>
+      <span class="menu-item__text"><strong class="menu-item__name">${safe(product.name)}</strong>${description ? `<span class="menu-item__description">${safe(description)}</span>` : ''}<span class="menu-item__bottom"><span class="menu-item__price">${fromPrice ? 'מ־' : ''}<bdi>${money(price)}</bdi></span><span class="menu-item__go"><span>מרכיבים</span>${icon('forward')}</span></span>${saving ? `<small class="menu-item__saving">חוסכים <bdi>${money(saving)}</bdi></small>` : ''}</span>
     </a></li>`;
   }).join('')}</ul>`;
   const bundles = list.filter((product) => product.bundle).sort((a, b) => Number(Boolean(b.menuFeatured)) - Number(Boolean(a.menuFeatured)));
   const individual = list.filter((product) => !product.bundle);
-  app.innerHTML = `${topbar('#/')}
+  app.innerHTML = `${topbar('#/').replace('class="topbar"', 'class="topbar menu-topbar"')}
     <main class="page menu-page"><!--
-      THESIS: Appetizing food photography makes the compact menu immediately recognizable and easy to choose from.
-      OWN-WORLD: Keep the existing warm white, dark ink, Heebo, tomato action, 12px radius and oven-dark food surface.
-      STORY: Choose a product, customize it, then open the cart. The family meal is the visual peak after the two core products.
-      FIRST VIEWPORT: Compact progress and title, followed directly by two photo tiles. No extra menu hero. A cart action appears only with items.
-      FORM: An authorized adaptation of the supplied mockup, within the shipped pizza identity; the mockup is inspiration, not an exact approved comp.
+      THESIS: One editorial pizza photograph gives the first product presence; other products stay easy to select in compact rows.
+      OWN-WORLD: Warm ivory, white surfaces, espresso ink, Heebo, tomato actions and 16px menu corners within the existing pizza identity.
+      STORY: Progress, short title, prominent first product, compact following products, then the actual basket and checkout.
+      FIRST VIEWPORT: The two managed active products are visible at the approved mobile size; no intro, categories or separate menu banner.
+      FORM: Implement the user-approved premium mobile comp with real product links, dynamic prices and a basket-derived footer.
       FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
     --><div class="wrap">
       ${orderProgress('compose')}
       <header class="menu-head"><h1>התפריט</h1>${getFavorites().length ? `<button type="button" class="icon-button menu-favorites" data-open-favorites aria-label="המועדפים שלי">${icon('heart')}</button>` : ''}</header>
       ${individual.length ? `<section class="menu-section" aria-labelledby="individual-title"><h2 class="visually-hidden" id="individual-title">מוצרים להרכבה</h2>${menuItems(individual, 'products')}</section>` : ''}
       ${bundles.length ? `<section class="menu-section menu-section--bundles" aria-labelledby="combos-title"><h2 id="combos-title">ארוחות</h2>${menuItems(bundles, 'meals')}</section>` : ''}
-      <p class="menu-note">${shop.demoOnly ? 'מחירי הדגמה · ' : ''}המחירים לפני תוספות</p>
+      <p class="menu-note">${shop.demoOnly ? 'נתוני ותמונות הדגמה' : 'המחירים לפני תוספות'}</p>
     </div><footer class="menu-cart" data-menu-cart hidden><div class="menu-cart__inner"><button type="button" class="button button--primary menu-cart__button" data-open-cart><span class="menu-cart__action">${icon('box')}לסל</span><span class="menu-cart__count" data-menu-cart-count></span><bdi data-menu-cart-total></bdi></button></div></footer></main>`;
   refreshMenuCart();
 }
@@ -312,6 +315,16 @@ function refreshMenuCart() {
   const total = money(cartSubtotal());
   footer.hidden = count === 0;
   document.querySelector('.menu-page')?.classList.toggle('menu-page--with-cart', count > 0);
+  const progress = document.querySelector('.menu-page .order-progress');
+  if (progress) {
+    progress.querySelector('[data-open-cart]').disabled = count === 0;
+    if (progress.dataset.hasCart !== String(count > 0)) {
+      progress.dataset.hasCart = String(count > 0);
+      progress.querySelector('li:last-child').innerHTML = count > 0
+        ? '<a href="#/checkout" data-close-sheet>פרטים</a>'
+        : '<span aria-disabled="true">פרטים</span>';
+    }
+  }
   footer.querySelector('[data-menu-cart-count]').textContent = itemsText(count);
   footer.querySelector('[data-menu-cart-total]').textContent = total;
   footer.querySelector('[data-open-cart]').setAttribute('aria-label', `לסל, ${itemsText(count)}, ${total}`);
