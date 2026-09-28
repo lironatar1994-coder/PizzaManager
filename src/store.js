@@ -1,5 +1,5 @@
-import { findProduct } from './data.js?v=20260928-flow2';
-import { lineTotal, normalizeConfig } from './order.js?v=20260928-flow2';
+import { findProduct } from './data.js?v=20260928-family1';
+import { lineTotal, normalizeConfig } from './order.js?v=20260928-family1';
 
 const CART_KEY = 'pizza-demo-cart-v1';
 const ORDER_KEY = 'pizza-demo-last-order-v1';
@@ -8,6 +8,7 @@ const MODE_KEY = 'pizza-demo-order-mode-v1';
 const FAVORITES_KEY = 'pizza-demo-favorites-v1';
 const DRAFT_LIFETIME = 24 * 60 * 60 * 1000;
 const listeners = new Set();
+let removedLines = [];
 
 // הגישה ל־storage עצמה יכולה לזרוק שגיאה כשהדפדפן חוסם אחסון.
 function storageOf(name) {
@@ -144,11 +145,29 @@ export function updateLine(id, changes) {
 }
 
 export function removeLine(id) {
+  const index = cart.findIndex((line) => line.id === id);
+  if (index < 0) return;
+  removedLines.push({ index, line: structuredClone(cart[index]) });
+  removedLines = removedLines.slice(-20);
   cart = cart.filter((line) => line.id !== id);
   commit({ type: 'remove', id });
 }
 
+export const lastRemovedLine = () => removedLines.length ? structuredClone(removedLines.at(-1).line) : null;
+
+export function undoRemoveLine() {
+  const removed = removedLines.pop();
+  if (!removed) return false;
+  const product = findProduct(removed.line.config.productId);
+  if (!product || cart.some((line) => line.id === removed.line.id)) { commit({ type: 'undo-unavailable' }); return false; }
+  const line = { ...removed.line, qty: boundedQty(removed.line.qty), config: normalizeConfig(product, removed.line.config) };
+  cart.splice(Math.min(removed.index, cart.length), 0, line);
+  commit({ type: 'restore', id: line.id });
+  return line;
+}
+
 export function clearCart() {
+  removedLines = [];
   cart = [];
   commit({ type: 'clear' });
 }

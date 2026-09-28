@@ -1,4 +1,4 @@
-import { shop } from './data.js?v=20260928-flow2';
+import { shop } from './data.js?v=20260928-family1';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
 
@@ -15,7 +15,7 @@ export function variantsFor(product) {
 export function defaultConfig(product) {
   const options = {};
   for (const group of product.optionGroups || []) options[group.id] = group.type === 'single' ? group.choices[0]?.id : {};
-  return { productId: product.id, variantId: variantsFor(product)[0].id, options, note: '' };
+  return { productId: product.id, variantId: variantsFor(product)[0].id, options, note: '', label: '' };
 }
 
 // שומר על תצורה תקינה גם אם המוצר השתנה מאז שנשמרה בסל.
@@ -36,7 +36,40 @@ export function normalizeConfig(product, config) {
       }
     }
   }
-  return { productId: product.id, variantId, options, note: typeof config.note === 'string' ? config.note.slice(0, 200) : '' };
+  return { productId: product.id, variantId, options, note: typeof config.note === 'string' ? config.note.slice(0, 200) : '', label: typeof config.label === 'string' ? config.label.replace(/\s+/g, ' ').trim().slice(0, 40) : '' };
+}
+
+// שינויי חצאים נשארים כלליים: גדלים, בצק, שם והערה אינם משתנים.
+export function copyHalf(product, config, from) {
+  const next = normalizeConfig(product, config);
+  if (!['right', 'left'].includes(from)) return next;
+  for (const group of product.optionGroups || []) {
+    if (group.type !== 'multi' || !group.placement) continue;
+    for (const choice of group.choices) {
+      const placement = next.options[group.id][choice.id];
+      if (placement === 'whole' || placement === from) next.options[group.id][choice.id] = 'whole';
+      else delete next.options[group.id][choice.id];
+    }
+  }
+  return next;
+}
+
+export function swapHalves(product, config) {
+  const next = normalizeConfig(product, config);
+  for (const group of product.optionGroups || []) {
+    if (group.type !== 'multi' || !group.placement) continue;
+    for (const [id, placement] of Object.entries(next.options[group.id])) {
+      if (placement === 'right') next.options[group.id][id] = 'left';
+      else if (placement === 'left') next.options[group.id][id] = 'right';
+    }
+  }
+  return next;
+}
+
+export function clearExtras(product, config, groupId) {
+  const next = normalizeConfig(product, config);
+  for (const group of product.optionGroups || []) if (group.type === 'multi' && (!groupId || group.id === groupId)) next.options[group.id] = {};
+  return next;
 }
 
 export function choicePrice(choice, placement = 'whole') {
@@ -87,12 +120,12 @@ export function describe(product, config) {
       for (const choice of group.choices) {
         const placement = value?.[choice.id];
         if (!placement) continue;
-        extras.push({ id: choice.id, name: choice.name, placement, text: PLACEMENTS[placement].short ? `${choice.name} ${PLACEMENTS[placement].short}` : choice.name });
+        extras.push({ id: choice.id, name: choice.name, placement, divided: Boolean(group.placement), text: PLACEMENTS[placement].short ? `${choice.name} ${PLACEMENTS[placement].short}` : choice.name });
       }
     }
   }
   const title = variant.name ? `${product.name} · ${variant.name}` : product.name;
-  return { title, variant, singles, extras };
+  return { title, variant, singles, extras, label: config.label || '' };
 }
 
 export function lineTotal(line, product) {
