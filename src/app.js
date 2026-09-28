@@ -217,7 +217,7 @@ function home() {
     <div class="hero__shade" aria-hidden="true"></div>
     <div class="hero__body">
       <div class="hero__identity">
-        ${shop.logo ? `<img class="hero__mark" src="${safe(shop.logo)}" alt="" />` : '<svg class="hero__mark" viewBox="0 0 48 48" aria-hidden="true"><use href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury" /></svg>'}
+        ${shop.logo ? `<img class="hero__mark" src="${safe(shop.logo)}" alt="" />` : `<svg class="hero__mark" viewBox="0 0 48 48" aria-hidden="true"><use href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury" /></svg>`}
         <h1 id="hero-title">${safe(shop.name)}</h1>
       </div>
       ${unavailable ? '<p class="hero__empty" role="status">אין מוצרים זמינים כרגע. אפשר לחזור לכאן בהמשך.</p>' : ''}

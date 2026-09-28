@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { runInNewContext } from 'node:vm';
 
 // Replace only the opening surface of an inactive copy of the LIVE storefront.
 // Menu, tenant catalog, order/payment adapters and shared runtime stay incumbent.
@@ -33,6 +34,32 @@ for (const field of ['heroImages.mobile', 'heroImages.desktop', 'shop.logo']) {
 }
 opening = opening.replace('href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury"', 'href="${safe(appUrl(\'/assets/brand/oven-mark-luxury.svg#oven-mark-luxury\'))}"');
 if (opening.includes('openingStatus()') || !opening.includes('hero--luxury')) throw Error('Opening adaptation failed');
+// Render the adapted surface before activation. Syntax-only module checks do
+// not reliably catch quoting errors in nested template branches.
+for (const state of [{ demoOnly: true, logo: '', products: true }, { demoOnly: false, logo: '/assets/brand/tenant.svg', products: true }, { demoOnly: true, logo: '', products: false }]) {
+  const container = { innerHTML: '' };
+  const context = {
+    app: container,
+    shop: { name: 'Opening adapter check', demoOnly: state.demoOnly, logo: state.logo, heroImages: { mobile: '/assets/tenant-mobile.jpg', desktop: '/assets/tenant-desktop.jpg', alt: '' }, hours: { opensAt: '12:00', closesAt: '23:00' }, deliveryZones: [{}] },
+    document: { querySelector: () => ({ setAttribute() {} }) },
+    activeProducts: () => state.products ? [{ id: 'fixture' }] : [],
+    isOpen: () => true,
+    getFavorites: () => [],
+    cartCount: () => 0,
+    cartButton: () => '',
+    productHref: () => '#/menu',
+    icon: () => '',
+    safe: (value) => String(value ?? ''),
+    appUrl: (path) => typeof path === 'string' && path.startsWith('/') ? `/PizzaManager${path}` : path,
+    phoneHref: () => 'tel:000',
+    wazeHref: () => 'https://waze.com/',
+  };
+  runInNewContext(opening + '\nhome();', context, { timeout: 1000 });
+  if (!container.innerHTML.includes('class="hero hero--luxury"') || container.innerHTML.includes('${safe(appUrl(')) throw Error('Adapted opening did not render');
+  if (!state.logo && !container.innerHTML.includes('href="/PizzaManager/assets/brand/oven-mark-luxury.svg#oven-mark-luxury"')) throw Error('Opening symbol URL did not resolve');
+  if (state.logo && !container.innerHTML.includes('src="/PizzaManager/assets/brand/tenant.svg"')) throw Error('Tenant logo did not survive adaptation');
+  if (!state.products && container.innerHTML.includes('data-mode=')) throw Error('Empty catalog exposed order actions');
+}
 const previousBounds = bounds(incumbent);
 const app = incumbent.slice(0, previousBounds.start) + opening + incumbent.slice(previousBounds.end);
 const stripOpening = (text) => { const { start, end } = bounds(text); return text.slice(0, start) + text.slice(end); };
