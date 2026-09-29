@@ -543,3 +543,7 @@ components:
 - **Don't** להשתמש בהאטה עם קפיצה.
 - **Don't** להציג "ההזמנה התקבלה" או "התשלום בוצע" לפני אישור מהשרת.
 - **Don't** להרבות בתוויות הדגמה. יש פיל אחד, הערת תפריט אחת על נתוני ותמונות הדגמה, והסבר כן בקופה ובאישור.
+
+## Concise ordering copy
+
+Ordering sections use short nouns. Explanatory placeholders, repeated selection instructions and product intro paragraphs do not occupy the flow. Optional names and kitchen notes share one disclosure; address-provider details are collapsed. Product identity, actual choices, prices, availability, error recovery and demo/payment state remain explicit. See deploy/CUSTOMER-COPY.md for the production adapter boundaries.

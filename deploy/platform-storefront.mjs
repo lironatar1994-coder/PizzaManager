@@ -2,8 +2,9 @@ import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { compactCustomerCopy, compactCustomerStyles } from './storefront-copy.mjs';
 
-// Apply only the menu surface to the running platform. Its API, tenant storage,
+// Apply the menu surface and concise customer copy. Its API, tenant storage,
 // pricing, checkout and payment adapters remain the source of truth.
 const [repository, source, output, revision] = process.argv.slice(2).map((value, index) => index < 3 ? resolve(value) : value);
 if (!repository || !source || !output || !/^[0-9a-f]{40}$/.test(revision || '')) throw Error('Expected repository, source storefront, output storefront and Git revision');
@@ -48,7 +49,7 @@ const cartAnchor = "document.querySelectorAll('[data-hero-cart]').forEach((node)
 if (!app.includes(cartAnchor)) throw Error('Platform cart update boundary changed');
 app = app.replace(cartAnchor + '\n  refreshMenuCart();', cartAnchor);
 app = app.replace(cartAnchor, cartAnchor + '\n  refreshMenuCart();');
-write('src/app.js', app);
+write('src/app.js', compactCustomerCopy(app, { platform: true }));
 
 // These menu selectors are single-line declarations in the incumbent stylesheet.
 // Keep every other rule, including the backend order status screen.
@@ -63,7 +64,7 @@ for (const line of read(repository, 'src/styles.css').split('\n')) {
 if (scoped.length < 50) throw Error('Menu stylesheet extraction is incomplete');
 css += '\n\n/* Menu photography: generated from the PizzaManager menu surface. */\n' + scoped.join('\n') + '\n';
 css += '.menu-page { --tomato: #c93124; --tomato-hover: #ab291f; }\n';
-write('src/styles.css', css);
+write('src/styles.css', compactCustomerStyles(css));
 const html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
 if (!html.includes(`app.js?v=${tag}`) || !html.includes(`styles.css?v=${tag}`)) throw Error('Platform entry asset paths changed');
 write('index.html', html);
@@ -78,5 +79,5 @@ for (const file of readdirSync(join(output, 'src')).filter((name) => name.endsWi
   if (syntax.status !== 0) throw Error(`Invalid platform module ${file}: ${syntax.stderr}`);
 }
 const hash = (path) => createHash('sha256').update(readFileSync(join(output, path))).digest('hex');
-write('assets/menu-ui-version.json', JSON.stringify({ revision, surface: 'menu', managedCatalog: true, files: { 'src/app.js': hash('src/app.js'), 'src/styles.css': hash('src/styles.css') } }) + '\n');
-console.log(`Compiled platform menu ${revision}; preserved live catalog and checkout adapters.`);
+write('assets/menu-ui-version.json', JSON.stringify({ revision, surface: 'customer-ui', managedCatalog: true, files: { 'src/app.js': hash('src/app.js'), 'src/styles.css': hash('src/styles.css') } }) + '\n');
+console.log(`Compiled platform customer UI ${revision}; preserved live catalog and checkout adapters.`);

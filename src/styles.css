@@ -1267,3 +1267,9 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
   .cart-offer { gap: var(--space-2); margin-inline: var(--space-3); }
   .cart-offer__art { inline-size: 40px; block-size: 40px; }
 }
+
+/* Empty preview text should leave no space. */
+.stage__detail[hidden], .stage__compact[hidden] { display: none; }
+.stage__summary:has(#stage-detail[hidden]) { min-block-size: 40px; }
+.builder__form { padding-block-start: 16px; }
+.builder__form > fieldset.field-group:first-of-type { padding-block-start: 16px; }

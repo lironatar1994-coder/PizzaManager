@@ -76,7 +76,7 @@ try {
     $currentOrigin = ReadNative 'git' @('remote', 'get-url', 'origin')
     if ($currentOrigin.ToLowerInvariant() -ne $Origin.ToLowerInvariant()) { throw "Unexpected Git origin: $currentOrigin" }
     $branch = ReadNative 'git' @('branch', '--show-current')
-    if ($branch -ne 'main') { throw "Deploy from main, not $branch" }
+    if ($branch -ne 'main' -and $Target -ne 'Prod') { throw "Publish to GitHub from main, not $branch" }
 
     if ($Target -eq 'All' -or $Target -eq 'GitHub') {
         $paths = @('.gitignore', '.gitattributes', 'DEPLOY.PS1', 'deploy_linux.sh', 'deploy', 'scripts', 'index.html', 'src', 'assets', 'README.md', 'PRODUCT.md', 'DESIGN.md')
