@@ -1300,3 +1300,41 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
   .stage__summary:has(#stage-detail[hidden]):has(.stage__composition:empty) { min-block-size: 0; padding-block-end: 0; }
 }
 /* End compact ordering choices. */
+
+/* Floating mobile pizza preview. */
+.stage__collapse, .stage__view { display: none; }
+@media (max-width: 899px) {
+  .builder--floating-preview .builder__intro h1 { position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none; white-space: normal; font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
+  .builder--floating-preview .builder__intro { padding-block-end: 0; }
+  .builder--floating-preview .builder__form > .field-group { padding-block-start: 20px; }
+  .builder--floating-preview .builder__form > fieldset.field-group:first-of-type { padding-block-start: 12px; }
+  .builder--floating-preview .builder__form > .field-group .field-group__head { margin-block-end: 8px; }
+  .builder--floating-preview .tile--size .tile__surface { min-block-size: 104px; }
+  .builder--floating-preview .tile--crust .tile__surface { min-block-size: 68px; }
+  .buybar--builder.has-floating-preview { border: 0; padding-block: 0 max(8px, env(safe-area-inset-bottom)); background: transparent; backdrop-filter: none; pointer-events: none; }
+  .has-floating-preview > .stage, .has-floating-preview > .buybar__inner, .has-floating-preview > .buybar__recovery { pointer-events: auto; }
+  .has-floating-preview > .buybar__inner { padding: 8px 12px; inline-size: min(100% - var(--gutter) * 2, 640px); border-radius: 16px; background: var(--surface-1); box-shadow: 0 4px 20px rgb(33 28 24 / .1); gap: 12px; }
+  .stage--floating { --preview-height: clamp(136px, 25svh, 216px); --preview-pizza: calc(var(--preview-height) + 20px); position: relative; inset: auto; z-index: 0; inline-size: min(100% - var(--gutter) * 2, 640px); block-size: var(--preview-height); margin: 0 auto 8px; border-radius: 16px; overflow: hidden; isolation: isolate; box-shadow: 0 6px 24px rgb(33 28 24 / .18); transition: block-size .28s cubic-bezier(.16, 1, .3, 1); }
+  .stage--floating .stage__canvas { flex: 1; min-block-size: 0; }
+  .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: calc(50% - var(--preview-pizza) / 2); inline-size: var(--preview-pizza); transform: translateY(-50%); transform-origin: center; will-change: auto; transition: inline-size .28s cubic-bezier(.16, 1, .3, 1), left .28s cubic-bezier(.16, 1, .3, 1); }
+  .stage--floating .pizza__ring { opacity: 0; }
+  .stage--floating .stage__summary { display: none; }
+  .stage--floating .stage__expand, .stage--floating .stage__collapse { position: absolute; z-index: 3; inset-block-start: 8px; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 12px; background: rgb(255 244 230 / .08); box-shadow: none; color: var(--hero-copy, #fff4e6); cursor: pointer; }
+  .stage--floating .stage__expand { inset-inline-start: 8px; inset-inline-end: auto; }
+  .stage--floating .stage__collapse { inset-inline-end: 8px; inset-inline-start: auto; }
+  .stage--floating .stage__collapse .icon { inline-size: 20px; block-size: 20px; transition: transform .28s cubic-bezier(.16, 1, .3, 1); }
+  .stage--floating .stage__view { position: absolute; z-index: 2; inset: 0; display: block; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+  .stage--floating .stage__view:focus-visible { outline-offset: -4px; }
+  .stage--floating.is-minimized { block-size: 60px; }
+  .stage--floating.is-minimized .stage__pizza { --preview-pizza: 44px; left: auto; inset-inline-start: 12px; }
+  .stage--floating.is-minimized .stage__expand { display: none; }
+  .stage--floating.is-minimized .stage__collapse .icon { transform: rotate(180deg); }
+  .stage--floating.is-minimized .stage__summary { position: absolute; z-index: 1; inset-block: 0; inset-inline: 68px 60px; display: grid; align-content: center; min-block-size: 0; padding: 0; pointer-events: none; }
+  .stage--floating.is-minimized .stage__title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .875rem; font-weight: 700; }
+  .stage--floating.is-minimized .stage__detail, .stage--floating.is-minimized .stage__compact, .stage--floating.is-minimized .stage__composition { display: none; }
+  .has-floating-preview .price-panel { max-block-size: calc(100svh - var(--header-h) - 100px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage--floating, .stage--floating .stage__pizza, .stage--floating .stage__collapse .icon { transition: none; }
+}
+/* End floating mobile pizza preview. */

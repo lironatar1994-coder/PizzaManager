@@ -557,3 +557,7 @@ components:
 Ordering sections use short nouns. Explanatory placeholders, repeated selection instructions and product intro paragraphs do not occupy the flow. Optional names and kitchen notes share one disclosure; address-provider details are collapsed. Product identity, actual choices, prices, availability, error recovery and demo/payment state remain explicit. See deploy/CUSTOMER-COPY.md for the production adapter boundaries.
 
 Size choices show a small pizza image, size name and price. Diameter, slice counts and audience descriptions remain in managed data. Crust choices omit decorative descriptions. Basket totals are inside the price breakdown, and the desktop builder action aligns with its choices column. The desktop preview does not repeat the product heading.
+
+### Floating mobile pizza preview
+
+Below 900px, the same live pizza stage moves into the fixed action dock. It floats above the add action with a paper-colored gap, 16px corners and a neutral downward shadow. Its expanded height is 25svh (136–216px); it folds into a 60px strip by customer choice or temporarily when the keyboard opens. The whole image opens the existing half editor, with separate 44px expand and collapse controls. The product heading is visible above size choices; the old preview leaves no space at the top. The dock's measured height reserves scrollable room for the last fields. Desktop retains the original sticky pizza column and the action aligned to the choices.

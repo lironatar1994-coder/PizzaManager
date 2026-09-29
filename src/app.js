@@ -1,3 +1,4 @@
+import { setupFloatingPreview } from './floating-preview.js?v=20260929-floating1';
 import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
 import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-pizzeria2';
@@ -614,8 +615,8 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     <main class="builder${isPizza ? '' : ' builder--flat'}">
       <section class="stage" aria-label="התצוגה של ${safe(product.name)}">
 
-        ${isPizza ? `<button type="button" class="stage__expand" data-expand-pizza aria-label="הגדלת תצוגת הפיצה ועריכת חצאים" aria-haspopup="dialog">${icon('expand')}</button>` : ''}
-        <div class="stage__canvas">${isPizza ? '<span class="stage__flare" aria-hidden="true"></span>' : ''}<div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
+        ${isPizza ? `<button type="button" class="stage__expand" data-expand-pizza aria-label="הגדלת תצוגת הפיצה ועריכת חצאים" aria-haspopup="dialog">${icon('expand')}</button><button type="button" class="stage__collapse" data-preview-collapse aria-label="צמצום תצוגת הפיצה" aria-expanded="true" aria-controls="stage-art">${icon('down')}</button>` : ''}
+        <div class="stage__canvas">${isPizza ? '<button type="button" class="stage__view" data-preview-open aria-label="פתיחת הפיצה ועריכת חצאים" aria-haspopup="dialog"></button>' : ''}${isPizza ? '<span class="stage__flare" aria-hidden="true"></span>' : ''}<div class="stage__pizza" id="stage-art">${isPizza ? pizzaSVG(pizzaState(product, config), { rings: variantScales, label: `הדמיה של ${product.name} לפי הבחירות שלכם` }) : productArt(product, config, product.name)}</div></div>
         <div class="stage__summary"><p class="stage__title" id="stage-title"></p><p class="stage__detail" id="stage-detail"></p><div class="stage__composition" data-stage-composition></div>${isPizza ? '<p class="stage__compact" id="stage-compact"></p>' : ''}</div>
       </section>
       <form class="builder__form" id="builder-form" novalidate>
@@ -1151,42 +1152,9 @@ function reactToChoice(art, visualChange) {
   }
 }
 
-// במובייל הפיצה מתכווצת לפינה בזמן גלילה, כדי שתישאר גלויה ליד הבחירות.
+// במובייל הפיצה צפה מעל פעולת ההוספה; בדסקטופ היא נשארת בטור שלה.
 function setupStage(stage) {
-  const pizza = stage.querySelector('.stage__pizza');
-  const mobile = window.matchMedia('(max-width: 899px)');
-  let metrics = null;
-  let frame = 0;
-  const measure = () => {
-    pizza.style.transform = '';
-    if (!mobile.matches) { metrics = null; stage.classList.remove('is-compact'); stage.style.setProperty('--p', 0); return; }
-    const band = parseFloat(getComputedStyle(stage).getPropertyValue('--band')) || 72;
-    const height = stage.offsetHeight;
-    const width = stage.clientWidth;
-    const size = pizza.offsetWidth;
-    const small = band - 24;
-    const top = pizza.offsetTop;
-    metrics = { travel: height - band, dx: 16 - pizza.offsetLeft, dy: height - band + 12 - top, k: small / size };
-  };
-  const update = () => {
-    frame = 0;
-    if (!metrics) return;
-    const p = Math.min(1, Math.max(0, window.scrollY / metrics.travel));
-    stage.style.setProperty('--p', p.toFixed(3));
-    stage.classList.toggle('is-compact', p >= .92);
-    pizza.style.transform = `translate(${(metrics.dx * p).toFixed(1)}px, ${(metrics.dy * p).toFixed(1)}px) scale(${(1 - (1 - metrics.k) * p).toFixed(3)})`;
-  };
-  const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
-  const onResize = () => { measure(); update(); };
-  measure();
-  update();
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onResize);
-  return () => {
-    window.removeEventListener('scroll', onScroll);
-    window.removeEventListener('resize', onResize);
-    cancelAnimationFrame(frame);
-  };
+  return setupFloatingPreview(stage);
 }
 
 function flyToCart(source) {

@@ -5,6 +5,7 @@ The ordering UI uses short nouns for its sections: size, dough, extras, address 
 - A pizza with no selected extras has no preview helper sentence or default crust caption.
 - Size cards show only the size and price, with a small pizza image. Measurements, slice counts and audience descriptions stay in managed data. Crust cards show the choice and any extra price.
 - Basket and projected totals are inside the price breakdown, keeping the fixed builder action focused on one price. On desktop the action is aligned to the choices column.
+- On mobile, the live pizza floats above the action in a panel about one quarter of the viewport height. The same SVG moves from the desktop column, so it does not leave an empty block above the choices. The panel can be minimized, opens the existing half editor on tap and temporarily folds while the keyboard is open. Its measured height keeps the last fields scrollable above it.
 - The product description stays in managed catalog data. It is not printed as an introduction to the builder. Real menu descriptions and bundle contents remain available; generic size-selection instructions are omitted.
 - Optional item names and kitchen notes share a collapsed section. Existing names and notes open it automatically.
 - Address-provider attribution and its data disclosure are available inside a native details control. Address validation, service-area restrictions, delivery minimum and unknown delivery fees remain explicit.

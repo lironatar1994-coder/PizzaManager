@@ -44,6 +44,7 @@ function VerifyLive([string]$ExpectedRevision) {
     if ($ExpectedRevision -and $revision -ne $ExpectedRevision) { throw "Live frontend revision mismatch: $revision" }
     $assets = @('app.js', 'styles.css', 'order.js', 'store.js', 'address.js', 'config-links.js') | ForEach-Object { $sourcePrefix + $_ }
     if ($sourcePrefix -eq 'src/') { $assets += 'src/schedule.js' }
+    if ($ExpectedRevision) { $assets += ($sourcePrefix + 'floating-preview.js') }
     $assets += @('assets/brand/oven-mark.svg', 'assets/brand/favicon.svg', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')
     foreach ($asset in $assets) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
