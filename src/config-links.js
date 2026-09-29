@@ -1,4 +1,4 @@
-import { normalizeConfig, compositionOnly } from './order.js?v=20260929-luxury1';
+import { normalizeConfig, compositionOnly } from './order.js?v=20260929-pizzeria2';
 
 // קישור מכיל הרכב וכמות בלבד. הערות, סל, פרטי קשר וכתובת אינם נכנסים אליו.
 export function encodeConfiguration(product, config, qty) {

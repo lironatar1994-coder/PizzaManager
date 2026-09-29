@@ -15,6 +15,8 @@ const required = [
   'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg',
   'src/opening.css', 'assets/hero-luxury-mobile-v1.webp', 'assets/hero-luxury-desktop-v1.webp',
   'assets/fonts/frank-ruhl-libre-600.woff', 'assets/fonts/FrankRuhlLibre-OFL.txt', 'assets/brand/oven-mark-luxury.svg',
+  'assets/hero-pizzeria-mobile-v2.webp', 'assets/hero-pizzeria-desktop-v2.webp',
+  'assets/fonts/heebo-900.woff', 'assets/fonts/Heebo-OFL.txt',
   ...['olive', 'mushroom', 'corn', 'onion', 'jalapeno', 'feta'].map((name) => `assets/toppings/${name}.webp`),
   'deploy_linux.sh', 'deploy/pizza-manager-locations.conf',
 ];

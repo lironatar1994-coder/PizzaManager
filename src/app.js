@@ -1,11 +1,11 @@
-import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-luxury1';
-import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-luxury1';
-import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-luxury1';
-import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260929-luxury1';
-import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260929-luxury1';
-import { configurationLink, decodeConfiguration } from './config-links.js?v=20260929-luxury1';
-import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260929-luxury1';
-import { searchAddresses, zoneForAddress } from './address.js?v=20260929-luxury1';
+import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
+import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
+import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-pizzeria2';
+import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260929-pizzeria2';
+import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPhone } from './services.js?v=20260929-pizzeria2';
+import { configurationLink, decodeConfiguration } from './config-links.js?v=20260929-pizzeria2';
+import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260929-pizzeria2';
+import { searchAddresses, zoneForAddress } from './address.js?v=20260929-pizzeria2';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -204,14 +204,14 @@ function home() {
   const status = openingStatus();
   const closed = !status.open;
   const remembered = typeof getRepeatOrder === 'function' && getRepeatOrder()?.lines?.length;
-  const heroImages = shop.demoOnly ? { mobile: './assets/hero-luxury-mobile-v1.webp', desktop: './assets/hero-luxury-desktop-v1.webp', alt: shop.heroImages.alt } : shop.heroImages;
+  const heroImages = shop.demoOnly ? { mobile: './assets/hero-pizzeria-mobile-v2.webp', desktop: './assets/hero-pizzeria-desktop-v2.webp', alt: 'תמונת המחשה של פיצה על כף עץ ליד תנור לבנים — אינה צילום של מוצר העסק' } : shop.heroImages;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#141614');
   app.innerHTML = `<main class="hero hero--luxury" aria-labelledby="hero-title">
     <!-- THESIS: A centered restaurant identity and four clear actions within one mobile viewport.
-    OWN-WORLD: Warm charcoal stone, editorial pizza photography, ivory Hebrew serif and satin brass controls.
+    OWN-WORLD: Warm brick oven and wooden pizza peel, an emphatic ivory Heebo 900 name, tomato delivery and ivory pickup controls.
     STORY: Choose delivery or pickup; contact and navigation remain directly below.
     FIRST VIEWPORT: The complete identity and action group sits at the horizontal and vertical center of 100dvh, with safe-area padding.
-    FORM: User-approved luxury comp; vertical centering is the user's explicit adaptation.
+    FORM: Centered full-height opening, amplified toward a warm pizzeria at the user's request.
     FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
     <picture class="hero__media"><source media="(max-width: 700px)" srcset="${safe(heroImages.mobile)}" /><img src="${safe(heroImages.desktop)}" alt="${safe(heroImages.alt)}" fetchpriority="high" /></picture>
     <div class="hero__shade" aria-hidden="true"></div>

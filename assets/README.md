@@ -34,14 +34,25 @@
 
 ## תמונות הפתיחה
 
-מסך הפתיחה המעודכן משתמש בצילום המחשה על אבן כהה, שנוצר בכלי ImageGen המובנה ב־29.9.2026 לפי המוקאפ הפרמיום שאושר. התמונה מכילה אוכל ורקע בלבד; שם העסק והפעולות מוצגים ב־HTML.
+מסך הפתיחה המעודכן משתמש בתמונות המחשה של תנור לבנים ופיצה על כף עץ, שנוצרו בכלי ImageGen המובנה ב־29.9.2026 בעקבות הבקשה לחזק את אופי הפיצרייה. התמונות מכילות אוכל ורקע בלבד; שם העסק והפעולות מוצגים ב־HTML.
+
+| קובץ | ממדים | פרומפט מקורי מלא |
+| --- | --- | --- |
+| `hero-pizzeria-mobile-v2.webp` | 853×1844 | [hero-pizzeria-mobile-v2.webp.json](hero-pizzeria-mobile-v2.webp.json) |
+| `hero-pizzeria-desktop-v2.webp` | 1672×941 | [hero-pizzeria-desktop-v2.webp.json](hero-pizzeria-desktop-v2.webp.json) |
+
+הפלטים הומרו ל־WebP באיכות 82 ללא שינוי בתוכן. הכותרת משתמשת ב־Heebo במשקל 900, מתוך `fonts/heebo-900.woff`, עם רישיון OFL בקובץ `fonts/Heebo-OFL.txt`. מקור הגופן הרשמי: Google Fonts, `https://fonts.gstatic.com/s/heebo/v28/NGSpv5_NC0k9P_v6ZUCbLRAHxK1EICuccg.ttf`; הומר ל־WOFF ללא שינוי בצורות האותיות.
+
+### הכיוון הקודם שנשמר
+
+גרסת הפרמיום הקודמת על אבן כהה נשמרה בנכסים הבאים:
 
 | קובץ | ממדים | פרומפט מקורי מלא |
 | --- | --- | --- |
 | `hero-luxury-mobile-v1.webp` | 853×1844 | [hero-luxury-mobile-v1.webp.json](hero-luxury-mobile-v1.webp.json) |
 | `hero-luxury-desktop-v1.webp` | 1672×941 | [hero-luxury-desktop-v1.webp.json](hero-luxury-desktop-v1.webp.json) |
 
-הפלטים הומרו ל־WebP באיכות 82 ללא שינוי בתוכן. `brand/oven-mark-luxury.svg` הוא סמל תנור מקורי שנכתב בקוד להדגמה; לוגו עסק שהוגדר ממשיך לקבל עדיפות. כותרת הפתיחה משתמשת ב־Frank Ruhl Libre במשקל 600, המוגש מקומית מתוך `fonts/frank-ruhl-libre-600.woff`, עם רישיון OFL בקובץ `fonts/FrankRuhlLibre-OFL.txt`. יתר הממשק משתמש ב־Heebo.
+הפלטים הומרו ל־WebP באיכות 82 ללא שינוי בתוכן. `brand/oven-mark-luxury.svg` הוא סמל תנור מקורי שנכתב בקוד להדגמה; לוגו עסק שהוגדר ממשיך לקבל עדיפות. כותרת הפתיחה הקודמת השתמשה ב־Frank Ruhl Libre במשקל 600, שנשמר מקומית מתוך `fonts/frank-ruhl-libre-600.woff`, עם רישיון OFL בקובץ `fonts/FrankRuhlLibre-OFL.txt`.
 
 `pizza-hero-mobile.png`, `pizza-hero-desktop.png` וגרסאות ה־JPEG הישנות נשמרו כנכסים קודמים.
 

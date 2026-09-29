@@ -1,4 +1,4 @@
-import { shop } from './data.js?v=20260929-luxury1';
+import { shop } from './data.js?v=20260929-pizzeria2';
 
 const normalize = (text) => String(text || '').normalize('NFKC').trim().replace(/[\s\u05be\u2010-\u2015-]+/g, ' ');
 const cache = new Map();

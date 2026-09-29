@@ -29,11 +29,11 @@ release=$(mktemp -d "$base/platform-ui-releases/$(basename "$backend")-opening-$
 cp -a -- "$storefront/." "$release/"
 install -d -m 755 "$release/assets/fonts"
 for photo in mobile desktop; do
-  install -m 644 "$repository/assets/hero-luxury-$photo-v1.webp" "$release/assets/"
-  install -m 644 "$repository/assets/hero-luxury-$photo-v1.webp.json" "$release/assets/"
+  install -m 644 "$repository/assets/hero-pizzeria-$photo-v2.webp" "$release/assets/"
+  install -m 644 "$repository/assets/hero-pizzeria-$photo-v2.webp.json" "$release/assets/"
 done
-install -m 644 "$repository/assets/fonts/frank-ruhl-libre-600.woff" "$release/assets/fonts/"
-install -m 644 "$repository/assets/fonts/FrankRuhlLibre-OFL.txt" "$release/assets/fonts/"
+install -m 644 "$repository/assets/fonts/heebo-900.woff" "$release/assets/fonts/"
+install -m 644 "$repository/assets/fonts/Heebo-OFL.txt" "$release/assets/fonts/"
 install -m 644 "$repository/assets/brand/oven-mark-luxury.svg" "$release/assets/brand/"
 node "$repository/deploy/platform-opening.mjs" "$repository" "$old_target" "$release" "$revision"
 chmod -R a+rX "$release"
@@ -48,7 +48,7 @@ for file in src/app.js src/styles.css; do
   remote=$(curl -fsS --max-time 20 "$url/storefront/$file?v=$revision" | sha256sum | cut -d' ' -f1)
   test "$remote" = "$(sha256sum "$storefront/$file" | cut -d' ' -f1)"
 done
-for asset in hero-luxury-mobile-v1.webp hero-luxury-desktop-v1.webp fonts/frank-ruhl-libre-600.woff brand/oven-mark-luxury.svg; do
+for asset in hero-pizzeria-mobile-v2.webp hero-pizzeria-desktop-v2.webp fonts/heebo-900.woff brand/oven-mark-luxury.svg; do
   curl -fsS --max-time 20 -o /dev/null "$url/assets/$asset"
 done
 test "$catalog_before" = "$(catalog_hash)" || { echo 'Managed catalog changed; reverting frontend' >&2; exit 1; }

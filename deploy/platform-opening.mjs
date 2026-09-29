@@ -27,7 +27,7 @@ for (const contract of ["from '../../shared/runtime.js'", 'function productHref(
 const rootApp = read(repository, 'src/app.js');
 const nextBounds = bounds(rootApp);
 let opening = rootApp.slice(nextBounds.start, nextBounds.end);
-opening = opening.replaceAll("'./assets/hero-luxury-", "'/assets/hero-luxury-");
+opening = opening.replaceAll("'./assets/hero-pizzeria-", "'/assets/hero-pizzeria-");
 opening = opening.replace('const status = openingStatus();', "const status = { open: isOpen(), label: `שעות פתיחה ${shop.hours.opensAt}–${shop.hours.closesAt}` };");
 for (const field of ['heroImages.mobile', 'heroImages.desktop', 'shop.logo']) {
   opening = opening.replaceAll(`safe(${field})`, `safe(appUrl(${field}))`);
@@ -56,6 +56,10 @@ for (const state of [{ demoOnly: true, logo: '', products: true }, { demoOnly: f
   };
   runInNewContext(opening + '\nhome();', context, { timeout: 1000 });
   if (!container.innerHTML.includes('class="hero hero--luxury"') || container.innerHTML.includes('${safe(appUrl(')) throw Error('Adapted opening did not render');
+  for (const device of ['mobile', 'desktop']) {
+    const expectedPhoto = state.demoOnly ? `/PizzaManager/assets/hero-pizzeria-${device}-v2.webp` : `/PizzaManager/assets/tenant-${device}.jpg`;
+    if (!container.innerHTML.includes(expectedPhoto)) throw Error(`Opening ${device} photo URL did not resolve`);
+  }
   if (!state.logo && !container.innerHTML.includes('href="/PizzaManager/assets/brand/oven-mark-luxury.svg#oven-mark-luxury"')) throw Error('Opening symbol URL did not resolve');
   if (state.logo && !container.innerHTML.includes('src="/PizzaManager/assets/brand/tenant.svg"')) throw Error('Tenant logo did not survive adaptation');
   if (!state.products && container.innerHTML.includes('data-mode=')) throw Error('Empty catalog exposed order actions');
@@ -78,9 +82,12 @@ const contract = read(repository, 'index.html').match(/<!--[\s\S]*?FINISH:[\s\S]
 if (!contract) throw Error('Opening direction contract is missing');
 html = html.replace(/<!--[\s\S]*?FINISH:[\s\S]*?-->/, contract);
 html = html.replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`)
-  .replaceAll('/assets/pizza-hero-mobile.jpg', '/assets/hero-luxury-mobile-v1.webp')
-  .replaceAll('/assets/pizza-hero-desktop.jpg', '/assets/hero-luxury-desktop-v1.webp');
-if (!html.includes('frank-ruhl-libre-600.woff')) html = html.replace('</head>', '  <link rel="preload" as="font" href="/assets/fonts/frank-ruhl-libre-600.woff" type="font/woff" crossorigin />\n  </head>');
+  .replaceAll('/assets/pizza-hero-mobile.jpg', '/assets/hero-pizzeria-mobile-v2.webp')
+  .replaceAll('/assets/pizza-hero-desktop.jpg', '/assets/hero-pizzeria-desktop-v2.webp')
+  .replaceAll('/assets/hero-luxury-mobile-v1.webp', '/assets/hero-pizzeria-mobile-v2.webp')
+  .replaceAll('/assets/hero-luxury-desktop-v1.webp', '/assets/hero-pizzeria-desktop-v2.webp')
+  .replaceAll('/assets/fonts/frank-ruhl-libre-600.woff', '/assets/fonts/heebo-900.woff');
+if (!html.includes('heebo-900.woff')) html = html.replace('</head>', '  <link rel="preload" as="font" href="/assets/fonts/heebo-900.woff" type="font/woff" crossorigin />\n  </head>');
 if (!html.includes(`app.js?v=${tag}`) || !html.includes(`styles.css?v=${tag}`)) throw Error('Platform entry paths changed');
 write('index.html', html);
 

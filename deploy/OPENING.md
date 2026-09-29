@@ -22,4 +22,4 @@ Compile a separate inactive copy of actual platform source with:
 node deploy/platform-opening.mjs <repository> <source-storefront> <inactive-copy> <40-character-git-revision>
 ```
 
-The source and output must be different directories. The compiler also executes the adapted opening in an isolated context for the demo, a configured tenant logo, and an empty catalog, checking rendered URL interpolation before activation. `node scripts/check.mjs` verifies the static demo and its existing bundle/pricing/privacy gates; browser checks cover the opening at 390×844, 320×568, 390×600, 844×390, and 1265×711.
+The source and output must be different directories. The compiler also executes the adapted opening in an isolated context for the demo, a configured tenant logo, and an empty catalog, checking rendered photo, logo and symbol URL interpolation before activation. `node scripts/check.mjs` verifies the static demo and its existing bundle/pricing/privacy gates; browser checks cover the opening at 390×844, 320×568, 390×600, 844×390, and 1265×711.
