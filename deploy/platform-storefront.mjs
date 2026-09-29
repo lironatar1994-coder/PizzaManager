@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { compactCustomerCopy, compactCustomerStyles } from './storefront-copy.mjs';
 import { floatingPreviewApp, floatingPreviewStyles } from './floating-preview.mjs';
 import { streamlinedBuilderApp } from './builder-controls.mjs';
+import { customerFlowApp, customerFlowStyles } from './customer-flow.mjs';
 
 // Apply the menu surface and concise customer copy. Its API, tenant storage,
 // pricing, checkout and payment adapters remain the source of truth.
@@ -51,15 +52,16 @@ const cartAnchor = "document.querySelectorAll('[data-hero-cart]').forEach((node)
 if (!app.includes(cartAnchor)) throw Error('Platform cart update boundary changed');
 app = app.replace(cartAnchor + '\n  refreshMenuCart();', cartAnchor);
 app = app.replace(cartAnchor, cartAnchor + '\n  refreshMenuCart();');
-write('src/app.js', streamlinedBuilderApp(floatingPreviewApp(compactCustomerCopy(app, { platform: true }))));
+write('src/app.js', customerFlowApp(streamlinedBuilderApp(floatingPreviewApp(compactCustomerCopy(app, { platform: true }))), { platform: true }));
 write('src/floating-preview.js', read(repository, 'src/floating-preview.js'));
+write('src/customer-flow.js', read(repository, 'src/customer-flow.js'));
 
 // These menu selectors are single-line declarations in the incumbent stylesheet.
 // Keep every other rule, including the backend order status screen.
 let css = read(source, 'src/styles.css').split('\n').filter((line) => !/^\s*\.(menu|order-progress)/.test(line)).map((line) => line.replace(', .menu-favorites {', ' {')).join('\n');
 const scoped = [];
 let media = '';
-for (const line of read(repository, 'src/styles.css').split('\n')) {
+for (const line of read(repository, 'src/styles.css').split('/* Customer flow: quiet, compact surfaces. */')[0].split('\n')) {
   if (/^@media .*\{\s*$/.test(line)) media = line.trim();
   else if (line.trim() === '}') media = '';
   else if (/^\s*\.(menu|order-progress)/.test(line)) scoped.push(media ? `${media}\n${line}\n}` : line);
@@ -67,7 +69,7 @@ for (const line of read(repository, 'src/styles.css').split('\n')) {
 if (scoped.length < 50) throw Error('Menu stylesheet extraction is incomplete');
 css += '\n\n/* Menu photography: generated from the PizzaManager menu surface. */\n' + scoped.join('\n') + '\n';
 css += '.menu-page { --tomato: #c93124; --tomato-hover: #ab291f; }\n';
-write('src/styles.css', floatingPreviewStyles(compactCustomerStyles(css), read(repository, 'src/floating-preview.css')));
+write('src/styles.css', customerFlowStyles(floatingPreviewStyles(compactCustomerStyles(css), read(repository, 'src/floating-preview.css')), read(repository, 'src/customer-flow.css')));
 const html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
 if (!html.includes(`app.js?v=${tag}`) || !html.includes(`styles.css?v=${tag}`)) throw Error('Platform entry asset paths changed');
 write('index.html', html);
@@ -82,5 +84,5 @@ for (const file of readdirSync(join(output, 'src')).filter((name) => name.endsWi
   if (syntax.status !== 0) throw Error(`Invalid platform module ${file}: ${syntax.stderr}`);
 }
 const hash = (path) => createHash('sha256').update(readFileSync(join(output, path))).digest('hex');
-write('assets/menu-ui-version.json', JSON.stringify({ revision, surface: 'customer-ui', managedCatalog: true, files: { 'src/app.js': hash('src/app.js'), 'src/styles.css': hash('src/styles.css'), 'src/floating-preview.js': hash('src/floating-preview.js') } }) + '\n');
+write('assets/menu-ui-version.json', JSON.stringify({ revision, surface: 'customer-ui', managedCatalog: true, files: { 'src/app.js': hash('src/app.js'), 'src/styles.css': hash('src/styles.css'), 'src/floating-preview.js': hash('src/floating-preview.js'), 'src/customer-flow.js': hash('src/customer-flow.js') } }) + '\n');
 console.log(`Compiled platform customer UI ${revision}; preserved live catalog and checkout adapters.`);

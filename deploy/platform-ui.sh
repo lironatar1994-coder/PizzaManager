@@ -64,6 +64,10 @@ verify() {
     test "$remote" = "$(sha256sum "$storefront/src/app.js" | cut -d' ' -f1)"
     remote=$(curl -fsS --max-time 20 "$url/storefront/src/styles.css?v=$expected" | sha256sum | cut -d' ' -f1)
     test "$remote" = "$(sha256sum "$storefront/src/styles.css" | cut -d' ' -f1)"
+    if [[ -f "$storefront/src/customer-flow.js" ]]; then
+      remote=$(curl -fsS --max-time 20 "$url/storefront/src/customer-flow.js?v=$expected" | sha256sum | cut -d' ' -f1)
+      test "$remote" = "$(sha256sum "$storefront/src/customer-flow.js" | cut -d' ' -f1)"
+    fi
     curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-v1.webp"
     if grep -q 'menu-pizza-editorial-v2.webp' "$storefront/src/app.js"; then
       curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-editorial-v2.webp"

@@ -1,3 +1,4 @@
+import { mountCheckoutFlow } from './customer-flow.js';
 import { setupFloatingPreview } from './floating-preview.js?v=20260929-streamlined1';
 import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
@@ -1375,7 +1376,7 @@ function renderCart() {
   sheet.innerHTML = `<div class="sheet__panel">
     <header class="sheet__head"><h2 id="cart-title">הסל שלכם</h2><span class="sheet__count" data-sheet-count>${count ? itemsText(count) : ''}</span><button type="button" class="icon-button" data-close-sheet aria-label="סגירת הסל">${icon('close')}</button>${orderProgress('cart')}</header>
     ${removed ? `<div class="cart-undo" role="status"><span>הפריט הוסר <bdi>${safe(removedTitle)}</bdi></span><button type="button" class="link-button" data-undo-remove>${icon('undo')}החזרה</button></div>` : ''}
-    ${cart.length ? `<ul class="cart-lines${cart.length >= 3 ? ' cart-lines--compact' : ''}">${cart.map((line) => cartLineMarkup(line, cart.length >= 3)).join('')}</ul>
+    ${cart.length ? `<ul class="cart-lines${cart.length >= 3 ? ' cart-lines--compact' : ''}">${cart.map((line) => cartLineMarkup(line, true)).join('')}</ul>
       <div data-cart-offer>${cartOfferMarkup()}</div>
       <footer class="sheet__foot">
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
@@ -1484,7 +1485,7 @@ function openInfo() {
       <p class="info__row">${icon('clock')}<span><strong>${safe(status.label)}</strong><small>${shop.demoOnly ? 'שעות לדוגמה' : 'שעות הפעילות'}</small></span></p>
       ${weeklyHoursMarkup()}
       <div class="info__actions">
-        <a class="button button--quiet" href="${wazeHref()}" target="_blank" rel="noopener">ניווט ב־Waze</a><a class="button button--quiet" href="${mapsHref()}" target="_blank" rel="noopener">Google Maps</a><a class="button button--quiet info__call" href="${phoneHref()}">${icon('phone')}<span>התקשרות · <bdi>${safe(shop.phone)}</bdi></span></a>
+        <a class="button button--primary" href="${wazeHref()}" target="_blank" rel="noopener">ניווט ב־Waze</a><a class="button button--quiet" href="${mapsHref()}" target="_blank" rel="noopener">Google Maps</a><a class="button button--quiet info__call" href="${phoneHref()}">${icon('phone')}<span>התקשרות · <bdi>${safe(shop.phone)}</bdi></span></a>
       </div>
     </div>
   </div>`;
@@ -1513,7 +1514,7 @@ function renderFavorites() {
         const product = findProduct(favorite.config.productId);
         const info = describe(product, favorite.config);
         const active = available.some((item) => item.id === product.id);
-        return `<li class="favorite-line"><span class="favorite-line__art">${productArt(product, favorite.config)}</span><div class="favorite-line__text"><h3>${safe(favorite.name)}</h3><p>${safe(info.title)}${favorite.qty > 1 ? ` · ${favorite.qty} יח׳` : ''}</p><strong><bdi>${money(unitPrice(product, favorite.config) * favorite.qty)}</bdi></strong>${active ? `<a class="link-button" href="#/product/${safe(product.id)}/favorite/${safe(favorite.id)}" data-load-favorite="${safe(favorite.id)}">בחירה ושינוי ${icon('forward')}</a>` : '<span class="favorite-line__unavailable">המוצר אינו זמין כרגע</span>'}</div><button type="button" class="icon-button" data-remove-favorite="${safe(favorite.id)}" aria-label="מחיקת ${safe(favorite.name)} מהמועדפים">${icon('close')}</button><details class="favorite-line__details"><summary>פירוט ההרכב ${icon('down')}</summary><p>${safe(detailText(info) || 'בלי תוספות')}</p>${favorite.config.note ? `<p>הערה: ${safe(favorite.config.note)}</p>` : ''}</details></li>`;
+        return `<li class="favorite-line"><span class="favorite-line__art">${productArt(product, favorite.config)}</span><div class="favorite-line__text"><h3>${safe(favorite.name)}</h3><p>${safe(info.title)}${favorite.qty > 1 ? ` · ${favorite.qty} יח׳` : ''}</p><strong><bdi>${money(unitPrice(product, favorite.config) * favorite.qty)}</bdi></strong>${active ? `<a class="button button--quiet favorite-line__choose" href="#/product/${safe(product.id)}/favorite/${safe(favorite.id)}" data-load-favorite="${safe(favorite.id)}">לפתיחה ועריכה ${icon('forward')}</a>` : '<span class="favorite-line__unavailable">המוצר אינו זמין כרגע</span>'}</div><button type="button" class="icon-button" data-remove-favorite="${safe(favorite.id)}" aria-label="מחיקת ${safe(favorite.name)} מהמועדפים">${icon('close')}</button><details class="favorite-line__details"><summary>פירוט ההרכב ${icon('down')}</summary><p>${safe(detailText(info) || 'בלי תוספות')}</p>${favorite.config.note ? `<p>הערה: ${safe(favorite.config.note)}</p>` : ''}</details></li>`;
       }).join('')}</ul>` : `<div class="empty-state"><span class="favorites-empty" aria-hidden="true">${icon('heart')}</span><p><strong>אין הרכבים שמורים</strong></p><button type="button" class="button button--quiet" data-close-favorites>חזרה להרכבה</button></div>`}
     </div>
   </div>`;
@@ -1782,7 +1783,7 @@ function checkoutState() {
 
 function checkoutBarMarkup() {
   const { totals, blocked, reason } = checkoutState();
-  return `<div class="buybar__total${reason ? ' buybar__total--reason' : ''}"><span>${reason || 'סכום לדוגמה'}</span><strong>${money(totals.total)}</strong></div>
+  return `${reason ? `<p class="checkout-action-reason" role="status">${safe(reason)}</p>` : ''}
     <button type="submit" form="checkout-form" class="button button--primary buybar__cta" ${blocked || checkout.submitting ? 'disabled' : ''}>
       ${checkout.submitting ? '<span class="spinner" aria-hidden="true"></span><span>מכינים אישור לדוגמה…</span>' : `<span>אישור לדוגמה · ${money(totals.total)}</span>${icon('forward')}`}
     </button>`;
@@ -1797,9 +1798,16 @@ function refreshCheckoutParts() {
   if (check) check.innerHTML = addressStatus();
   const summary = document.querySelector('#summary');
   if (summary) summary.innerHTML = summaryMarkup();
+  const shortTotal = document.querySelector('[data-short-total]');
+  if (shortTotal) shortTotal.textContent = money(checkoutTotals().total);
   const bar = document.querySelector('#checkout-bar');
   if (bar) bar.innerHTML = checkoutBarMarkup();
   if (focusWasInCheck) (check.querySelector('button, a') || check).focus({ preventScroll: true });
+}
+
+function checkoutCompositionMarkup(info) {
+  if (info.components) return info.components.map((part) => `<div class="summary__component"><strong>${safe(part.name)} · ${safe(part.title)}</strong>${checkoutCompositionMarkup(part)}${part.note ? `<small>הערה: ${safe(part.note)}</small>` : ''}</div>`).join('');
+  return `<small class="summary__composition-brief">${safe([...info.singles, ...info.extras.map((extra) => extra.text)].join(' · '))}</small>`;
 }
 
 function summaryMarkup() {
@@ -1809,7 +1817,7 @@ function summaryMarkup() {
       const product = findProduct(line.config.productId);
       const info = describe(product, line.config);
       const issues = lineIssues(line);
-      return `<li><a class="summary__edit" href="#/product/${safe(product.id)}/edit/${safe(line.id)}?return=checkout" data-checkout-edit="${safe(line.id)}" aria-label="עריכת ${safe(line.config.label || info.title)} וחזרה לקופה"><span class="summary__art">${productArt(product, line.config)}</span><div class="summary__text">${itemLabelMarkup(line.config.label)}<strong>${line.qty > 1 ? `${line.qty} × ` : ''}${safe(info.title)}</strong>${issues.length ? `<small class="cart-line__unavailable">צריך לעדכן: ${safe(issues.join(', '))}</small>` : ''}${checkout.updatedLine === line.id ? '<small class="summary__updated" role="status">הפריט עודכן</small>' : ''}</div><span class="summary__line-side"><bdi>${money(lineTotal(line, product))}</bdi><small>עריכה ${icon('edit')}</small></span><div class="summary__composition">${compositionMarkup(info)}</div></a></li>`;
+      return `<li><a class="summary__edit" href="#/product/${safe(product.id)}/edit/${safe(line.id)}?return=checkout" data-checkout-edit="${safe(line.id)}" aria-label="עריכת ${safe(line.config.label || info.title)} וחזרה לקופה"><span class="summary__art">${productArt(product, line.config)}</span><div class="summary__text">${itemLabelMarkup(line.config.label)}<strong>${line.qty > 1 ? `${line.qty} × ` : ''}${safe(info.title)}</strong>${issues.length ? `<small class="cart-line__unavailable">צריך לעדכן: ${safe(issues.join(', '))}</small>` : ''}${checkout.updatedLine === line.id ? '<small class="summary__updated" role="status">הפריט עודכן</small>' : ''}</div><span class="summary__line-side"><bdi>${money(lineTotal(line, product))}</bdi><small>עריכה ${icon('edit')}</small></span><div class="summary__composition">${checkoutCompositionMarkup(info)}</div></a></li>`;
     }).join('')}</ul>
     <button type="button" class="link-button" data-open-cart>עריכת הסל</button>
     ${checkout.mode === 'pickup' ? `<p class="summary__pickup">${icon('clock')}<span>${safe(fulfillmentState().label)}</span></p>` : ''}
@@ -1843,15 +1851,15 @@ function checkoutPage(focusId) {
     <main class="page checkout"><div class="wrap checkout__layout">
       <form class="checkout__form" id="checkout-form" novalidate>
         ${orderProgress('details')}
-        <header class="page-head"><h1>קופה לדוגמה</h1></header>
-        <div class="notice notice--warn" role="status">${icon('alert')}<span><strong>הדגמה בלבד:</strong> אין הזמנה או חיוב. המחירים ואזורי המשלוח להמחשה.</span></div>
+        <header class="page-head"><h1>פרטים ותשלום</h1></header>
+        <div class="notice notice--warn checkout-demo" role="status">${icon('alert')}<span><strong>הדגמה · ללא הזמנה או חיוב.</strong></span></div>
         <div data-business-status>${businessNoticeMarkup()}</div>
         ${checkout.failure ? `<div class="notice notice--error" role="alert" tabindex="-1" id="failure">${icon('alert')}<span><strong>בהדגמה דימינו תשלום שנכשל.</strong> לא בוצע חיוב ואפשר לנסות שוב.</span></div>` : ''}
         <fieldset class="field-group">
           <legend class="field-group__head"><span class="field-group__title">קבלת ההזמנה</span></legend>
           <div class="tile-row tile-row--2">
             <label class="tile tile--mode"><input type="radio" id="mode-delivery" name="mode" value="delivery" ${checkout.mode === 'delivery' ? 'checked' : ''} /><span class="tile__surface">${icon('delivery', 'tile__icon')}<strong>משלוח</strong></span></label>
-            <label class="tile tile--mode"><input type="radio" id="mode-pickup" name="mode" value="pickup" ${checkout.mode === 'pickup' ? 'checked' : ''} /><span class="tile__surface">${icon('pickup', 'tile__icon')}<strong>איסוף עצמי</strong><small>ללא דמי משלוח</small></span></label>
+            <label class="tile tile--mode"><input type="radio" id="mode-pickup" name="mode" value="pickup" ${checkout.mode === 'pickup' ? 'checked' : ''} /><span class="tile__surface">${icon('pickup', 'tile__icon')}<strong>איסוף עצמי</strong></span></label>
           </div>
         </fieldset>
         ${checkout.mode === 'delivery' ? `<fieldset class="field-group">
@@ -1864,7 +1872,7 @@ function checkoutPage(focusId) {
             ${checkout.errors.addressQuery ? `<p class="field__error" id="e-addressQuery">${safe(checkout.errors.addressQuery)}</p>` : ''}
           </div>
           <div class="address-selected" data-address-selected ${address.place ? '' : 'hidden'}>${selectedAddressMarkup()}</div>
-          <details class="address-search__info"><summary id="address-search-hint">${icon('info')}<span>הכתובת נשלחת לשירות חיפוש חיצוני</span>${icon('down')}</summary><div><p>החיפוש משתמש ב־<a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> ובנתוני <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.</p><p>אזור המשלוח נקבע לפי מיקום הכתובת שאושרה. תחומי המשלוח באתר זה להמחשה.</p></div></details>
+          <details class="address-search__info"><summary id="address-search-hint">${icon('info')}<span>מידע על חיפוש הכתובת</span>${icon('down')}</summary><div><p>החיפוש משתמש ב־<a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> ובנתוני <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>.</p><p>אזור המשלוח נקבע לפי מיקום הכתובת שאושרה. תחומי המשלוח באתר זה להמחשה.</p></div></details>
           <div class="address-check" id="address-check" tabindex="-1" aria-live="polite">${addressStatus()}</div>
           <div class="field-grid">
             ${field({ name: 'apartment', label: 'דירה', value: address.apartment, group: 'address', optional: true })}
@@ -1888,11 +1896,12 @@ function checkoutPage(focusId) {
           ${icon('lock', 'pay-note__icon')}<div><h2 class="field-group__title">תשלום באשראי — טרם חובר</h2><p>לא מזינים פרטי כרטיס בהדגמה.</p></div>
         </section>
       </form>
-      <aside class="summary" aria-label="סיכום ההזמנה"><div class="summary__panel" id="summary">${summaryMarkup()}</div></aside>
+      <aside class="summary" aria-label="סיכום ההזמנה"><details class="checkout-summary"><summary><span>סיכום · ${itemsText(cartCount())}</span><bdi data-short-total>${money(checkoutTotals().total)}</bdi>${icon('down')}</summary><div class="summary__panel" id="summary">${summaryMarkup()}</div></details></aside>
     </div></main>
-    <div class="buybar"><div class="buybar__inner" id="checkout-bar">${checkoutBarMarkup()}</div></div>`;
+    <div class="buybar buybar--checkout"><div class="buybar__inner" id="checkout-bar">${checkoutBarMarkup()}</div></div>`;
 
   const form = document.querySelector('#checkout-form');
+  teardown.push(mountCheckoutFlow());
   form.addEventListener('focusout', (event) => { if (event.target.name === 'phone') checkPhoneField(event.target); });
   form.addEventListener('change', (event) => {
     if (event.target.name === 'rememberDetails') {
@@ -2134,15 +2143,15 @@ function donePage() {
   const steps = order.mode === 'delivery' ? ['הפיצרייה מאשרת את ההזמנה', 'הבצק נפתח, התנור עובד', 'השליח בדרך אליכם'] : ['הפיצרייה מאשרת את ההזמנה', 'הבצק נפתח, התנור עובד', 'הודעה כשמוכן לאיסוף'];
   app.innerHTML = `${topbar('#/')}
     <main class="page done"><div class="wrap done__layout">
-      <div class="done__intro">
+      <div class="done__intro"><p class="order-reference"><span>הזמנה לדוגמה</span><bdi>${safe(order.reference)}</bdi></p>
         <h1>כך ייראה אישור ההזמנה</h1>
-        <div class="notice notice--warn">${icon('alert')}<span><strong>הדגמה: ההזמנה לא נשלחה ולא בוצע חיוב.</strong> במערכת האמיתית המסך הזה יופיע רק אחרי שהפיצרייה קיבלה את ההזמנה והתשלום אושר.</span></div>
+        <div class="notice notice--warn">${icon('alert')}<span><strong>הדגמה · ההזמנה לא נשלחה ולא בוצע חיוב.</strong></span></div>
         <ol class="done__steps">${steps.map((step) => `<li>${step}</li>`).join('')}</ol>
-        <a class="button button--quiet" href="#/">לעמוד הפתיחה</a>
+        <a class="button button--primary" href="#/">לעמוד הפתיחה</a><div class="done__services"><a class="button button--quiet" href="${phoneHref()}">${icon('phone')}חיוג</a><a class="button button--quiet" href="${wazeHref()}" target="_blank" rel="noopener">${icon('pin')}ניווט</a></div>
         <a class="link-button done__repeat" href="#/repeat">${icon('undo')}להזמין שוב</a>
         <section class="customer-memory" data-repeat-preference aria-label="שמירת הרכב לביקור הבא">${repeatPreferenceMarkup()}</section>
       </div>
-      <div class="ticket-wrap"><article class="ticket" aria-label="פרטי ההזמנה">
+      <details class="order-receipt" ${window.matchMedia('(min-width: 900px)').matches ? 'open' : ''}><summary><span>פרטי ההזמנה</span><bdi>${money(order.total)}</bdi>${icon('down')}</summary><div class="ticket-wrap"><article class="ticket" aria-label="פרטי ההזמנה">
         <header class="ticket__head"><strong>${safe(shop.name)}</strong><span>הזמנה <bdi>${safe(order.reference)}</bdi></span><span><bdi>${when}</bdi></span></header>
         <ul class="ticket__lines">${order.lines.map((line) => `<li>
           <span class="ticket__qty"><bdi>${line.qty}×</bdi></span>
@@ -2158,7 +2167,7 @@ function donePage() {
         <p class="ticket__to">על שם: ${safe(order.name)}</p>
         ${order.mode === 'pickup' ? `<p class="ticket__to">${safe(order.pickup?.timing === 'scheduled' ? pickupDescription(order.pickup) : 'איסוף בהקדם')}</p>` : ''}
         <footer class="ticket__foot">אישור לדוגמה · לא בוצעה הזמנה</footer>
-      </article></div>
+      </article></div></details>
     </div></main>`;
 }
 
