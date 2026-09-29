@@ -1312,9 +1312,10 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
   .builder--floating-preview .tile--size .tile__surface { min-block-size: 104px; }
   .builder--floating-preview .tile--crust .tile__surface { min-block-size: 68px; }
   .buybar--builder.has-floating-preview { border: 0; padding-block: 0 max(8px, env(safe-area-inset-bottom)); background: transparent; backdrop-filter: none; pointer-events: none; }
-  .has-floating-preview > .stage, .has-floating-preview > .buybar__inner, .has-floating-preview > .buybar__recovery { pointer-events: auto; }
-  .has-floating-preview > .buybar__inner { padding: 8px 12px; inline-size: min(100% - var(--gutter) * 2, 640px); border-radius: 16px; background: var(--surface-1); box-shadow: 0 4px 20px rgb(33 28 24 / .1); gap: 12px; }
-  .stage--floating { --preview-height: clamp(136px, 25svh, 216px); --preview-pizza: calc(var(--preview-height) + 20px); position: relative; inset: auto; z-index: 0; inline-size: min(100% - var(--gutter) * 2, 640px); block-size: var(--preview-height); margin: 0 auto 8px; border-radius: 16px; overflow: hidden; isolation: isolate; box-shadow: 0 6px 24px rgb(33 28 24 / .18); transition: block-size .28s cubic-bezier(.16, 1, .3, 1); }
+  .has-floating-preview > .pizza-dock, .has-floating-preview > .buybar__recovery { pointer-events: auto; }
+  .pizza-dock { inline-size: min(100% - var(--gutter) * 2, 640px); margin-inline: auto; border-radius: 16px; background: var(--stage); box-shadow: 0 6px 24px rgb(33 28 24 / .18); }
+  .has-floating-preview .pizza-dock > .buybar__inner { padding: 8px 12px; inline-size: 100%; margin: 0; border-radius: 0 0 16px 16px; background: var(--surface-1); box-shadow: none; gap: 12px; }
+  .stage--floating { --preview-height: clamp(136px, 25svh, 216px); --preview-pizza: calc(var(--preview-height) + 20px); position: relative; inset: auto; z-index: 0; inline-size: 100%; block-size: var(--preview-height); margin: 0; border-radius: 16px 16px 0 0; overflow: hidden; isolation: isolate; box-shadow: none; transition: block-size .28s cubic-bezier(.16, 1, .3, 1); }
   .stage--floating .stage__canvas { flex: 1; min-block-size: 0; }
   .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: calc(50% - var(--preview-pizza) / 2); inline-size: var(--preview-pizza); transform: translateY(-50%); transform-origin: center; will-change: auto; transition: inline-size .28s cubic-bezier(.16, 1, .3, 1), left .28s cubic-bezier(.16, 1, .3, 1); }
   .stage--floating .pizza__ring { opacity: 0; }

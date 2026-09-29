@@ -5,13 +5,16 @@ let collapsedByCustomer = false;
 export function setupFloatingPreview(stage) {
   const builder = stage.closest('.builder');
   const bar = document.querySelector('.buybar--builder');
+  const inner = bar?.querySelector('.buybar__inner');
   const collapse = stage.querySelector('[data-preview-collapse]');
   const view = stage.querySelector('[data-preview-open]');
   const expand = stage.querySelector('[data-expand-pizza]');
-  if (!builder || !bar || !collapse || !view || !expand) return () => {};
+  if (!builder || !bar || !inner || !collapse || !view || !expand) return () => {};
 
   const origin = document.createComment('desktop pizza preview');
   stage.before(origin);
+  const dock = document.createElement('div');
+  dock.className = 'pizza-dock';
   const mobile = window.matchMedia('(max-width: 899px)');
   const viewport = window.visualViewport;
   let fullHeight = window.innerHeight;
@@ -35,6 +38,10 @@ export function setupFloatingPreview(stage) {
   const scheduleKeyboard = () => {
     if (!frame) frame = requestAnimationFrame(measureKeyboard);
   };
+  const undock = () => {
+    if (inner.parentElement === dock) dock.before(inner);
+    dock.remove();
+  };
   const mount = () => {
     stage.classList.remove('is-compact');
     stage.style.setProperty('--p', '0');
@@ -45,9 +52,12 @@ export function setupFloatingPreview(stage) {
     collapse.hidden = !mobile.matches;
     view.hidden = !mobile.matches;
     if (mobile.matches) {
-      if (stage.parentElement !== bar) bar.querySelector('.buybar__inner').before(stage);
-    } else if (stage.parentElement !== builder) {
-      origin.after(stage);
+      if (!dock.isConnected) inner.before(dock);
+      if (stage.parentElement !== dock) dock.append(stage);
+      if (inner.parentElement !== dock) dock.append(inner);
+    } else {
+      if (stage.parentElement !== builder) origin.after(stage);
+      undock();
     }
     measureKeyboard();
   };
@@ -76,6 +86,7 @@ export function setupFloatingPreview(stage) {
     document.removeEventListener('focusout', scheduleKeyboard);
     cancelAnimationFrame(frame);
     if (origin.isConnected) origin.after(stage);
+    undock();
     origin.remove();
   };
 }

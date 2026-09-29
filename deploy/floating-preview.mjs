@@ -1,7 +1,7 @@
 // Narrow, idempotent adapter: retain the live SVG and full pizza editor.
 export function floatingPreviewApp(source) {
   let app = source;
-  const dependency = "import { setupFloatingPreview } from './floating-preview.js?v=20260929-floating1';";
+  const dependency = "import { setupFloatingPreview } from './floating-preview.js?v=20260929-dock1';";
   if (!app.includes('import { setupFloatingPreview }')) app = dependency + '\n' + app;
   if (!app.includes('data-preview-collapse')) {
     const expand = '${icon(\'expand\')}</button>` : \'\'}';
