@@ -1,0 +1,25 @@
+/* The single authored order-entry cue; decorative, nonblocking and 260ms long. */
+.navigation-cue {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.navigation-cue[hidden] { display: none; }
+.navigation-cue__pizza {
+  inline-size: 88px;
+  block-size: 88px;
+  padding: 12px;
+  border-radius: 50%;
+  background: #fff3df;
+  box-shadow: 0 6px 18px rgb(33 28 24 / .18);
+  object-fit: contain;
+}
+@media (prefers-reduced-motion: reduce) {
+  .navigation-cue { display: none; }
+}
+@media print {
+  .navigation-cue { display: none; }
+}

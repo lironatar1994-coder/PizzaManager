@@ -13,7 +13,7 @@ const required = [
   ...['pizza', 'garlic', 'family', 'combo'].map((name) => 'assets/menu-' + name + '-v1.webp'),
   'assets/menu-pizza-editorial-v2.webp',
   'assets/brand/oven-mark.svg', 'assets/brand/favicon.svg',
-  'src/opening.css', 'assets/hero-luxury-mobile-v1.webp', 'assets/hero-luxury-desktop-v1.webp',
+  'src/opening.css', 'src/navigation.js', 'src/navigation.css', 'assets/hero-luxury-mobile-v1.webp', 'assets/hero-luxury-desktop-v1.webp',
   'assets/fonts/frank-ruhl-libre-600.woff', 'assets/fonts/FrankRuhlLibre-OFL.txt', 'assets/brand/oven-mark-luxury.svg',
   'assets/hero-pizzeria-mobile-v2.webp', 'assets/hero-pizzeria-desktop-v2.webp',
   'assets/fonts/heebo-900.woff', 'assets/fonts/Heebo-OFL.txt',
@@ -40,3 +40,4 @@ for (const file of readdirSync(sourceDir).filter((name) => name.endsWith('.js'))
 
 console.log('Static demo checks passed. No backend or real payment is included.');
 await import('./bundles-check.mjs');
+await import('./navigation-check.mjs');

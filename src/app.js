@@ -6,9 +6,11 @@ import { verifyAddress, isOpen, submitOrder, validPhone, phoneProblem, formatPho
 import { configurationLink, decodeConfiguration } from './config-links.js?v=20260929-pizzeria2';
 import { WEEKDAYS, businessNow, weekdayOf, dateLabel, openingStatus, pickupSlots, selectedPickupSlot, pickupDescription } from './schedule.js?v=20260929-pizzeria2';
 import { searchAddresses, zoneForAddress } from './address.js?v=20260929-pizzeria2';
+import { createNavigator } from './navigation.js?v=20260929-transition3';
 
 const app = document.querySelector('#app');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const navigatePage = createNavigator({ reducedMotion, pizzaSrc: './assets/pizza-base-v2.webp' });
 const safe = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 })[character]);
@@ -2256,8 +2258,7 @@ function render() {
 }
 
 function navigate() {
-  if (document.startViewTransition && !reducedMotion.matches) document.startViewTransition(render);
-  else render();
+  navigatePage(render, { pizza: Boolean(document.querySelector('.hero')) && ['menu', 'product'].includes(getRoute().page) });
 }
 
 function refreshOpeningState() {
