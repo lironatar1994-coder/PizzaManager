@@ -1,4 +1,5 @@
 // Presentation only. Keep the incumbent catalog, cart, address and payment code.
+import { cartIconActions } from './cart-icons.mjs';
 const startMarker = '/* Customer flow: quiet, compact surfaces. */';
 const endMarker = '/* End customer flow. */';
 
@@ -87,7 +88,7 @@ export function customerFlowApp(source, { platform = false } = {}) {
     });
   }
   if (!source.includes('checkout-action-reason') || !source.includes('teardown.push(mountCheckoutFlow())')) throw Error('Customer checkout adapter incomplete');
-  return source;
+  return cartIconActions(source);
 }
 
 export function customerFlowStyles(source, styles) {

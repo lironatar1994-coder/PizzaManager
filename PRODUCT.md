@@ -75,3 +75,5 @@ web
 Cart composition, notes, editing, duplication, removal and undo stay available in the more compact presentation. Checkout exposes the receiving choice and contact fields with less spacing, and keeps address validation, service-area blocking, minimum order and payment gating unchanged. Summary amounts still use the current catalog and selected quantity. The desktop payment action aligns with the form; mobile uses one full-width action.
 
 Production confirmation remains driven by the public order API. Reference, actual payment state and kitchen status remain separate facts; the UI never turns a pending or failed payment into an accepted order. Complete item details and contact information remain in the receipt disclosure. The new presentation adapter changes only customer markup and styles, preserves backend/admin source and managed content, and ships through the existing reversible frontend release path.
+
+Cart secondary actions may use familiar icons with item-specific accessible names and hover titles. Icon targets remain 44px; checkout and composition keep visible text. Edit/copy routing and removal with undo remain unchanged.

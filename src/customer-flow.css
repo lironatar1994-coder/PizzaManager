@@ -22,15 +22,19 @@
 .cart-line__side { grid-column: 2; grid-row: 2; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
 .cart-line__price { font-size: 20px; font-weight: 700; }
 .cart-line__details { grid-column: 1 / -1; display: block; }
-.cart-line__disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-block-size: 44px; list-style: none; cursor: pointer; color: var(--text-2); font-size: 14px; }
+.cart-line__disclosure > summary { display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-block-size: 44px; padding-inline-end: 152px; list-style: none; cursor: pointer; color: var(--text-2); font-size: 14px; }
 .cart-line__disclosure > summary::-webkit-details-marker { display: none; }
 .cart-line__disclosure > summary .icon { inline-size: 16px; block-size: 16px; transition: transform .2s var(--ease-out); }
 .cart-line__disclosure[open] > summary .icon { transform: rotate(180deg); }
 .cart-line__disclosure[open] .composition, .cart-line__disclosure[open] .composition-basics { margin-block: 8px; }
-.cart-line__actions { gap: 4px 20px; }
-.cart-line__actions a, .cart-line__actions button { font-weight: 400; text-decoration: none; }
-.cart-line__actions a:hover, .cart-line__actions button:hover { text-decoration: underline; }
-.cart-line__actions button { margin-inline-start: auto; }
+.cart-line__disclosure { grid-row: 3; }
+.cart-line__actions { grid-column: 1 / -1; grid-row: 3; justify-self: end; align-self: start; gap: 4px; z-index: 1; }
+.cart-line__actions .cart-action { display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; min-inline-size: 44px; block-size: 44px; min-block-size: 44px; margin: 0; padding: 0; border: 0; border-radius: 8px; background: var(--surface-2); color: var(--text-2); text-decoration: none; transition: background .15s var(--ease-out), color .15s var(--ease-out); }
+.cart-line__actions .cart-action .icon { inline-size: 19px; block-size: 19px; }
+.cart-line__actions .cart-action:hover { background: var(--surface-3); color: var(--text); text-decoration: none; }
+.cart-line__actions .cart-action--remove:hover { background: var(--tomato-soft); color: var(--danger); }
+.cart-line__side .stepper button { inline-size: 44px; block-size: 44px; min-inline-size: 44px; min-block-size: 44px; }
+.cart-line__side { flex-wrap: wrap; }
 .cart-added { margin: 0 20px; padding-block: 4px 8px; }
 .cart-added, .sheet__hint { font-size: 14px; }
 .sheet__foot { gap: 8px; padding: 12px 20px max(12px, env(safe-area-inset-bottom)); }

@@ -23,6 +23,7 @@ let stopAddressLookup = () => {};
 /* ---------- אייקונים ---------- */
 
 const ICONS = {
+  trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v6m4-6v6"/>',
   forward: '<path d="M19 12H5m6-6-6 6 6 6"/>',
   back: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
   close: '<path d="M6.5 6.5l11 11m0-11-11 11"/>',
@@ -1364,7 +1365,7 @@ function cartLineMarkup(line, compact = false) {
     </div>
     <div class="cart-line__side"><bdi class="cart-line__price" data-line-price>${money(lineTotal(line, product))}</bdi>${stepper({ value: line.qty, label: `כמות: ${line.config.label || info.title}`, attr: 'data-line-qty', small: true })}</div>
     ${compact ? `<details class="cart-line__details cart-line__disclosure" data-cart-composition="${safe(line.id)}" ${cartExpanded.has(line.id) ? 'open' : ''}><summary aria-label="פירוט ההרכב: ${safe(line.config.label || info.title)}"><span>פירוט ההרכב${info.extras.length ? ` · ${extrasSummary}` : ''}${line.config.note ? ' והערה' : ''}</span>${icon('down')}</summary>` : '<div class="cart-line__details">'}${compositionMarkup(info)}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}${compact ? '</details>' : '</div>'}
-    <div class="cart-line__actions"><a href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet>עריכה</a><a href="#/product/${safe(product.id)}/copy/${safe(line.id)}" data-copy-line="${safe(line.id)}" data-close-sheet>${icon('copy')}שכפול ושינוי</a><button type="button" data-remove>הסרה</button></div>
+    <div class="cart-line__actions"><a class="cart-action" href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet aria-label="עריכת ${safe(line.config.label || info.title)}" title="עריכה">${icon('edit')}</a><a class="cart-action" href="#/product/${safe(product.id)}/copy/${safe(line.id)}" data-copy-line="${safe(line.id)}" data-close-sheet aria-label="שכפול ושינוי ${safe(line.config.label || info.title)}" title="שכפול ושינוי">${icon('copy')}</a><button type="button" class="cart-action cart-action--remove" data-remove aria-label="הסרת ${safe(line.config.label || info.title)} מהסל" title="הסרה">${icon('trash')}</button></div>
   </li>`;
 }
 
@@ -1514,7 +1515,7 @@ function renderFavorites() {
         const product = findProduct(favorite.config.productId);
         const info = describe(product, favorite.config);
         const active = available.some((item) => item.id === product.id);
-        return `<li class="favorite-line"><span class="favorite-line__art">${productArt(product, favorite.config)}</span><div class="favorite-line__text"><h3>${safe(favorite.name)}</h3><p>${safe(info.title)}${favorite.qty > 1 ? ` · ${favorite.qty} יח׳` : ''}</p><strong><bdi>${money(unitPrice(product, favorite.config) * favorite.qty)}</bdi></strong>${active ? `<a class="button button--quiet favorite-line__choose" href="#/product/${safe(product.id)}/favorite/${safe(favorite.id)}" data-load-favorite="${safe(favorite.id)}">לפתיחה ועריכה ${icon('forward')}</a>` : '<span class="favorite-line__unavailable">המוצר אינו זמין כרגע</span>'}</div><button type="button" class="icon-button" data-remove-favorite="${safe(favorite.id)}" aria-label="מחיקת ${safe(favorite.name)} מהמועדפים">${icon('close')}</button><details class="favorite-line__details"><summary>פירוט ההרכב ${icon('down')}</summary><p>${safe(detailText(info) || 'בלי תוספות')}</p>${favorite.config.note ? `<p>הערה: ${safe(favorite.config.note)}</p>` : ''}</details></li>`;
+        return `<li class="favorite-line"><span class="favorite-line__art">${productArt(product, favorite.config)}</span><div class="favorite-line__text"><h3>${safe(favorite.name)}</h3><p>${safe(info.title)}${favorite.qty > 1 ? ` · ${favorite.qty} יח׳` : ''}</p><strong><bdi>${money(unitPrice(product, favorite.config) * favorite.qty)}</bdi></strong>${active ? `<a class="button button--quiet favorite-line__choose" href="#/product/${safe(product.id)}/favorite/${safe(favorite.id)}" data-load-favorite="${safe(favorite.id)}">לפתיחה ועריכה ${icon('forward')}</a>` : '<span class="favorite-line__unavailable">המוצר אינו זמין כרגע</span>'}</div><button type="button" class="icon-button" data-remove-favorite="${safe(favorite.id)}" aria-label="מחיקת ${safe(favorite.name)} מהמועדפים">${icon('trash')}</button><details class="favorite-line__details"><summary>פירוט ההרכב ${icon('down')}</summary><p>${safe(detailText(info) || 'בלי תוספות')}</p>${favorite.config.note ? `<p>הערה: ${safe(favorite.config.note)}</p>` : ''}</details></li>`;
       }).join('')}</ul>` : `<div class="empty-state"><span class="favorites-empty" aria-hidden="true">${icon('heart')}</span><p><strong>אין הרכבים שמורים</strong></p><button type="button" class="button button--quiet" data-close-favorites>חזרה להרכבה</button></div>`}
     </div>
   </div>`;

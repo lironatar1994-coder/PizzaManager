@@ -575,3 +575,9 @@ The menu, cart, checkout, confirmation and saved-item sheets continue the warm i
 - **Utility sheets:** saved products use compact imagery, current pricing, a single open/edit action and folded composition. Location prioritizes Waze, with Maps and phone secondary.
 
 Finish review: inspected the complete production adapter at 390×844, 360×640 and 1440×900. The single correction batch fixed the inherited checkout grid width and shortened the visible summary without losing selected halves. Cart quantity recalculated 44→88 and subtotal 154→198. Paid, failed and unknown confirmation states were rendered with local synthetic data; no production order was placed. The static design scan found only intentional type-ramp extensions documented above. No new imagery or fonts were introduced.
+
+### Cart action icons
+
+Edit, duplicate/change and remove use the incumbent pencil, overlapping-squares and a matching outlined bin. They share the composition disclosure row, reducing repeated text and removing a separate action row. Their 44×44px ivory targets, 19px SVGs, item-specific accessible names, native hover titles and existing focus treatment retain discoverability. Quantity controls also have 44px targets. The primary checkout action keeps its visible label. Saved-item deletion uses the bin; sheet closing keeps the X. In RTL the edit action sits nearest the item details, followed by duplicate and delete. Native composition opening and removal/undo retain the original handlers and dynamic amounts.
+
+Finish review: inspected 390×844, 360×640 and 1440×900; no horizontal overflow, and all six icon controls and quantity buttons measured 44×44px. Local removal changed the subtotal from ₪198 to ₪110; undo restored both items and ₪198. Composition expanded through the existing native disclosure. The static scan reported only the previously documented responsive type steps outside this refinement. No new runtime dependency or raster asset was added.
