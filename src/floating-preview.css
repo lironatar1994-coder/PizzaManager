@@ -1,23 +1,71 @@
 /* Floating mobile pizza preview. */
 .stage__collapse, .stage__view { display: none; }
+.builder__form > .field-group { padding-block: 24px 0; }
+.builder__form > .field-group .field-group__head { margin-block-end: 8px; }
+.builder__form .field-group__title { font-size: 1.125rem; font-weight: 600; }
+.builder__form .tile-row { gap: 8px; }
+.builder__form .tile--size .tile__surface { min-height: 0; min-block-size: 72px; padding: 12px 8px; gap: 4px; justify-content: center; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.builder__form .tile__surface strong { font-weight: 600; }
+.builder__form .tile--size .tile__surface > bdi { margin: 0; padding: 0; font-size: 1rem; font-weight: 700; }
+.builder__form .tile input:checked + .tile__surface { box-shadow: inset 0 0 0 1.5px var(--select); }
+.builder__form .tile-row--crust { gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 12px; }
+.builder__form .tile-row--crust .tile__surface { min-height: 0; min-block-size: 44px; padding: 8px 12px; flex-direction: row; justify-content: center; align-items: center; gap: 8px; background: transparent; border-radius: 8px; box-shadow: none; }
+.builder__form .tile-row--crust .tile__surface > bdi { margin: 0; padding: 0; font-size: .875rem; }
+.builder__form .tile-row--crust input:checked + .tile__surface { background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.builder__form .tile-row--crust .tile input:disabled + .tile__surface { opacity: .55; }
+.builder__form .topping-grid { gap: 8px; }
+.builder__form .topping--compact { position: relative; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.builder__form .topping--compact:has(.topping__main input:checked) { background: var(--select-soft); box-shadow: inset 0 0 0 1.5px var(--select); }
+.builder__form .topping--compact .topping__main { position: relative; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: 36px 44px; grid-template-areas: 'art name' 'price price'; gap: 0 8px; min-height: 0; min-block-size: 100px; padding: 10px 12px 4px; }
+.builder__form .topping--compact .topping__main:not(:has(.topping__art)) { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'name' 'price'; }
+.builder__form .topping--compact .topping__art { inline-size: 32px; block-size: 32px; }
+.builder__form .topping--compact .topping__name { align-self: center; padding: 0; font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
+.builder__form .topping--compact .topping__price { display: block; align-self: center; padding-inline-end: 72px; color: var(--text-2); font-size: .875rem; line-height: 1.3; }
+.builder__form .topping--compact .topping__check { position: absolute; inset-block-start: 30px; inset-inline-start: 32px; inset-inline-end: auto; inline-size: 16px; block-size: 16px; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.builder__form .topping--compact .topping__check .icon { inline-size: 11px; block-size: 11px; }
+.builder__form .topping--compact .topping__main:not(:has(.topping__art)) .topping__check { inset-block-start: 12px; inset-inline-start: auto; inset-inline-end: 10px; }
+.builder__form .topping--compact .topping__main:not(:has(.topping__art)) .topping__name { padding-inline-end: 20px; }
+.builder__form .topping--compact .topping__main input:checked ~ .topping__check { background: var(--select); box-shadow: none; }
+.builder__form .topping--compact .topping__placement-toggle { position: absolute; inset-block-start: 48px; inset-inline-end: 8px; display: inline-flex; inline-size: auto; min-inline-size: 64px; min-block-size: 44px; margin: 0; padding: 0 6px; gap: 4px; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--text-2); font-size: .875rem; font-weight: 500; }
+.builder__form .topping--compact .topping__placement-toggle:hover, .builder__form .topping--compact .topping__placement-toggle[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
+.builder__form .topping--compact .topping__placement-toggle .icon { inline-size: 13px; block-size: 13px; }
+.builder__form .topping--compact:not(:has(.topping__main input:checked)) .topping__placement-toggle { display: inline-flex; }
+.builder__form .topping--compact:not(:has([data-placement-toggle])) .topping__main { grid-template-rows: 36px 24px; min-block-size: 80px; }
+.builder__form .topping--compact:not(:has([data-placement-toggle])) .topping__price { padding-inline-end: 0; }
+.builder__form .topping--compact.is-editing .placement { display: grid; gap: 4px; padding: 0 6px 6px; }
+.builder__form .topping--compact .placement__option > span { min-block-size: 72px; padding: 8px 2px; gap: 4px; font-size: .875rem; }
+.builder__form .topping--compact .placement__option small { font-size: .875rem; font-weight: 400; }
+.builder__form .builder-quantity { margin: 0; padding-block: 20px; }
+.builder__form .builder-quantity .stepper { min-block-size: 44px; }
+.builder__form .builder-personal { margin-block: 0; }
+.builder__form .builder-personal > summary strong { font-size: 1rem; font-weight: 600; }
+.builder__form .builder-tools, .builder__form .builder-tools-disclosure { margin-block: 0; }
+.buybar--builder .buybar__inner { display: flex; gap: 8px; }
+.buybar--builder .buybar__price { display: grid; place-items: center; inline-size: 44px; min-inline-size: 44px; min-block-size: 44px; padding: 0; border-radius: 50%; color: var(--text-2); background: transparent; }
+.buybar--builder .buybar__price:hover, .buybar--builder .buybar__price[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
+.buybar--builder .buybar__price > .icon { inline-size: 21px; block-size: 21px; }
+.buybar--builder .buybar__cta { flex: 1; min-inline-size: 0; min-block-size: 52px; font-size: 1rem; font-weight: 700; gap: 8px; }
+.buybar--builder .buybar__cta-copy { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.buybar--builder #bar-total { font-weight: inherit; font-variant-numeric: tabular-nums; white-space: nowrap; }
 @media (max-width: 899px) {
   .builder--floating-preview .builder__intro h1 { position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none; white-space: normal; font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
   .builder--floating-preview .builder__intro { padding-block-end: 0; }
-  .builder--floating-preview .builder__form > .field-group { padding-block-start: 20px; }
+  .builder--floating-preview .builder__form > .field-group { padding-block-start: 24px; }
   .builder--floating-preview .builder__form > fieldset.field-group:first-of-type { padding-block-start: 12px; }
   .builder--floating-preview .builder__form > .field-group .field-group__head { margin-block-end: 8px; }
-  .builder--floating-preview .tile--size .tile__surface { min-block-size: 104px; }
-  .builder--floating-preview .tile--crust .tile__surface { min-block-size: 68px; }
   .buybar--builder.has-floating-preview { border: 0; padding-block: 0 max(8px, env(safe-area-inset-bottom)); background: transparent; backdrop-filter: none; pointer-events: none; }
   .has-floating-preview > .pizza-dock, .has-floating-preview > .buybar__recovery { pointer-events: auto; }
-  .pizza-dock { inline-size: min(100% - var(--gutter) * 2, 640px); margin-inline: auto; border-radius: 16px; background: var(--stage); box-shadow: 0 6px 24px rgb(33 28 24 / .18); }
-  .has-floating-preview .pizza-dock > .buybar__inner { padding: 8px 12px; inline-size: 100%; margin: 0; border-radius: 0 0 16px 16px; background: var(--surface-1); box-shadow: none; gap: 12px; }
-  .stage--floating { --preview-height: clamp(136px, 25svh, 216px); --preview-pizza: calc(var(--preview-height) + 20px); position: relative; inset: auto; z-index: 0; inline-size: 100%; block-size: var(--preview-height); margin: 0; border-radius: 16px 16px 0 0; overflow: hidden; isolation: isolate; box-shadow: none; transition: block-size .28s cubic-bezier(.16, 1, .3, 1); }
+  .pizza-dock { --dock-height: clamp(164px, 25svh, 232px); --dock-action-height: 68px; inline-size: min(100% - var(--gutter) * 2, 640px); margin-inline: auto; border-radius: 16px; background: var(--stage); box-shadow: 0 6px 24px rgb(33 28 24 / .18); }
+  .has-floating-preview .pizza-dock > .buybar__inner { padding: 8px; inline-size: 100%; margin: 0; border-radius: 0 0 16px 16px; background: var(--ground); box-shadow: none; gap: 8px; }
+  .has-floating-preview .buybar__cta { flex: 1; }
+  .stage--floating { --preview-height: calc(var(--dock-height) - var(--dock-action-height)); --preview-pizza: calc(var(--preview-height) - 8px); position: relative; inset: auto; z-index: 0; inline-size: 100%; block-size: var(--preview-height); margin: 0; border-radius: 16px 16px 0 0; overflow: hidden; isolation: isolate; box-shadow: none; transition: block-size .28s cubic-bezier(.16, 1, .3, 1); }
   .stage--floating .stage__canvas { flex: 1; min-block-size: 0; }
   .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: calc(50% - var(--preview-pizza) / 2); inline-size: var(--preview-pizza); transform: translateY(-50%); transform-origin: center; will-change: auto; transition: inline-size .28s cubic-bezier(.16, 1, .3, 1), left .28s cubic-bezier(.16, 1, .3, 1); }
   .stage--floating .pizza__ring { opacity: 0; }
+  .stage--floating .pizza__disc { transform: none; }
   .stage--floating .stage__summary { display: none; }
-  .stage--floating .stage__expand, .stage--floating .stage__collapse { position: absolute; z-index: 3; inset-block-start: 8px; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 12px; background: rgb(255 244 230 / .08); box-shadow: none; color: var(--hero-copy, #fff4e6); cursor: pointer; }
+  .stage--floating .stage__expand, .stage--floating .stage__collapse { position: absolute; z-index: 3; inset-block-start: 4px; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; box-shadow: none; color: var(--hero-copy, #fff4e6); cursor: pointer; }
+  .stage--floating .stage__expand:hover, .stage--floating .stage__collapse:hover { background: rgb(255 244 230 / .08); color: var(--hero-copy, #fff4e6); }
   .stage--floating .stage__expand { inset-inline-start: 8px; inset-inline-end: auto; }
   .stage--floating .stage__collapse { inset-inline-end: 8px; inset-inline-start: auto; }
   .stage--floating .stage__collapse .icon { inline-size: 20px; block-size: 20px; transition: transform .28s cubic-bezier(.16, 1, .3, 1); }
@@ -31,6 +79,15 @@
   .stage--floating.is-minimized .stage__title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .875rem; font-weight: 700; }
   .stage--floating.is-minimized .stage__detail, .stage--floating.is-minimized .stage__compact, .stage--floating.is-minimized .stage__composition { display: none; }
   .has-floating-preview .price-panel { max-block-size: calc(100svh - var(--header-h) - 100px); }
+}
+@media (min-width: 900px) {
+  .builder:not(.builder--flat) .stage { block-size: min(520px, calc(100svh - var(--header-h) - 64px)); min-block-size: 300px; }
+  .builder:not(.builder--flat) .stage__canvas { min-block-size: 0; container-type: size; }
+  .builder:not(.builder--flat) .stage__pizza { position: absolute; inline-size: min(86%, calc(100cqh - 24px), 480px); inset-block-start: 50%; left: 50%; transform: translate(-50%, -50%) !important; transform-origin: center; }
+  .builder:not(.builder--flat) .stage__summary { flex: none; max-block-size: none; overflow: visible; }
+  .builder .stage__expand { color: var(--hero-copy, #fff4e6); background: transparent; box-shadow: none; }
+  .builder .stage__expand:hover { background: rgb(255 244 230 / .08); color: var(--hero-copy, #fff4e6); }
+  .buybar--builder .buybar__inner { gap: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .stage--floating, .stage--floating .stage__pizza, .stage--floating .stage__collapse .icon { transition: none; }

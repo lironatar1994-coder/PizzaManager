@@ -21,6 +21,13 @@ export function setupFloatingPreview(stage) {
   let keyboardOpen = false;
   let frame = 0;
 
+  const measureDock = () => {
+    const actionHeight = Math.ceil(inner.getBoundingClientRect().height);
+    if (actionHeight) dock.style.setProperty('--dock-action-height', `${actionHeight}px`);
+  };
+  const sizeObserver = new ResizeObserver(measureDock);
+  sizeObserver.observe(inner);
+
   const paint = () => {
     const minimized = collapsedByCustomer || keyboardOpen;
     stage.classList.toggle('is-minimized', mobile.matches && minimized);
@@ -55,6 +62,7 @@ export function setupFloatingPreview(stage) {
       if (!dock.isConnected) inner.before(dock);
       if (stage.parentElement !== dock) dock.append(stage);
       if (inner.parentElement !== dock) dock.append(inner);
+      measureDock();
     } else {
       if (stage.parentElement !== builder) origin.after(stage);
       undock();
@@ -85,6 +93,7 @@ export function setupFloatingPreview(stage) {
     document.removeEventListener('focusin', scheduleKeyboard);
     document.removeEventListener('focusout', scheduleKeyboard);
     cancelAnimationFrame(frame);
+    sizeObserver.disconnect();
     if (origin.isConnected) origin.after(stage);
     undock();
     origin.remove();

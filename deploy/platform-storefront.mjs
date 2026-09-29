@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { compactCustomerCopy, compactCustomerStyles } from './storefront-copy.mjs';
 import { floatingPreviewApp, floatingPreviewStyles } from './floating-preview.mjs';
+import { streamlinedBuilderApp } from './builder-controls.mjs';
 
 // Apply the menu surface and concise customer copy. Its API, tenant storage,
 // pricing, checkout and payment adapters remain the source of truth.
@@ -50,7 +51,7 @@ const cartAnchor = "document.querySelectorAll('[data-hero-cart]').forEach((node)
 if (!app.includes(cartAnchor)) throw Error('Platform cart update boundary changed');
 app = app.replace(cartAnchor + '\n  refreshMenuCart();', cartAnchor);
 app = app.replace(cartAnchor, cartAnchor + '\n  refreshMenuCart();');
-write('src/app.js', floatingPreviewApp(compactCustomerCopy(app, { platform: true })));
+write('src/app.js', streamlinedBuilderApp(floatingPreviewApp(compactCustomerCopy(app, { platform: true }))));
 write('src/floating-preview.js', read(repository, 'src/floating-preview.js'));
 
 // These menu selectors are single-line declarations in the incumbent stylesheet.
