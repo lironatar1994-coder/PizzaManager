@@ -514,8 +514,8 @@ function variantSection(product, config) {
       <input type="radio" name="variant" value="${safe(variant.id)}" ${variant.id === config.variantId ? 'checked' : ''} ${!isAvailable(variant) ? 'disabled' : ''} />
       <span class="tile__surface">
         ${product.visual === 'pizza' ? `<span class="size-disc" style="--s:${variant.scale ?? 1}" aria-hidden="true"></span>` : ''}
-        <strong>${safe(variant.name)}</strong>${!isAvailable(variant) ? '<small>אזל להיום</small>' : variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}
-        ${variant.diameterCm > 0 || variant.slices > 0 ? `<span class="tile__measure">${variant.diameterCm > 0 ? `<span><bdi>${safe(variant.diameterCm)}</bdi> ס״מ</span>` : ''}${variant.slices > 0 ? `<span><bdi>${safe(variant.slices)}</bdi> משולשים</span>` : ''}</span>` : ''}<bdi>${money(variant.price)}</bdi>
+        <strong>${safe(variant.name)}</strong>${!isAvailable(variant) ? '<small>אזל להיום</small>' : ''}
+        <bdi>${money(variant.price)}</bdi>
       </span>
     </label>`).join('')}</div></fieldset>`;
 }
@@ -523,11 +523,11 @@ function variantSection(product, config) {
 function singleGroup(group, value) {
   const allFree = group.choices.every((choice) => Number(choice.price || 0) === 0);
   return `<fieldset class="field-group"><legend class="field-group__head"><span class="field-group__title">${safe(group.visualRole === 'crust' ? 'בצק' : group.name)}</span></legend>
-    <div class="tile-row tile-row--${Math.min(group.choices.length, 3)}">${group.choices.map((choice) => `<label class="tile tile--option">
+    <div class="tile-row tile-row--${Math.min(group.choices.length, 3)}">${group.choices.map((choice) => `<label class="tile tile--option${choice.crust ? ' tile--crust' : ''}">
       <input type="radio" name="opt-${safe(group.id)}" value="${safe(choice.id)}" ${choice.id === value ? 'checked' : ''} ${!isAvailable(choice) ? 'disabled' : ''} />
       <span class="tile__surface">
         ${choice.crust ? `<svg class="crust-icon" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="${choice.crust === 'thin' ? 15.5 : 14}" fill="none" stroke="currentColor" stroke-width="${choice.crust === 'thin' ? 2 : 5}"/></svg>` : ''}
-        <strong>${safe(choice.name)}</strong>${!isAvailable(choice) ? '<small>אזל להיום</small>' : choice.detail ? `<small>${safe(choice.detail)}</small>` : ''}${allFree ? '' : `<bdi>${choice.price ? `+${money(choice.price)}` : 'כלול'}</bdi>`}
+        <strong>${safe(choice.name)}</strong>${!isAvailable(choice) ? '<small>אזל להיום</small>' : !choice.crust && choice.detail ? `<small>${safe(choice.detail)}</small>` : ''}${allFree ? '' : `<bdi>${choice.price ? `+${money(choice.price)}` : 'כלול'}</bdi>`}
       </span>
     </label>`).join('')}</div></fieldset>`;
 }

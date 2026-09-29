@@ -50,11 +50,27 @@ export function compactCustomerCopy(source, { platform = false } = {}) {
   ];
   for (const [before, after] of replacements) app = app.replaceAll(before, after);
 
+  // Choice cards carry identity and price; measurements remain in managed data.
+  const sizeStart = app.indexOf('function variantSection(');
+  const sizeEnd = app.indexOf('function singleGroup(', sizeStart);
+  if (sizeStart < 0 || sizeEnd < 0) throw Error('Size-choice copy boundary changed');
+  let sizes = app.slice(sizeStart, sizeEnd);
+  sizes = sizes.replace("${!isAvailable(variant) ? '<small>אזל להיום</small>' : variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}", "${!isAvailable(variant) ? '<small>אזל להיום</small>' : ''}");
+  sizes = sizes.replace("${variant.detail ? `<small>${safe(variant.detail)}</small>` : ''}", '');
+  sizes = sizes.replace(/^.*<span class="tile__measure">.*<\/span>` : ''}/gm, '        ');
+  if (sizes.includes('variant.detail') || sizes.includes('variant.diameterCm') || sizes.includes('variant.slices')) throw Error('Size-choice cleanup incomplete');
+  app = app.slice(0, sizeStart) + sizes + app.slice(sizeEnd);
+
   const singleStart = app.indexOf('function singleGroup(');
   const singleEnd = app.indexOf('function multiGroup(', singleStart);
   if (singleStart >= 0 && singleEnd >= 0) {
-    app = app.slice(0, singleStart) + app.slice(singleStart, singleEnd).replace('${safe(group.name)}</span>', "${safe(group.visualRole === 'crust' ? 'בצק' : group.name)}</span>") + app.slice(singleEnd);
+    let choices = app.slice(singleStart, singleEnd).replace('${safe(group.name)}</span>', "${safe(group.visualRole === 'crust' ? 'בצק' : group.name)}</span>");
+    choices = choices.replace('class="tile tile--option"', 'class="tile tile--option${choice.crust ? \' tile--crust\' : \'\'}"');
+    if (!choices.includes('!choice.crust && choice.detail')) choices = choices.replace('choice.detail ? `<small>${safe(choice.detail)}</small>`', '!choice.crust && choice.detail ? `<small>${safe(choice.detail)}</small>`');
+    app = app.slice(0, singleStart) + choices + app.slice(singleEnd);
   }
+
+  app = app.replace('<div class="buybar"><p class="buybar__recovery"', '<div class="buybar buybar--builder"><p class="buybar__recovery"');
 
   // The preview shows actual choices, never a placeholder or the default crust.
   app = app.replace(/    const details = detailText\(info\);\r?\n    document\.querySelector\('#stage-detail'\)\.textContent = isPizza && !drawn\.toppings\.length\r?\n      \? `\$\{details \? `\$\{details\} · ` : ''\}תוספות שתבחרו יופיעו כאן`\r?\n      : details \|\| 'בלי תוספות';/, `    const details = isPizza ? info.extras.filter((extra) => !extra.divided).map((extra) => extra.text).join(' · ') : detailText(info);
@@ -80,12 +96,21 @@ export function compactCustomerCopy(source, { platform = false } = {}) {
     }
 
     app = app.replace(/<p class="address-search__hint" id="address-search-hint">חיפוש באמצעות ([\s\S]*?)<\/p>/, '<details class="address-search__info"><summary id="address-search-hint">${icon(\'info\')}<span>מידע על חיפוש הכתובת</span>${icon(\'down\')}</summary><div><p>הכתובת נשלחת לשירות <a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a>. נתוני המפה: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. ${shop.demoOnly ? \'אזורי המשלוח להמחשה.\' : \'\'}</p></div></details>');
+
+    // Basket totals belong in the breakdown, leaving one price beside the action.
+    const basket = '<div class="buybar__basket" data-builder-basket hidden><button type="button" data-open-cart><span data-basket-current></span>${icon(\'down\')}</button><span data-basket-projected></span></div>';
+    if (app.includes(basket)) {
+      const priceRows = '<div data-price-content></div>';
+      if (!app.includes(priceRows)) throw Error('Builder price breakdown boundary changed');
+      app = app.replace(basket, '').replace(priceRows, priceRows + '<section class="price-basket" data-builder-basket hidden aria-label="סכומי הסל"><button type="button" data-open-cart><span data-basket-current></span>${icon(\'down\')}</button><p data-basket-projected></p></section>');
+    }
   }
   if (app.includes('תוספות שתבחרו יופיעו כאן')) throw Error('Preview copy cleanup was not applied');
   return app.replace(/^[\t ]+$/gm, '');
 }
 
 export function compactCustomerStyles(css) {
+  css = removeCompactChoices(css);
   const start = '/* Customer copy: compact optional information. */';
   const end = '/* End customer copy. */';
   const first = css.indexOf(start);
@@ -127,5 +152,45 @@ ${start}
 #tracking-copy-output:empty { display: none; }
 .tracking-estimate > p:empty, .done__layout > section > p:empty { display: none; }
 ${end}
-`;
+` + compactChoiceStyles;
 }
+
+const choiceStart = '/* Compact ordering choices. */';
+const choiceEnd = '/* End compact ordering choices. */';
+function removeCompactChoices(css) {
+  const start = css.indexOf(choiceStart);
+  if (start < 0) return css;
+  const end = css.indexOf(choiceEnd, start);
+  if (end < 0) throw Error('Compact-choice stylesheet boundary changed');
+  return css.slice(0, start) + css.slice(end + choiceEnd.length);
+}
+export function appendCompactChoiceStyles(css) {
+  return removeCompactChoices(css).trimEnd() + '\n\n' + compactChoiceStyles;
+}
+const compactChoiceStyles = `${choiceStart}
+.tile--size .tile__surface { min-block-size: 112px; align-items: center; gap: 8px; padding: 12px; text-align: center; }
+.tile--size .size-disc { inline-size: 32px; block-size: 32px; margin-block-end: 0; }
+.tile--size .tile__surface > bdi { padding-block-start: 0; color: var(--text); }
+.tile--crust .tile__surface { min-block-size: 76px; flex-direction: row; align-items: center; gap: 12px; padding: 12px 16px; }
+.tile--crust .crust-icon { inline-size: 28px; block-size: 28px; margin: 0; flex: none; }
+.tile--crust .tile__surface > bdi { margin-inline-start: auto; margin-block-start: 0; padding-block-start: 0; }
+.price-basket { margin-block-start: 16px; padding-block: 8px 12px; border-block-start: 1px solid var(--line); font-size: var(--fs-small); }
+.price-basket button { display: flex; align-items: center; gap: 8px; min-block-size: 44px; padding: 0; border: 0; background: transparent; color: var(--text-2); }
+.price-basket button:hover { color: var(--text); }
+.price-basket .icon { inline-size: 14px; block-size: 14px; }
+.price-basket p { color: var(--text-2); }
+.price-basket strong { color: var(--text); }
+.buybar--builder { --tomato: #c93124; --tomato-hover: #ab291f; }
+@media (min-width: 900px) {
+  .builder, .buybar--builder { --builder-gap: clamp(24px, 4vw, 64px); }
+  .builder { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .buybar--builder { padding: 0; border: 0; background: transparent; backdrop-filter: none; }
+  .buybar--builder .buybar__inner, .buybar--builder .buybar__recovery { width: calc((min(100% - 64px, 1320px) - var(--builder-gap)) * 11 / 21); margin-inline-start: max(32px, calc((100% - 1320px) / 2)); margin-inline-end: auto; }
+  .buybar--builder .buybar__inner { display: flex; padding: 12px 16px max(12px, env(safe-area-inset-bottom)); border-radius: 16px 16px 0 0; background: var(--glass); backdrop-filter: blur(12px); box-shadow: inset 0 1px 0 var(--line); }
+  .buybar--builder .buybar__cta { grid-column: auto; min-inline-size: 0; flex: 1; }
+  .buybar--builder .buybar__recovery:not([hidden]) { padding: 12px; background: var(--surface-2); }
+  .stage__summary > #stage-title { display: none; }
+  .stage__summary:has(#stage-detail[hidden]):has(.stage__composition:empty) { min-block-size: 0; padding-block-end: 0; }
+}
+${choiceEnd}
+`;

@@ -555,3 +555,5 @@ components:
 ## Concise ordering copy
 
 Ordering sections use short nouns. Explanatory placeholders, repeated selection instructions and product intro paragraphs do not occupy the flow. Optional names and kitchen notes share one disclosure; address-provider details are collapsed. Product identity, actual choices, prices, availability, error recovery and demo/payment state remain explicit. See deploy/CUSTOMER-COPY.md for the production adapter boundaries.
+
+Size choices show a small pizza image, size name and price. Diameter, slice counts and audience descriptions remain in managed data. Crust choices omit decorative descriptions. Basket totals are inside the price breakdown, and the desktop builder action aligns with its choices column. The desktop preview does not repeat the product heading.
