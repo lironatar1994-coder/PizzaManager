@@ -1563,7 +1563,7 @@ textarea.input { display: block; min-height: 84px; resize: vertical; line-height
   .checkout__form .page-head { padding-block-start: 32px; }
   .checkout__form .page-head h1 { font-size: 36px; }
   .checkout .summary { margin-block-start: 32px; }
-  .buybar--checkout .buybar__inner { inline-size: min(640px, calc(min(100vw - var(--gutter) * 2, 1160px) - 380px - var(--space-10))); margin-inline-start: max(var(--gutter), calc((100vw - 1160px) / 2)); margin-inline-end: auto; }
+  .buybar--checkout .buybar__inner { inline-size: min(640px, calc(min(100% - var(--gutter) * 2, 1160px) - 380px - var(--space-10))); margin-inline-start: max(var(--gutter), calc((100% - 1160px) / 2)); margin-inline-end: auto; }
   .done__layout { grid-template-columns: minmax(0, 1fr) 400px; gap: 64px; padding-block-start: 48px; }
   .done__intro h1 { font-size: 32px; }
   .order-reference > bdi { font-size: 44px; }
