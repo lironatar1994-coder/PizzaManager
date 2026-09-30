@@ -211,37 +211,33 @@ function home() {
   const remembered = typeof getRepeatOrder === 'function' && getRepeatOrder()?.lines?.length;
   const heroImages = shop.demoOnly ? { mobile: './assets/hero-pizzeria-mobile-v2.webp', desktop: './assets/hero-pizzeria-desktop-v2.webp', alt: 'תמונת המחשה של פיצה על כף עץ ליד תנור לבנים — אינה צילום של מוצר העסק' } : shop.heroImages;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#141614');
-  app.innerHTML = `<main class="hero hero--luxury" data-demo-photo="${Boolean(shop.demoOnly)}" aria-labelledby="hero-title">
-    <!-- THESIS: An appetite-first photograph, strong Hebrew identity and two immediate order choices.
+  app.innerHTML = `<main class="hero hero--luxury" aria-labelledby="hero-title">
+    <!-- THESIS: A centered restaurant identity and four clear actions within one mobile viewport.
     OWN-WORLD: Warm brick oven and wooden pizza peel, an emphatic ivory Heebo 900 name, tomato delivery and ivory pickup controls.
-    STORY: Choose delivery or pickup; phone and navigation reveal their details from the header.
-    FIRST VIEWPORT: Mobile puts the choices above the pizza; desktop gives the pizza the left and the identity the right.
-    FORM: A full-bleed restaurant photograph with distinct mobile and desktop compositions.
+    STORY: Choose delivery or pickup; contact and navigation remain directly below.
+    FIRST VIEWPORT: The complete identity and action group sits at the horizontal and vertical center of 100dvh, with safe-area padding.
+    FORM: Centered full-height opening, amplified toward a warm pizzeria at the user's request.
     FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance -->
     <picture class="hero__media"><source media="(max-width: 700px)" srcset="${safe(heroImages.mobile)}" /><img src="${safe(heroImages.desktop)}" alt="${safe(heroImages.alt)}" fetchpriority="high" /></picture>
     <div class="hero__shade" aria-hidden="true"></div>
-    <header class="hero__top">
-      ${shop.logo ? `<img class="hero__mark" src="${safe(shop.logo)}" alt="" />` : `<svg class="hero__mark" viewBox="0 0 48 48" aria-hidden="true"><use href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury" /></svg>`}
-      <div class="hero__tools">
-        <span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span>
-        <div class="hero__utilities" role="group" aria-label="טלפון ומיקום">
-          <button type="button" class="hero__utility" data-hero-contact="phone" aria-label="הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel">${icon('phone')}</button>
-          <button type="button" class="hero__utility" data-hero-contact="location" aria-label="הצגת הכתובת והניווט" aria-expanded="false" aria-controls="hero-contact-panel">${icon('pin')}</button>
-          <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
-        </div>
-      </div>
-    </header>
     <div class="hero__body">
       <div class="hero__identity">
+        ${shop.logo ? `<img class="hero__mark" src="${safe(shop.logo)}" alt="" />` : `<svg class="hero__mark" viewBox="0 0 48 48" aria-hidden="true"><use href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury" /></svg>`}
         <h1 id="hero-title">${safe(shop.name)}</h1>
       </div>
       ${unavailable ? '<p class="hero__empty" role="status">אין מוצרים זמינים כרגע. אפשר לחזור לכאן בהמשך.</p>' : ''}
       ${unavailable ? '' : `<div class="hero__actions" role="group" aria-label="איך תרצו לקבל את ההזמנה?">
-        ${shop.deliveryZones?.length ? `<a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery"><span>משלוח</span>${icon('delivery')}</a>` : ''}
-        <a class="button hero__cta hero__cta--pickup" href="${productHref()}" data-mode="pickup"><span>איסוף עצמי</span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14l1 12H4Z" /><path d="M8 10V6a4 4 0 0 1 8 0v4" /></svg></a>
+        ${shop.deliveryZones?.length ? `<a class="button button--primary hero__cta" href="${productHref()}" data-mode="delivery">${icon('delivery')}<span>משלוח</span></a>` : ''}
+        <a class="button hero__cta hero__cta--pickup" href="${productHref()}" data-mode="pickup"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8.5h14l1 12H4Z" /><path d="M8 10V6a4 4 0 0 1 8 0v4" /></svg><span>איסוף עצמי</span></a>
       </div>`}
+      <div class="hero__utilities" role="group" aria-label="טלפון ומיקום">
+        ${shop.demoOnly ? `<button type="button" class="hero__utility" data-hero-contact="phone" aria-label="חיוג · הצגת מספר הטלפון" aria-expanded="false" aria-controls="hero-contact-panel"><span>חיוג</span>${icon('phone')}</button>` : `<a class="hero__utility" href="${phoneHref()}"><span>חיוג</span>${icon('phone')}</a>`}
+        ${shop.demoOnly ? `<button type="button" class="hero__utility" data-hero-contact="location" aria-label="ניווט · הצגת הכתובת" aria-expanded="false" aria-controls="hero-contact-panel"><span>ניווט</span>${icon('pin')}</button>` : `<a class="hero__utility" href="${safe(wazeHref())}" target="_blank" rel="noopener"><span>ניווט</span>${icon('pin')}</a>`}
+        <div class="hero__contact-panel" id="hero-contact-panel" aria-hidden="true" inert></div>
+      </div>
       <p class="hero__closed" data-hero-closed ${closed ? '' : 'hidden'}>${icon('alert')}<span>הפיצרייה סגורה כרגע.</span></p>
       <div class="hero__extras">
+        <span class="hero__cart" data-hero-cart ${cartCount() ? '' : 'hidden'}>${cartButton()}</span>
         ${getFavorites().length ? `<button type="button" class="hero__shortcut" data-open-favorites>${icon('heart')}המועדפים שלי</button>` : ''}
         ${remembered ? `<a class="hero__shortcut" href="#/repeat">${icon('undo')}להזמין שוב</a>` : ''}
       </div>
