@@ -20,6 +20,19 @@ let app = read(source, 'src/app.js');
 for (const contract of ["from '../../shared/runtime.js'", 'function productHref()', 'function menu()', 'onCartChange((change)', 'submitOrder(', '#/status/']) {
   if (!app.includes(contract)) throw Error(`Platform adapter contract changed: ${contract}`);
 }
+const openingStart = '/* ---------- מסך פתיחה ---------- */';
+const openingEnd = '/* ---------- תפריט ---------- */';
+const rootOpeningStart = rootApp.indexOf(openingStart);
+const rootOpeningEnd = rootApp.indexOf(openingEnd, rootOpeningStart);
+const currentOpeningStart = app.indexOf(openingStart);
+const currentOpeningEnd = app.indexOf(openingEnd, currentOpeningStart);
+if ([rootOpeningStart, rootOpeningEnd, currentOpeningStart, currentOpeningEnd].some(index => index < 0)) throw Error('Opening adapter boundary changed');
+let opening = rootApp.slice(rootOpeningStart, rootOpeningEnd)
+  .replaceAll("'./assets/hero-pizzeria-", "'/assets/hero-pizzeria-")
+  .replace('const status = openingStatus();', 'const status = { open: isOpen() };');
+for (const field of ['heroImages.mobile', 'heroImages.desktop', 'shop.logo']) opening = opening.replaceAll(`safe(${field})`, `safe(appUrl(${field}))`);
+opening = opening.replace('href="./assets/brand/oven-mark-luxury.svg#oven-mark-luxury"', 'href="${safe(appUrl(\'/assets/brand/oven-mark-luxury.svg#oven-mark-luxury\'))}"');
+app = app.slice(0, currentOpeningStart) + opening + app.slice(currentOpeningEnd);
 const menuStart = rootApp.indexOf('function menu() {');
 const menuEnd = rootApp.indexOf('/* ---------- קומבואים:', menuStart);
 if (menuStart < 0 || menuEnd < 0) throw Error('Menu source markers changed');
@@ -56,10 +69,20 @@ write('src/app.js', customerFlowApp(streamlinedBuilderApp(floatingPreviewApp(com
 write('src/floating-preview.js', read(repository, 'src/floating-preview.js'));
 write('src/customer-flow.js', read(repository, 'src/customer-flow.js'));
 write('src/hero-motion.js', read(repository, 'src/hero-motion.js'));
+write('src/startup.js', read(repository, 'src/startup.js'));
+const incumbentData = read(source, 'src/data.js');
+if (!incumbentData.includes('/api/public/shops/') || !incumbentData.includes('export const shop')) throw Error('Platform catalog adapter changed');
+write('src/data.js', read(repository, 'deploy/storefront-data.js'));
 
 // These menu selectors are single-line declarations in the incumbent stylesheet.
 // Keep every other rule, including the backend order status screen.
 let css = read(source, 'src/styles.css').split('\n').filter((line) => !/^\s*\.(menu|order-progress)/.test(line)).map((line) => line.replace(', .menu-favorites {', ' {')).join('\n');
+const openingMarker = '/* PizzaManager luxury opening, generated from src/opening.css. */';
+const openingCssStart = css.indexOf(openingMarker);
+const markedOpeningEnd = css.indexOf('/* End PizzaManager opening. */', openingCssStart);
+const openingCssEnd = markedOpeningEnd >= 0 ? markedOpeningEnd + '/* End PizzaManager opening. */'.length : css.indexOf('/* Menu photography:', openingCssStart);
+if (openingCssStart < 0 || openingCssEnd < 0) throw Error('Opening stylesheet boundary changed');
+css = css.slice(0, openingCssStart) + openingMarker + '\n' + read(repository, 'src/opening.css').replaceAll('../assets/', '../../assets/') + '\n' + css.slice(openingCssEnd);
 const scoped = [];
 let media = '';
 for (const line of read(repository, 'src/styles.css').split('/* Customer flow: quiet, compact surfaces. */')[0].split('\n')) {
@@ -76,6 +99,10 @@ write('src/styles.css', customerFlowStyles(floatingPreviewStyles(compactCustomer
 let html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
 html = html.replace(/^.*<script type="module" src="\/storefront\/src\/hero-motion\.js[^>]*><\/script>.*\r?\n/gm, '');
 html = html.replace('  </head>', `    <script type="module" src="/storefront/src/hero-motion.js?v=${tag}"></script>\n  </head>`);
+html = html.replace(/^.*<script src="\/storefront\/src\/startup\.js[^>]*><\/script>.*\r?\n/gm, '');
+const startupMarkup = read(repository, 'index.html').match(/    <div id="app">.*<\/div>/)?.[0];
+if (!startupMarkup || !/<div id="app">[\s\S]*?<\/div>/.test(html)) throw Error('Startup placeholder boundary changed');
+html = html.replace(/    <div id="app">[\s\S]*?<\/div>/, startupMarkup + `\n    <script src="/storefront/src/startup.js?v=${tag}"></script>`);
 if (!html.includes(`app.js?v=${tag}`) || !html.includes(`styles.css?v=${tag}`)) throw Error('Platform entry asset paths changed');
 write('index.html', html);
 

@@ -17,21 +17,22 @@
     <link rel="preload" as="font" href="./assets/fonts/heebo-900.woff" type="font/woff" crossorigin />
     <link rel="prefetch" as="image" href="./assets/pizza-base-v2.webp" />
     <link rel="stylesheet" href="./src/styles.css?v=20260930-product1" />
-    <link rel="stylesheet" href="./src/opening.css?v=20260929-pizzeria2" />
-    <link rel="stylesheet" href="./src/hero-motion.css?v=20260930-heroheat2" />
+    <link rel="stylesheet" href="./src/opening.css?v=20260930-home3" />
+    <link rel="stylesheet" href="./src/hero-motion.css?v=20260930-heroheat3" />
     <link rel="stylesheet" href="./src/navigation.css?v=20260929-transition3" />
-    <script type="module" src="./src/app.js?v=20260930-product1"></script>
+    <script type="module" src="./src/app.js?v=20260930-home3"></script>
     <script type="module" src="./src/hero-motion.js?v=20260930-heroheat2"></script>
   </head>
   <body>
     <!--
-      THESIS: A centered restaurant identity and four clear actions within one mobile viewport.
+      THESIS: An appetite-first photograph, strong Hebrew identity and two immediate order choices.
       OWN-WORLD: Opening: warm brick oven photography, charcoal #141614, ivory #fff3df Heebo 900 name, tomato #c93124 delivery and ivory pickup controls with 10px corners. The order flow keeps its warm white, dark ink and tomato actions.
       STORY: במסך הפתיחה בוחרים משלוח או איסוף עצמי וממשיכים להרכבה, עם גישה מהירה לטלפון ולכתובת. בקופה אפשר לשנות את הבחירה, למלא פרטים ולצפות באישור הדגמה.
-      FIRST VIEWPORT: Warm pizzeria, brick oven fire and pizza on a wooden peel, with a large Hebrew name and emphatic order controls. The identity and actions form one centered group in 100dvh with safe-area spacing.
-      FORM: The user's centered full-height opening, refined toward stronger pizzeria character, name and buttons.
+      FIRST VIEWPORT: Mobile puts a right-aligned identity and choices above the pizza; desktop gives the pizza the left and the actions the right. Icon-only phone and navigation controls reveal details from the header.
+      FORM: A full-bleed restaurant photograph with separate mobile and desktop compositions.
       FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
     -->
-    <div id="app"></div>
+    <div id="app"><section id="app-startup" role="status" style="min-height:100svh;display:grid;place-content:center;justify-items:center;gap:16px;padding:24px;background:#f7f6f2;color:#211c18;font:16px system-ui;text-align:center"><p data-startup-message>טוענים את התפריט…</p><a href="" hidden style="padding:12px 24px;border-radius:10px;background:#c93124;color:white;text-decoration:none">לנסות שוב</a></section></div>
+    <script src="./src/startup.js?v=20260930-recovery1"></script>
   </body>
 </html>

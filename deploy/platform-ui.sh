@@ -76,6 +76,11 @@ verify() {
       remote=$(curl -fsS --max-time 20 "$url/storefront/src/customer-flow.js?v=$expected" | sha256sum | cut -d' ' -f1)
       test "$remote" = "$(sha256sum "$storefront/src/customer-flow.js" | cut -d' ' -f1)"
     fi
+    if [[ -f "$storefront/src/startup.js" ]]; then
+      curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -q 'id="app-startup"'
+      remote=$(curl -fsS --max-time 20 "$url/storefront/src/startup.js?v=$expected" | sha256sum | cut -d' ' -f1)
+      test "$remote" = "$(sha256sum "$storefront/src/startup.js" | cut -d' ' -f1)"
+    fi
     if [[ -f "$storefront/assets/product-ui-version.json" ]]; then
       product_revision=$(curl -fsS --max-time 20 "$url/assets/product-ui-version.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["revision"])')
       test "$product_revision" = "$expected"

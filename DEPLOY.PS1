@@ -49,7 +49,7 @@ function VerifyLive([string]$ExpectedRevision) {
     }
     $assets = @('app.js', 'styles.css', 'order.js', 'store.js', 'address.js', 'config-links.js') | ForEach-Object { $sourcePrefix + $_ }
     if ($sourcePrefix -eq 'src/') { $assets += 'src/schedule.js' }
-    if ($ExpectedRevision) { $assets += @('floating-preview.js', 'customer-flow.js', 'hero-motion.js') | ForEach-Object { $sourcePrefix + $_ } }
+    if ($ExpectedRevision) { $assets += @('floating-preview.js', 'customer-flow.js', 'hero-motion.js', 'startup.js') | ForEach-Object { $sourcePrefix + $_ } }
     $assets += @('assets/brand/oven-mark.svg', 'assets/brand/favicon.svg', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')
     foreach ($asset in $assets) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
