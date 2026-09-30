@@ -80,15 +80,7 @@ function topbar(back) {
   </div></header>`;
 }
 
-function orderProgress(current, productId) {
-  const hasCart = Boolean(cartCount());
-  const composeHref = productId ? `#/product/${safe(productId)}` : productHref();
-  return `<nav class="order-progress" aria-label="שלבי ההזמנה" data-order-progress="${current}" data-product-id="${safe(productId || '')}" data-has-cart="${hasCart}"><ol>${[
-    ['compose', 'הרכבה', `<a href="${composeHref}" data-close-sheet>הרכבה</a>`],
-    ['cart', 'סל', `<button type="button" data-open-cart ${hasCart ? '' : 'disabled'}>סל</button>`],
-    ['details', 'פרטים', hasCart ? '<a href="#/checkout" data-close-sheet>פרטים</a>' : '<span aria-disabled="true">פרטים</span>'],
-  ].map(([id, label, control]) => `<li>${current === id ? `<span aria-current="step">${label}</span>` : control}</li>`).join('')}</ol></nav>`;
-}
+function orderProgress() { return ''; }
 
 const alternativeFor = (group, choice) => (choice.alternatives || []).map((id) => group.choices.find((item) => item.id === id)).find(isAvailable);
 const priceDifference = (delta) => delta > 0 ? `תוספת ${money(delta)}` : delta < 0 ? `הפחתה ${money(-delta)}` : 'המחיר לא השתנה';
@@ -553,7 +545,7 @@ function multiGroup(group, value) {
           ${choice.shape ? `<span class="topping__art">${shapeIcon(choice.shape)}</span>` : ''}
           <span class="topping__name">${safe(choice.name)}</span>
           <span class="topping__price" data-price-for="${safe(choice.id)}">${toppingPriceMarkup(choice, placement || 'whole')}</span>
-          <span class="topping__check">${icon('check')}</span>
+          <span class="topping__check">${icon('plus')}${icon('check')}</span>
           ${available ? '' : '<span class="topping__stock">אזל להיום</span>'}
         </label>
         ${alternative ? `<button type="button" class="topping__alternative" data-alternative-group="${safe(group.id)}" data-alternative-from="${safe(choice.id)}" data-alternative-to="${safe(alternative.id)}" aria-label="בחירת ${safe(alternative.name)} במקום ${safe(choice.name)}">אפשר במקום: ${safe(alternative.name)} ${icon('plus')}</button>` : ''}
@@ -876,7 +868,13 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     if (target.name?.startsWith('multi-') || target.name?.startsWith('place-')) clearedExtras = null;
     if (target.name?.startsWith('multi-')) {
       const name = target.closest('.topping').querySelector('.topping__name').textContent;
-      closePlacement(target.closest('.topping'));
+      form.querySelectorAll('.topping.is-editing').forEach(closePlacement);
+      const selectedTopping = target.closest('.topping');
+      const placementControl = selectedTopping.querySelector('[data-placement-toggle]');
+      if (target.checked && placementControl) {
+        selectedTopping.classList.add('is-editing');
+        placementControl.setAttribute('aria-expanded', 'true');
+      }
       status.textContent = target.checked ? `נוסף: ${name}` : `הוסר: ${name}`;
     } else if (target.name?.startsWith('place-')) {
       const topping = target.closest('.topping');

@@ -29,7 +29,18 @@
 .builder__form .topping--compact .topping__placement-toggle { position: absolute; inset-block-start: 32px; inset-inline-end: 6px; display: inline-flex; inline-size: auto; min-inline-size: 64px; min-block-size: 44px; margin: 0; padding: 0 6px; gap: 4px; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--text-2); font-size: .78rem; font-weight: 500; }
 .builder__form .topping--compact .topping__placement-toggle:hover, .builder__form .topping--compact .topping__placement-toggle[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
 .builder__form .topping--compact .topping__placement-toggle .icon { inline-size: 13px; block-size: 13px; }
-.builder__form .topping--compact:not(:has(.topping__main input:checked)) .topping__placement-toggle { display: inline-flex; }
+.builder__form .topping--compact:not(:has(.topping__main input:checked)) .topping__placement-toggle { display: none; }
+.builder__form .topping--compact:not(:has(.topping__main input:checked)) .topping__price { padding-inline-end: 0; }
+.builder__form .topping--compact .topping__main { grid-template-columns: 32px minmax(0, 1fr) 22px; min-block-size: 84px; padding: 10px 12px 6px; }
+.builder__form .topping--compact .topping__art { inline-size: 32px; block-size: 32px; }
+.builder__form .topping--compact .topping__name { font-size: 1rem; }
+.builder__form .topping--compact .topping__check { inline-size: 22px; block-size: 22px; color: var(--text-2); }
+.builder__form .topping--compact .topping__main input:checked ~ .topping__check { color: var(--surface-1); }
+.builder__form .topping--compact .topping__check .icon { inline-size: 14px; block-size: 14px; }
+.builder__form .topping--compact .topping__check .icon:first-child { opacity: 1; transform: none; stroke-width: 1.6; }
+.builder__form .topping--compact .topping__check .icon:last-child { display: none; }
+.builder__form .topping--compact .topping__main input:checked ~ .topping__check .icon:first-child { display: none; }
+.builder__form .topping--compact .topping__main input:checked ~ .topping__check .icon:last-child { display: block; }
 .builder__form .topping--compact:not(:has([data-placement-toggle])) .topping__main { min-block-size: 72px; }
 .builder__form .topping--compact:not(:has([data-placement-toggle])) .topping__price { padding-inline-end: 0; }
 .builder__form .topping--compact.is-editing .placement { display: grid; gap: 4px; padding: 0 6px 6px; }

@@ -1,6 +1,11 @@
 // Refine only the builder UI. Keep each storefront's pricing, cart and API code.
 export function streamlinedBuilderApp(source) {
   let app = source;
+  if (!app.includes("function orderProgress() { return ''; }")) {
+    const progress = /function orderProgress\([^]*?\n}\r?\n/;
+    if (!progress.test(app)) throw Error('Progress navigation boundary changed');
+    app = app.replace(progress, "function orderProgress() { return ''; }\n");
+  }
   const variantStart = app.indexOf('function variantSection(');
   const groupStart = app.indexOf('function singleGroup(', variantStart);
   const multiStart = app.indexOf('function multiGroup(', groupStart);
@@ -14,12 +19,19 @@ export function streamlinedBuilderApp(source) {
   if (!single.includes('field-group--crust')) single = single.replace('class="field-group"', 'class="field-group${group.visualRole === \'crust\' ? \' field-group--crust\' : \'\'}"');
   if (!single.includes('tile-row--crust')) single = single.replace('class="tile-row tile-row--', 'class="tile-row${group.visualRole === \'crust\' ? \' tile-row--crust\' : \'\'} tile-row--');
   let multi = app.slice(multiStart, multiEnd);
+  multi = multi.replace('<span class="topping__check">${icon(\'check\')}</span>', '<span class="topping__check">${icon(\'plus\')}${icon(\'check\')}</span>');
   multi = multi.replace('class="topping${', 'class="topping topping--compact${').replace('class="topping"', 'class="topping topping--compact"');
   multi = multi.replace('${placementLabel(placement || \'whole\')}', '${placement ? placementShortLabel(placement) : \'מיקום\'}');
   // Half prices are available before choosing a placement, from the live tariff.
   multi = multi.replace('aria-label="${info.label}"', 'aria-label="${info.label}, ${choice.price ? money(choicePrice(choice, key)) : \'כלול\'}"');
   multi = multi.replace("? 'ימין' : 'שמאל'}</span>", "? 'ימין' : 'שמאל'}<small><bdi>${choice.price ? `+${money(choicePrice(choice, key))}` : 'כלול'}</bdi></small></span>");
   app = app.slice(0, variantStart) + variants + single + multi + app.slice(multiEnd);
+  const closeSelected = "      closePlacement(target.closest('.topping'));";
+  const revealSelected = "      form.querySelectorAll('.topping.is-editing').forEach(closePlacement);\n      const selectedTopping = target.closest('.topping');\n      const placementControl = selectedTopping.querySelector('[data-placement-toggle]');\n      if (target.checked && placementControl) {\n        selectedTopping.classList.add('is-editing');\n        placementControl.setAttribute('aria-expanded', 'true');\n      }";
+  if (!app.includes('const selectedTopping =')) {
+    if (!app.includes(closeSelected)) throw Error('Topping disclosure boundary changed');
+    app = app.replace(closeSelected, revealSelected);
+  }
   if (!app.includes('const placementShortLabel')) app = app.replace('\nconst placementLabel', "\nconst placementShortLabel = (part) => part === 'right' ? 'ימין' : part === 'left' ? 'שמאל' : 'שלמה';\n\nconst placementLabel");
   app = app.replace("part === 'right' ? 'חצי ימין' : part === 'left' ? 'חצי שמאל' : 'שלמה'", "part === 'right' ? 'ימין' : part === 'left' ? 'שמאל' : 'שלמה'");
   app = app.replace("toggle.querySelector('[data-placement-label]').textContent = placementLabel(placement);", "toggle.querySelector('[data-placement-label]').textContent = config.options[group.id]?.[choice.id] ? placementShortLabel(placement) : 'מיקום';");
