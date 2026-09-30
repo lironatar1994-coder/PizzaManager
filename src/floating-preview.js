@@ -9,10 +9,16 @@ export function setupFloatingPreview(stage) {
   const collapse = stage.querySelector('[data-preview-collapse]');
   const view = stage.querySelector('[data-preview-open]');
   const expand = stage.querySelector('[data-expand-pizza]');
+  const quantity = builder?.querySelector('[data-builder-quantity]');
+  const price = inner?.querySelector('[data-price-toggle]');
   if (!builder || !bar || !inner || !collapse || !view || !expand) return () => {};
 
   const origin = document.createComment('desktop pizza preview');
   stage.before(origin);
+  const quantityOrigin = document.createComment('builder quantity');
+  const priceOrigin = document.createComment('builder price disclosure');
+  quantity?.before(quantityOrigin);
+  price?.before(priceOrigin);
   const dock = document.createElement('div');
   dock.className = 'pizza-dock';
   const mobile = window.matchMedia('(max-width: 899px)');
@@ -62,8 +68,13 @@ export function setupFloatingPreview(stage) {
       if (!dock.isConnected) inner.before(dock);
       if (stage.parentElement !== dock) dock.append(stage);
       if (inner.parentElement !== dock) dock.append(inner);
+      // Move the existing controls, retaining their quantity and price listeners.
+      if (quantity && quantity.parentElement !== inner) inner.prepend(quantity);
+      if (price && price.parentElement !== stage) stage.append(price);
       measureDock();
     } else {
+      if (quantityOrigin.isConnected) quantityOrigin.after(quantity);
+      if (priceOrigin.isConnected) priceOrigin.after(price);
       if (stage.parentElement !== builder) origin.after(stage);
       undock();
     }
@@ -94,8 +105,12 @@ export function setupFloatingPreview(stage) {
     document.removeEventListener('focusout', scheduleKeyboard);
     cancelAnimationFrame(frame);
     sizeObserver.disconnect();
+    if (quantityOrigin.isConnected) quantityOrigin.after(quantity);
+    if (priceOrigin.isConnected) priceOrigin.after(price);
     if (origin.isConnected) origin.after(stage);
     undock();
     origin.remove();
+    quantityOrigin.remove();
+    priceOrigin.remove();
   };
 }

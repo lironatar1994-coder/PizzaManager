@@ -72,6 +72,21 @@ typography:
     fontFamily: "Heebo, Arial, sans-serif"
     fontSize: "0.6875rem"
     lineHeight: 1.5
+  product-heading-mobile:
+    fontFamily: "Heebo, Arial, sans-serif"
+    fontSize: "1.75rem"
+    fontWeight: 800
+    lineHeight: 1.3
+    letterSpacing: "normal"
+  product-topping-compact:
+    fontFamily: "Heebo, Arial, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 600
+    lineHeight: 1.3
+  product-action-narrow:
+    fontFamily: "Heebo, Arial, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 700
   headline:
     fontFamily: "Heebo, Arial, sans-serif"
     fontSize: "clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem)"
@@ -581,3 +596,14 @@ Finish review: inspected the complete production adapter at 390×844, 360×640 a
 Edit, duplicate/change and remove use the incumbent pencil, overlapping-squares and a matching outlined bin. They share the composition disclosure row, reducing repeated text and removing a separate action row. Their 44×44px ivory targets, 19px SVGs, item-specific accessible names, native hover titles and existing focus treatment retain discoverability. Quantity controls also have 44px targets. The primary checkout action keeps its visible label. Saved-item deletion uses the bin; sheet closing keeps the X. In RTL the edit action sits nearest the item details, followed by duplicate and delete. Native composition opening and removal/undo retain the original handlers and dynamic amounts.
 
 Finish review: inspected 390×844, 360×640 and 1440×900; no horizontal overflow, and all six icon controls and quantity buttons measured 44×44px. Local removal changed the subtotal from ₪198 to ₪110; undo restored both items and ₪198. Composition expanded through the existing native disclosure. The static scan reported only the previously documented responsive type steps outside this refinement. No new runtime dependency or raster asset was added.
+
+### Product customizer — 30 September 2026
+
+These scoped overrides describe the approved warm product customizer and supersede earlier product-only statements about the dark top preview, ink selection, quantity after toppings, 72px size controls and the 25svh rounded dock. Opening, menu, cart, checkout, bundles, navigation transitions and the existing full editor retain their documented rules. Shared ink selection tokens stay unchanged; tomato selection is local to the product builder.
+
+- **Palette and type:** warm cream #f8f5ef for the builder and preview; selected product controls use tomato #c93124 with #fff0eb fill and a 1.5px selected outline. The light preview uses espresso #251b15. Mobile product heading is 28px/800 with line-height 1.3; section headings are 18px/700. These are intentional product steps in the type ramp. Size names remain 16px/700 and size prices use 18px/700; compact topping names are 14px/600 with line-height 1.3. Product CTA text is 16px/700, reducing to 15px/700 at widths ≤380px.
+- **Choices:** size controls are 80px tall, with 12px corners, 12px 8px padding and 8px between controls. Dough choices are 44px tall inside a 52px segmented group with 4px padding. Toppings remain a compact two-column grid with 8px gaps: 76px main controls, 28px ingredient photos, 14px names and prices, and 18px check marks. Placement triggers keep 44px touch height and open native whole/right/left choices with current prices. Availability, half-price calculation and catalog data remain authoritative.
+- **Mobile dock below 900px:** the same reactive photographic pizza SVG moves into a fixed, full-width ivory dock flush with the viewport edges. The dock has a top divider, square outer corners, no shadow and no glass blur. Nominal height is clamp(192px, 29svh, 252px); subtract the measured action-row height, with a portrait preview minimum of 148px. Pizza footprint is min(156px, preview height − 16px). The separate 112px summary reserves 52px above for utility controls and 12px below, and its title clamps to two lines. Expand, collapse and the existing price button occupy the 44px top utility rail.
+- **Action row:** the existing quantity DOM node moves beside the 52px add action, retaining its handlers. Stepper buttons are 44×48px, its output is 28px wide and the complete stepper is 116px wide. The CTA keeps label, separator and current amount together; at ≤380px it uses 15px text, 12px side padding and nowrap grouping. Safe-area padding and measured dock height reserve room for the final fields; the price panel uses the actual preview height.
+- **Collapsed and short screens:** customer collapse or the existing keyboard response reduces the preview to a 60px strip. At viewport heights ≤500px below 900px, nominal dock height is 168px, summary is hidden and preview height subtracts the measured action row without the portrait 148px minimum. Preview/collapse transitions remain 0.28s cubic-bezier(.16, 1, .3, 1), and are disabled with reduced motion.
+- **Desktop and full editor:** from 900px one light pizza preview remains sticky beside the form, capped at 520px high with a 300px minimum; the whole pizza is centered within the available canvas. Quantity returns to its original form position, the price button to the action row and the stage to the builder, including on teardown. The existing dark full-preview/half editor, its reactive SVG, keyboard controls and catalog behavior remain intact.

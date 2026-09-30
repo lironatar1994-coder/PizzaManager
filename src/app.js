@@ -1,5 +1,5 @@
 import { mountCheckoutFlow } from './customer-flow.js';
-import { setupFloatingPreview } from './floating-preview.js?v=20260929-streamlined1';
+import { setupFloatingPreview } from './floating-preview.js?v=20260930-product1';
 import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
 import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-pizzeria2';
@@ -796,7 +796,6 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
       form.querySelector('[data-edit-change-total]').innerHTML = totals;
       document.querySelector('[data-price-change-total]').textContent = priceDifference(change.delta);
     }
-    document.querySelector('[data-price-toggle] > span').innerHTML = `${hasChanges ? 'פירוט ושינויים' : 'פירוט מחיר'} ${icon('down')}`;
     document.querySelector('#stage-title').textContent = [config.label, info.title, quantity > 1 ? `${quantity} יח׳` : ''].filter(Boolean).join(' · ');
     const details = isPizza ? info.extras.filter((extra) => !extra.divided).map((extra) => extra.text).join(' · ') : detailText(info);
     const stageDetail = document.querySelector('#stage-detail');
