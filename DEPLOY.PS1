@@ -42,6 +42,10 @@ function VerifyLive([string]$ExpectedRevision) {
         if (-not $health.ok) { throw 'Platform is unavailable' }
     }
     if ($ExpectedRevision -and $revision -ne $ExpectedRevision) { throw "Live frontend revision mismatch: $revision" }
+    if ($ExpectedRevision -and $sourcePrefix -eq 'storefront/src/') {
+        $productManifest = (Invoke-WebRequest -Uri "${SiteUrl}assets/product-ui-version.json" -UseBasicParsing -TimeoutSec 20).Content | ConvertFrom-Json
+        if ($productManifest.revision -ne $ExpectedRevision) { throw "Live product UI revision mismatch: $($productManifest.revision)" }
+    }
     $assets = @('app.js', 'styles.css', 'order.js', 'store.js', 'address.js', 'config-links.js') | ForEach-Object { $sourcePrefix + $_ }
     if ($sourcePrefix -eq 'src/') { $assets += 'src/schedule.js' }
     if ($ExpectedRevision) { $assets += @('floating-preview.js', 'customer-flow.js', 'hero-motion.js') | ForEach-Object { $sourcePrefix + $_ } }

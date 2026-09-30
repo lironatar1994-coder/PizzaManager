@@ -17,6 +17,7 @@ storefront="$backend/storefront"
 previous="$state.previous"
 old_target=$(readlink -f "$storefront")
 switched=0
+product_stage=
 
 validate_target() {
   case "$1" in "$base"/platform-ui-releases/*|"$backend"/.storefront.original.*) test -d "$1" ;; *) echo 'Unexpected storefront target' >&2; return 1 ;; esac
@@ -54,7 +55,7 @@ catalog_hash() {
   curl -fsS --max-time 20 "$url/api/public/shops/oven-demo" | python3 -c 'import sys,json,hashlib; print(hashlib.sha256(json.dumps(json.load(sys.stdin),sort_keys=True,separators=(",",":")).encode()).hexdigest())'
 }
 verify() {
-  local expected=${1:-} actual remote
+  local expected=${1:-} actual remote product_revision
   curl -fsS --max-time 20 "$url/api/health" | python3 -c 'import json,sys; assert json.load(sys.stdin)["ok"]'
   curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -q '/storefront/src/app.js'
   if [[ -n "$expected" ]]; then
@@ -68,6 +69,11 @@ verify() {
       remote=$(curl -fsS --max-time 20 "$url/storefront/src/customer-flow.js?v=$expected" | sha256sum | cut -d' ' -f1)
       test "$remote" = "$(sha256sum "$storefront/src/customer-flow.js" | cut -d' ' -f1)"
     fi
+    if [[ -f "$storefront/assets/product-ui-version.json" ]]; then
+      product_revision=$(curl -fsS --max-time 20 "$url/assets/product-ui-version.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["revision"])')
+      test "$product_revision" = "$expected"
+      curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -F "product1-${expected:0:12}" >/dev/null
+    fi
     curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-v1.webp"
     if grep -q 'menu-pizza-editorial-v2.webp' "$storefront/src/app.js"; then
       curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-editorial-v2.webp"
@@ -79,6 +85,9 @@ verify() {
 recover() {
   local status=$?
   trap - EXIT
+  if [[ -n "$product_stage" ]]; then
+    case "$product_stage" in "$base"/.product-ui.*) rm -rf -- "$product_stage" ;; esac
+  fi
   if (( status != 0 && switched )); then
     atomic_link "$old_target" "$storefront"
     echo 'Frontend activation failed; restored the previous platform storefront' >&2
@@ -128,7 +137,16 @@ for viewport in mobile desktop; do
   install -m 644 "$repository/assets/hero-vapor-$viewport-v1.mp4.json" "$release/assets/"
 done
 node "$repository/deploy/platform-storefront.mjs" "$repository" "$old_target" "$release" "$revision"
+# The product-customizer release is authored independently of the menu. Apply
+# it to an inactive copy so both current surfaces reach production together.
+product_stage=$(mktemp -d "$base/.product-ui.XXXXXXXX")
+cp -a -- "$release/." "$product_stage/"
+node "$repository/deploy/platform-product.mjs" "$repository" "$release" "$product_stage" "$revision"
+for file in src/app.js src/styles.css src/floating-preview.js index.html assets/product-ui-version.json; do
+  install -m 644 "$product_stage/$file" "$release/$file"
+done
 chmod -R a+rX "$release"
+test -f "$release/assets/product-ui-version.json"
 test "$source_hash" = "$(sha256sum "$storefront/src/app.js" "$storefront/src/styles.css" "$storefront/index.html")" || { echo 'Storefront source changed during preparation' >&2; exit 1; }
 activate "$release"
 verify "$revision"
