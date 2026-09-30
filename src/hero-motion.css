@@ -17,19 +17,21 @@
   object-fit: fill;
   mix-blend-mode: screen;
   filter: brightness(1.6) contrast(1.4);
+  -webkit-mask-image: radial-gradient(ellipse 44% 44% at 58% 60%, #000 20%, transparent 100%);
+  mask-image: radial-gradient(ellipse 44% 44% at 58% 60%, #000 20%, transparent 100%);
   pointer-events: none;
   opacity: 0;
   transition: opacity .8s ease;
 }
-.hero--luxury .hero__vapor.is-ready { opacity: .42; }
+.hero--luxury .hero__vapor.is-ready { opacity: .56; }
 @media (max-width: 700px) {
   .hero--luxury .hero__vapor {
     left: 60%;
-    top: 56%;
+    top: 46%;
     width: clamp(135px, 38vw, 180px);
     aspect-ratio: 180 / 210;
   }
-  .hero--luxury .hero__vapor.is-ready { opacity: .38; }
+  .hero--luxury .hero__vapor.is-ready { opacity: .5; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero--luxury .hero__vapor { display: none; }
