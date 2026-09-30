@@ -209,7 +209,7 @@ function home() {
   const status = openingStatus();
   const closed = !status.open;
   const remembered = typeof getRepeatOrder === 'function' && getRepeatOrder()?.lines?.length;
-  const heroImages = shop.demoOnly ? { mobile: './assets/hero-pizzeria-mobile-v2.webp', desktop: './assets/hero-pizzeria-desktop-v2.webp', alt: 'תמונת המחשה של פיצה על כף עץ ליד תנור לבנים — אינה צילום של מוצר העסק' } : shop.heroImages;
+  const heroImages = shop.demoOnly ? { mobile: './assets/hero-pizzeria-mobile-v3.webp', desktop: './assets/hero-pizzeria-desktop-v3.webp', alt: 'תמונת המחשה של פיצה על כף עץ ליד תנור לבנים — אינה צילום של מוצר העסק' } : shop.heroImages;
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#141614');
   app.innerHTML = `<main class="hero hero--luxury" aria-labelledby="hero-title">
     <!-- THESIS: A centered restaurant identity and four clear actions within one mobile viewport.

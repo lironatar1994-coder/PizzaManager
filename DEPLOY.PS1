@@ -63,6 +63,8 @@ function VerifyLive([string]$ExpectedRevision) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}assets/menu-pizza-editorial-v2.webp" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw 'Missing live editorial pizza photo' }
       foreach ($viewport in @('mobile', 'desktop')) {
+        $photo = Invoke-WebRequest -Uri "${SiteUrl}assets/hero-pizzeria-${viewport}-v3.webp" -Method Head -UseBasicParsing -TimeoutSec 20
+        if ($photo.StatusCode -ne 200) { throw "Missing live opening photo: $viewport" }
         $response = Invoke-WebRequest -Uri "${SiteUrl}assets/hero-vapor-${viewport}-v1.mp4" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live hero motion: $viewport" }
       }

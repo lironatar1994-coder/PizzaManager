@@ -17,6 +17,7 @@ const required = [
   'src/floating-preview.js', 'src/floating-preview.css',
   'assets/fonts/frank-ruhl-libre-600.woff', 'assets/fonts/FrankRuhlLibre-OFL.txt', 'assets/brand/oven-mark-luxury.svg',
   'assets/hero-pizzeria-mobile-v2.webp', 'assets/hero-pizzeria-desktop-v2.webp',
+  'assets/hero-pizzeria-mobile-v3.webp', 'assets/hero-pizzeria-desktop-v3.webp',
   'assets/hero-vapor-mobile-v1.mp4', 'assets/hero-vapor-desktop-v1.mp4', 'src/hero-motion.js', 'src/hero-motion.css',
   'assets/fonts/heebo-900.woff', 'assets/fonts/Heebo-OFL.txt',
   ...['olive', 'mushroom', 'corn', 'onion', 'jalapeno', 'feta'].map((name) => `assets/toppings/${name}.webp`),

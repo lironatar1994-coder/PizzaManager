@@ -10,7 +10,9 @@
 body:has(.hero--luxury) { background: #141614; }
 .hero--luxury {
   --hero-ivory: #fff3df;
-  --hero-brass: #d8b47c;
+  --hero-brass: #e5c990;
+  --tomato: #c71e16;
+  --tomato-hover: #aa1912;
   --hero-brass-deep: #b58c57;
   --text: var(--hero-ivory);
   --select: var(--hero-brass);
@@ -104,8 +106,23 @@ body:has(.hero--luxury) { background: #141614; }
 
 @media (max-width: 700px) {
   .hero--luxury .hero__mark { inline-size: 72px; block-size: 72px; }
+  .hero--luxury .hero__body { margin-block-end: 40px; }
+  .hero--luxury h1 { font-size: clamp(2.75rem, 13vw, 3.5rem); }
+  .hero--luxury .hero__identity { gap: 16px; }
+  .hero--luxury .hero__actions { margin-block-start: 24px; }
+  .hero--luxury .hero__utilities { margin-block-start: 14px; }
 }
 @media (max-height: 600px) {
   .hero--luxury .hero__mark { inline-size: 56px; block-size: 56px; }
+  .hero--luxury .hero__body { margin-block-end: 0; }
+  .hero--luxury h1 { font-size: clamp(2.5rem, 11.3vw, 2.75rem); }
+  .hero--luxury .hero__identity { gap: 12px; }
+  .hero--luxury .hero__actions { margin-block-start: 20px; }
+}
+@media (max-height: 430px) and (min-width: 600px) {
+  .hero--luxury .hero__mark { inline-size: 28px; block-size: 28px; }
+  .hero--luxury h1 { font-size: 2.25rem; }
+  .hero--luxury .hero__identity { gap: 6px; }
+  .hero--luxury .hero__actions { margin-block-start: 12px; }
 }
 /* End PizzaManager opening. */

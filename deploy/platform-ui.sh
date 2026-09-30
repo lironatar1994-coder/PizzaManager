@@ -71,6 +71,8 @@ verify() {
       curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -q '/storefront/src/hero-motion.js'
       curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-mobile-v1.mp4"
       curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-desktop-v1.mp4"
+      curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-pizzeria-mobile-v3.webp"
+      curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-pizzeria-desktop-v3.webp"
     fi
     if [[ -f "$storefront/src/customer-flow.js" ]]; then
       remote=$(curl -fsS --max-time 20 "$url/storefront/src/customer-flow.js?v=$expected" | sha256sum | cut -d' ' -f1)
@@ -143,6 +145,8 @@ done
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/assets/"
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
 for viewport in mobile desktop; do
+  install -m 644 "$repository/assets/hero-pizzeria-$viewport-v3.webp" "$release/assets/"
+  install -m 644 "$repository/assets/hero-pizzeria-$viewport-v3.webp.json" "$release/assets/"
   install -m 644 "$repository/assets/hero-vapor-$viewport-v1.mp4" "$release/assets/"
   install -m 644 "$repository/assets/hero-vapor-$viewport-v1.mp4.json" "$release/assets/"
 done

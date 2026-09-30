@@ -26,7 +26,9 @@ colors:
   hero-ground: "#120e0c"
   opening-ground: "#141614"
   opening-ivory: "#fff3df"
-  opening-brass: "#d8b47c"
+  opening-brass: "#e5c990"
+  opening-tomato: "#c71e16"
+  opening-tomato-hover: "#aa1912"
   opening-brass-deep: "#b58c57"
   opening-brass-light: "#e9c68f"
   opening-brass-shade: "#bb925f"
@@ -66,7 +68,7 @@ typography:
     fontWeight: 600
   opening-display-mobile:
     fontFamily: "Heebo, Arial, sans-serif"
-    fontSize: "clamp(3.25rem, 15.5vw, 6rem)"
+    fontSize: "clamp(2.75rem, 13vw, 3.5rem)"
     fontWeight: 900
     lineHeight: 1.08
   opening-display-compact:
@@ -620,3 +622,9 @@ These scoped overrides describe the approved warm product customizer and superse
 - **Action row:** the existing quantity DOM node moves beside the 52px add action, retaining its handlers. Stepper buttons are 44×48px, its output is 28px wide and the complete stepper is 116px wide. The CTA keeps label, separator and current amount together; at ≤380px it uses 15px text, 12px side padding and nowrap grouping. Safe-area padding and measured dock height reserve room for the final fields; the price panel uses the actual preview height.
 - **Collapsed and short screens:** customer collapse or the existing keyboard response reduces the preview to a 60px strip. At viewport heights ≤500px below 900px, nominal dock height is 168px, summary is hidden and preview height subtracts the measured action row without the portrait 148px minimum. Preview/collapse transitions remain 0.28s cubic-bezier(.16, 1, .3, 1), and are disabled with reduced motion.
 - **Desktop and full editor:** from 900px one light pizza preview remains sticky beside the form, capped at 520px high with a 300px minimum; the whole pizza is centered within the available canvas. Quantity returns to its original form position, the price button to the action row and the stage to the builder, including on teardown. The existing dark full-preview/half editor, its reactive SVG, keyboard controls and catalog behavior remain intact.
+
+### Approved hero mockup refinement — 2026-10-01
+
+The approved centered layout remains. The v3 generated photographs match the mockup lighting and retain separate portrait and wide compositions; asset sidecars record provenance. Mobile type is clamp(2.75rem, 13vw, 3.5rem), with 16px logo/title gap, 24px before order choices and 14px before contact actions. A 40px bottom margin raises the compact group within the viewport; short screens reset it and keep their 60px controls. Logo, all actual business content and contact behavior remain managed. Opening delivery uses #c71e16 with #aa1912 hover; brass becomes #e5c990. The restrained transparent steam moves to 57% from the top on mobile, aligned with the new crust. No image includes rendered UI. Demo disclosure remains visible; other surfaces and catalog pricing are unchanged.
+
+Finish: preserve the approved logo/title/two-action arrangement; confirm portrait, short-phone and desktop rendering together, then verify the production revision and immediate order entry. Scoped color changes are intentional opening tokens.

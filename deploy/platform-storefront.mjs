@@ -97,6 +97,7 @@ css = css.replace(/\/\* Hero heat motion: the photograph remains[\s\S]*?\/\* End
 css += '\n' + read(repository, 'src/hero-motion.css');
 write('src/styles.css', customerFlowStyles(floatingPreviewStyles(compactCustomerStyles(css), read(repository, 'src/floating-preview.css')), read(repository, 'src/customer-flow.css')));
 let html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
+html = html.replaceAll('hero-pizzeria-mobile-v2.webp', 'hero-pizzeria-mobile-v3.webp').replaceAll('hero-pizzeria-desktop-v2.webp', 'hero-pizzeria-desktop-v3.webp');
 html = html.replace(/^.*<script type="module" src="\/storefront\/src\/hero-motion\.js[^>]*><\/script>.*\r?\n/gm, '');
 html = html.replace('  </head>', `    <script type="module" src="/storefront/src/hero-motion.js?v=${tag}"></script>\n  </head>`);
 html = html.replace(/^.*<script src="\/storefront\/src\/startup\.js[^>]*><\/script>.*\r?\n/gm, '');

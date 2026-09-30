@@ -13,7 +13,7 @@ function mayAnimate() {
 function mount(hero) {
   const picture = hero.querySelector('.hero__media');
   const poster = picture?.querySelector('img');
-  if (!poster || !/hero-pizzeria-(?:mobile|desktop)-v2\.webp(?:\?|$)/.test(poster.currentSrc || poster.src)) return () => {};
+  if (!poster || !/hero-pizzeria-(?:mobile|desktop)-v[23]\.webp(?:\?|$)/.test(poster.currentSrc || poster.src)) return () => {};
 
   const video = document.createElement('video');
   video.className = 'hero__vapor';
