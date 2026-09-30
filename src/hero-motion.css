@@ -16,7 +16,7 @@
   aspect-ratio: 160 / 230;
   object-fit: fill;
   mix-blend-mode: screen;
-  filter: brightness(1.6) contrast(1.4);
+  filter: brightness(2.2) contrast(1.2);
   -webkit-mask-image: radial-gradient(ellipse 44% 44% at 58% 60%, #000 20%, transparent 100%);
   mask-image: radial-gradient(ellipse 44% 44% at 58% 60%, #000 20%, transparent 100%);
   pointer-events: none;
@@ -26,8 +26,8 @@
 .hero--luxury .hero__vapor.is-ready { opacity: .56; }
 @media (max-width: 700px) {
   .hero--luxury .hero__vapor {
-    left: 60%;
-    top: 46%;
+    left: -13%;
+    top: 52%;
     width: clamp(135px, 38vw, 180px);
     aspect-ratio: 180 / 210;
   }
