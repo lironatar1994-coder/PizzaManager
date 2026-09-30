@@ -1,4 +1,16 @@
 /* Hero heat motion: the photograph remains the fast, complete first paint. */
+.hero.hero--luxury > .hero__shade {
+  background: linear-gradient(0deg, rgb(18 14 12 / .56), rgb(18 14 12 / .04) 22%, rgb(18 14 12 / .12) 52%, transparent 88%);
+}
+.hero--luxury .hero__body .hero__utilities,
+.hero--luxury .hero__body .hero__closed,
+.hero--luxury .hero__body .hero__empty {
+  background: transparent;
+}
+.hero--luxury .hero__body .hero__utilities { padding-inline: 0; border-radius: 0; }
+.hero--luxury .hero__body :is(.hero__utility, .hero__closed, .hero__empty) {
+  text-shadow: 0 2px 8px rgb(18 14 12 / .9);
+}
 .hero--luxury .hero__visual {
   position: absolute;
   z-index: -2;
@@ -10,28 +22,30 @@
 .hero--luxury .hero__vapor {
   position: absolute;
   z-index: 1;
-  left: 69%;
-  top: 19%;
-  width: clamp(140px, 12.5vw, 200px);
+  left: 66%;
+  top: 14%;
+  width: clamp(220px, 19vw, 300px);
   aspect-ratio: 160 / 230;
   object-fit: fill;
   mix-blend-mode: screen;
   filter: brightness(2.2) contrast(1.2);
-  -webkit-mask-image: radial-gradient(ellipse 44% 44% at 58% 60%, #000 20%, transparent 100%);
-  mask-image: radial-gradient(ellipse 44% 44% at 58% 60%, #000 20%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 70%, transparent), linear-gradient(0deg, transparent, #000 20%, #000 80%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 70%, transparent), linear-gradient(0deg, transparent, #000 20%, #000 80%, transparent);
+  mask-composite: intersect;
   pointer-events: none;
   opacity: 0;
   transition: opacity .8s ease;
 }
-.hero--luxury .hero__vapor.is-ready { opacity: .56; }
+.hero--luxury .hero__vapor.is-ready { opacity: .72; }
 @media (max-width: 700px) {
   .hero--luxury .hero__vapor {
-    left: -13%;
-    top: 52%;
-    width: clamp(135px, 38vw, 180px);
+    left: -10%;
+    top: 44%;
+    width: clamp(220px, 64vw, 270px);
     aspect-ratio: 180 / 210;
   }
-  .hero--luxury .hero__vapor.is-ready { opacity: .5; }
+  .hero--luxury .hero__vapor.is-ready { opacity: .7; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero--luxury .hero__vapor { display: none; }

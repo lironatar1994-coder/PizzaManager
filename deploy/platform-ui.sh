@@ -65,6 +65,13 @@ verify() {
     test "$remote" = "$(sha256sum "$storefront/src/app.js" | cut -d' ' -f1)"
     remote=$(curl -fsS --max-time 20 "$url/storefront/src/styles.css?v=$expected" | sha256sum | cut -d' ' -f1)
     test "$remote" = "$(sha256sum "$storefront/src/styles.css" | cut -d' ' -f1)"
+    if [[ -f "$storefront/src/hero-motion.js" ]]; then
+      remote=$(curl -fsS --max-time 20 "$url/storefront/src/hero-motion.js?v=$expected" | sha256sum | cut -d' ' -f1)
+      test "$remote" = "$(sha256sum "$storefront/src/hero-motion.js" | cut -d' ' -f1)"
+      curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -q '/storefront/src/hero-motion.js'
+      curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-mobile-v1.mp4"
+      curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-desktop-v1.mp4"
+    fi
     if [[ -f "$storefront/src/customer-flow.js" ]]; then
       remote=$(curl -fsS --max-time 20 "$url/storefront/src/customer-flow.js?v=$expected" | sha256sum | cut -d' ' -f1)
       test "$remote" = "$(sha256sum "$storefront/src/customer-flow.js" | cut -d' ' -f1)"
@@ -78,8 +85,6 @@ verify() {
     if grep -q 'menu-pizza-editorial-v2.webp' "$storefront/src/app.js"; then
       curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-editorial-v2.webp"
     fi
-    curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-mobile-v1.mp4"
-    curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-desktop-v1.mp4"
   fi
 }
 recover() {
@@ -147,6 +152,7 @@ for file in src/app.js src/styles.css src/floating-preview.js index.html assets/
 done
 chmod -R a+rX "$release"
 test -f "$release/assets/product-ui-version.json"
+test -f "$release/src/hero-motion.js"
 test "$source_hash" = "$(sha256sum "$storefront/src/app.js" "$storefront/src/styles.css" "$storefront/index.html")" || { echo 'Storefront source changed during preparation' >&2; exit 1; }
 activate "$release"
 verify "$revision"

@@ -43,6 +43,7 @@ function VerifyLive([string]$ExpectedRevision) {
     }
     if ($ExpectedRevision -and $revision -ne $ExpectedRevision) { throw "Live frontend revision mismatch: $revision" }
     if ($ExpectedRevision -and $sourcePrefix -eq 'storefront/src/') {
+        if ($page.Content -notmatch '/storefront/src/hero-motion.js') { throw 'Live opening does not load the hero motion module' }
         $productManifest = (Invoke-WebRequest -Uri "${SiteUrl}assets/product-ui-version.json" -UseBasicParsing -TimeoutSec 20).Content | ConvertFrom-Json
         if ($productManifest.revision -ne $ExpectedRevision) { throw "Live product UI revision mismatch: $($productManifest.revision)" }
     }

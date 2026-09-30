@@ -1,5 +1,5 @@
 // A tiny, optional Higgsfield steam layer over the original hero photograph.
-// Keep the photograph as the first paint and the sole image on slow connections.
+// Finish loading the photograph before requesting the 20–25 KB motion layer.
 const app = document.querySelector('#app');
 const compact = window.matchMedia('(max-width: 700px)');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -7,8 +7,7 @@ const connection = navigator.connection || navigator.mozConnection || navigator.
 let mounted;
 
 function mayAnimate() {
-  if (document.hidden || reducedMotion.matches || connection?.saveData) return false;
-  return !connection?.effectiveType || connection.effectiveType === '4g';
+  return !document.hidden && !reducedMotion.matches && !connection?.saveData;
 }
 
 function mount(hero) {
