@@ -106,8 +106,8 @@ body:has(.hero--luxury) { background: #141614; }
 
 @media (max-width: 700px) {
   .hero--luxury .hero__mark { inline-size: 72px; block-size: 72px; }
-  .hero--luxury .hero__body { margin-block-end: 40px; }
-  .hero--luxury h1 { font-size: clamp(2.75rem, 13vw, 3.5rem); }
+  .hero--luxury .hero__body { margin-block-end: 128px; }
+  .hero--luxury h1 { font-size: clamp(3rem, 14.5vw, 3.75rem); }
   .hero--luxury .hero__identity { gap: 16px; }
   .hero--luxury .hero__actions { margin-block-start: 24px; }
   .hero--luxury .hero__utilities { margin-block-start: 14px; }

@@ -39,13 +39,26 @@
 }
 .hero--luxury .hero__vapor.is-ready { opacity: .42; }
 @media (max-width: 700px) {
+  .hero.hero--luxury > .hero__shade {
+    background: linear-gradient(0deg, rgb(18 14 12 / .56), transparent 22%, rgb(18 14 12 / .4) 40%, rgb(18 14 12 / .42) 56%, transparent 76%);
+  }
+  .hero--luxury .hero__media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    mask-image: linear-gradient(0deg, transparent 36%, #000 48%, #000 68%, transparent 80%);
+    -webkit-mask-image: linear-gradient(0deg, transparent 36%, #000 48%, #000 68%, transparent 80%);
+    pointer-events: none;
+  }
   .hero--luxury .hero__vapor {
     left: -10%;
     top: 57%;
     width: clamp(220px, 60vw, 250px);
     aspect-ratio: 180 / 210;
   }
-  .hero--luxury .hero__vapor.is-ready { opacity: .44; }
+  .hero--luxury .hero__vapor.is-ready { opacity: .58; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero--luxury .hero__vapor { display: none; }

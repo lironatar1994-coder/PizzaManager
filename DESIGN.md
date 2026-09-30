@@ -68,7 +68,7 @@ typography:
     fontWeight: 600
   opening-display-mobile:
     fontFamily: "Heebo, Arial, sans-serif"
-    fontSize: "clamp(2.75rem, 13vw, 3.5rem)"
+    fontSize: "clamp(3rem, 14.5vw, 3.75rem)"
     fontWeight: 900
     lineHeight: 1.08
   opening-display-compact:
@@ -625,6 +625,10 @@ These scoped overrides describe the approved warm product customizer and superse
 
 ### Approved hero mockup refinement — 2026-10-01
 
-The approved centered layout remains. The v3 generated photographs match the mockup lighting and retain separate portrait and wide compositions; asset sidecars record provenance. Mobile type is clamp(2.75rem, 13vw, 3.5rem), with 16px logo/title gap, 24px before order choices and 14px before contact actions. A 40px bottom margin raises the compact group within the viewport; short screens reset it and keep their 60px controls. Logo, all actual business content and contact behavior remain managed. Opening delivery uses #c71e16 with #aa1912 hover; brass becomes #e5c990. The restrained transparent steam moves to 57% from the top on mobile, aligned with the new crust. No image includes rendered UI. Demo disclosure remains visible; other surfaces and catalog pricing are unchanged.
+The approved centered layout remains. The v3 generated photographs match the mockup lighting and retain separate portrait and wide compositions; asset sidecars record provenance. Mobile type is clamp(3rem, 14.5vw, 3.75rem), with 16px logo/title gap, 24px before order choices and 14px before contact actions. A 128px bottom margin raises the compact group within the viewport; short screens reset it and keep their 60px controls. Logo, all actual business content and contact behavior remain managed. Opening delivery uses #c71e16 with #aa1912 hover; brass becomes #e5c990. The restrained transparent steam moves to 57% from the top on mobile, aligned with the new crust. No image includes rendered UI. Demo disclosure remains visible; other surfaces and catalog pricing are unchanged.
 
 Finish: preserve the approved logo/title/two-action arrangement; confirm portrait, short-phone and desktop rendering together, then verify the production revision and immediate order entry. Scoped color changes are intentional opening tokens.
+
+### Hero clarity correction — 2026-10-01
+
+Mobile identity and ordering stay centered; a 128px bottom margin raises the group above the crust, while short screens retain their compact layout and reset this margin. The larger mobile title restores emphasis. A feathered 2px background-only blur softens the central brick texture; natural dark-brown gradient shading improves foreground contrast without a rectangular text backing. Pizza and oven retain their sharpness. Steam opacity is 0.58 on mobile, keeping the existing tiny clip, deferred loading and reduced-motion/data-saving behavior. Black mask values express opacity, not visible backgrounds. Finish review focuses on identity prominence, readable contact actions above the crust, unchanged touch targets and no viewport overflow.
