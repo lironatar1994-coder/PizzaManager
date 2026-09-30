@@ -1,0 +1,37 @@
+/* Hero heat motion: the photograph remains the fast, complete first paint. */
+.hero--luxury .hero__visual {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  isolation: isolate;
+  pointer-events: none;
+}
+.hero--luxury .hero__visual .hero__media { z-index: 0; }
+.hero--luxury .hero__vapor {
+  position: absolute;
+  z-index: 1;
+  left: 69%;
+  top: 19%;
+  width: clamp(140px, 12.5vw, 200px);
+  aspect-ratio: 160 / 230;
+  object-fit: fill;
+  mix-blend-mode: screen;
+  filter: brightness(1.6) contrast(1.4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .8s ease;
+}
+.hero--luxury .hero__vapor.is-ready { opacity: .42; }
+@media (max-width: 700px) {
+  .hero--luxury .hero__vapor {
+    left: 60%;
+    top: 56%;
+    width: clamp(135px, 38vw, 180px);
+    aspect-ratio: 180 / 210;
+  }
+  .hero--luxury .hero__vapor.is-ready { opacity: .38; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero--luxury .hero__vapor { display: none; }
+}
+/* End hero heat motion. */

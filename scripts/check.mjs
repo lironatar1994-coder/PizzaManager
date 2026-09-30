@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,12 +17,17 @@ const required = [
   'src/floating-preview.js', 'src/floating-preview.css',
   'assets/fonts/frank-ruhl-libre-600.woff', 'assets/fonts/FrankRuhlLibre-OFL.txt', 'assets/brand/oven-mark-luxury.svg',
   'assets/hero-pizzeria-mobile-v2.webp', 'assets/hero-pizzeria-desktop-v2.webp',
+  'assets/hero-vapor-mobile-v1.mp4', 'assets/hero-vapor-desktop-v1.mp4', 'src/hero-motion.js', 'src/hero-motion.css',
   'assets/fonts/heebo-900.woff', 'assets/fonts/Heebo-OFL.txt',
   ...['olive', 'mushroom', 'corn', 'onion', 'jalapeno', 'feta'].map((name) => `assets/toppings/${name}.webp`),
   'deploy_linux.sh', 'deploy/pizza-manager-locations.conf',
 ];
 for (const file of required) {
   if (!existsSync(path(file))) throw new Error(`Missing deployment file: ${file}`);
+}
+for (const viewport of ['mobile', 'desktop']) {
+  const file = `assets/hero-vapor-${viewport}-v1.mp4`;
+  if (statSync(path(file)).size > 80_000) throw new Error(`Hero motion exceeds the 80 KB transfer budget: ${file}`);
 }
 
 const html = readFileSync(path('index.html'), 'utf8');

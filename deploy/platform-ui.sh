@@ -72,6 +72,8 @@ verify() {
     if grep -q 'menu-pizza-editorial-v2.webp' "$storefront/src/app.js"; then
       curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-editorial-v2.webp"
     fi
+    curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-mobile-v1.mp4"
+    curl -fsS --max-time 20 -o /dev/null "$url/assets/hero-vapor-desktop-v1.mp4"
   fi
 }
 recover() {
@@ -121,6 +123,10 @@ for photo in pizza garlic family combo; do
 done
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/assets/"
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
+for viewport in mobile desktop; do
+  install -m 644 "$repository/assets/hero-vapor-$viewport-v1.mp4" "$release/assets/"
+  install -m 644 "$repository/assets/hero-vapor-$viewport-v1.mp4.json" "$release/assets/"
+done
 node "$repository/deploy/platform-storefront.mjs" "$repository" "$old_target" "$release" "$revision"
 chmod -R a+rX "$release"
 test "$source_hash" = "$(sha256sum "$storefront/src/app.js" "$storefront/src/styles.css" "$storefront/index.html")" || { echo 'Storefront source changed during preparation' >&2; exit 1; }

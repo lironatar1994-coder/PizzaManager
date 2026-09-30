@@ -55,6 +55,7 @@ app = app.replace(cartAnchor, cartAnchor + '\n  refreshMenuCart();');
 write('src/app.js', customerFlowApp(streamlinedBuilderApp(floatingPreviewApp(compactCustomerCopy(app, { platform: true }))), { platform: true }));
 write('src/floating-preview.js', read(repository, 'src/floating-preview.js'));
 write('src/customer-flow.js', read(repository, 'src/customer-flow.js'));
+write('src/hero-motion.js', read(repository, 'src/hero-motion.js'));
 
 // These menu selectors are single-line declarations in the incumbent stylesheet.
 // Keep every other rule, including the backend order status screen.
@@ -69,8 +70,12 @@ for (const line of read(repository, 'src/styles.css').split('/* Customer flow: q
 if (scoped.length < 50) throw Error('Menu stylesheet extraction is incomplete');
 css += '\n\n/* Menu photography: generated from the PizzaManager menu surface. */\n' + scoped.join('\n') + '\n';
 css += '.menu-page { --tomato: #c93124; --tomato-hover: #ab291f; }\n';
+css = css.replace(/\/\* Hero heat motion: the photograph remains[\s\S]*?\/\* End hero heat motion\. \*\//g, '');
+css += '\n' + read(repository, 'src/hero-motion.css');
 write('src/styles.css', customerFlowStyles(floatingPreviewStyles(compactCustomerStyles(css), read(repository, 'src/floating-preview.css')), read(repository, 'src/customer-flow.css')));
-const html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
+let html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
+html = html.replace(/^.*<script type="module" src="\/storefront\/src\/hero-motion\.js[^>]*><\/script>.*\r?\n/gm, '');
+html = html.replace('  </head>', `    <script type="module" src="/storefront/src/hero-motion.js?v=${tag}"></script>\n  </head>`);
 if (!html.includes(`app.js?v=${tag}`) || !html.includes(`styles.css?v=${tag}`)) throw Error('Platform entry asset paths changed');
 write('index.html', html);
 
