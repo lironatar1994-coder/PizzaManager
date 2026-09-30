@@ -89,6 +89,9 @@ verify() {
       curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -F "product1-${expected:0:12}" >/dev/null
     fi
     curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-v1.webp"
+    if [[ -f "$storefront/assets/builder-tabletop-v1.webp" ]]; then
+      curl -fsS --max-time 20 -o /dev/null "$url/assets/builder-tabletop-v1.webp"
+    fi
     if grep -q 'menu-pizza-editorial-v2.webp' "$storefront/src/app.js"; then
       curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-editorial-v2.webp"
     fi
@@ -144,6 +147,8 @@ for photo in pizza garlic family combo; do
 done
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/assets/"
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
+install -m 644 "$repository/assets/builder-tabletop-v1.webp" "$release/assets/"
+install -m 644 "$repository/assets/builder-tabletop-v1.webp.json" "$release/assets/"
 for viewport in mobile desktop; do
   install -m 644 "$repository/assets/hero-pizzeria-$viewport-v3.webp" "$release/assets/"
   install -m 644 "$repository/assets/hero-pizzeria-$viewport-v3.webp.json" "$release/assets/"

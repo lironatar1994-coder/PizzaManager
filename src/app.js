@@ -1,5 +1,5 @@
 import { mountCheckoutFlow } from './customer-flow.js';
-import { setupFloatingPreview } from './floating-preview.js?v=20260930-product1';
+import { setupFloatingPreview } from './floating-preview.js?v=20261001-rows1';
 import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
 import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-pizzeria2';
@@ -67,7 +67,7 @@ function brand() {
 
 function cartButton() {
   const count = cartCount();
-  return `<button class="cart-button" type="button" data-open-cart aria-label="${cartLabel(count)}">${icon('box')}<span class="cart-button__count" data-cart-count ${count ? '' : 'hidden'}>${count}</span></button>`;
+  return `<button class="cart-button" type="button" data-open-cart aria-label="${cartLabel(count)}"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.5 12h11L21 6H6M9 20h.01M18 20h.01" stroke-linecap="round" stroke-linejoin="round" /></svg><span class="cart-button__count" data-cart-count ${count ? '' : 'hidden'}>${count}</span></button>`;
 }
 const itemsText = (count) => (count === 1 ? 'פריט אחד' : `${count} פריטים`);
 const cartLabel = (count) => (count ? `הסל, ${itemsText(count)}` : 'הסל ריק');
@@ -502,9 +502,17 @@ function repeatPage() {
 
 /* ---------- מסך הרכבה ---------- */
 
+function builderSummaryMarkup(product, config, quantity) {
+  const price = priceBreakdown(product, config, quantity);
+  const base = price.rows[0];
+  const extras = price.unit - base.amount;
+  const count = (product.optionGroups || []).filter((group) => group.type === 'multi').reduce((sum, group) => sum + Object.keys(config.options[group.id] || {}).length, 0);
+  return `<dl><div><dt>${safe(base.name)}</dt><dd><bdi>${money(base.amount * quantity)}</bdi></dd></div><div><dt>תוספות${count ? ` (${count})` : ''}</dt><dd><bdi>${money(extras * quantity)}</bdi></dd></div><div class="builder-cost__total"><dt>סה״כ${quantity > 1 ? ` · ${quantity} יח׳` : ''}</dt><dd><bdi>${money(price.total)}</bdi></dd></div></dl>`;
+}
+
 function variantSection(product, config) {
   if (!product.variants?.length || product.variants.length < 2) return '';
-  return `<fieldset class="field-group"><legend class="field-group__head"><span class="field-group__title">גודל</span></legend>
+  return `<fieldset class="field-group"><legend class="field-group__head"><span class="field-group__title">${product.visual === 'pizza' ? 'גודל הפיצה' : 'גודל'}</span></legend>
     <div class="tile-row tile-row--3">${product.variants.map((variant) => `<label class="tile tile--size">
       <input type="radio" name="variant" value="${safe(variant.id)}" ${variant.id === config.variantId ? 'checked' : ''} ${!isAvailable(variant) ? 'disabled' : ''} />
       <span class="tile__surface">
@@ -516,7 +524,7 @@ function variantSection(product, config) {
 
 function singleGroup(group, value) {
   const allFree = group.choices.every((choice) => Number(choice.price || 0) === 0);
-  return `<fieldset class="field-group${group.visualRole === 'crust' ? ' field-group--crust' : ''}"><legend class="field-group__head"><span class="field-group__title">${safe(group.visualRole === 'crust' ? 'בצק' : group.name)}</span></legend>
+  return `<fieldset class="field-group${group.visualRole === 'crust' ? ' field-group--crust' : ''}"><legend class="field-group__head"><span class="field-group__title">${safe(group.visualRole === 'crust' ? 'סוג הבצק' : group.name)}</span></legend>
     <div class="tile-row${group.visualRole === 'crust' ? ' tile-row--crust' : ''} tile-row--${Math.min(group.choices.length, 3)}">${group.choices.map((choice) => `<label class="tile tile--option${choice.crust ? ' tile--crust' : ''}">
       <input type="radio" name="opt-${safe(group.id)}" value="${safe(choice.id)}" ${choice.id === value ? 'checked' : ''} ${!isAvailable(choice) ? 'disabled' : ''} />
       <span class="tile__surface">
@@ -532,7 +540,7 @@ function toppingPriceMarkup(choice, placement = 'whole') {
 const placementShortLabel = (part) => part === 'right' ? 'ימין' : part === 'left' ? 'שמאל' : 'שלמה';
 
 function multiGroup(group, value) {
-  return `<fieldset class="field-group" data-option-group="${safe(group.id)}"><legend class="field-group__head"><span class="field-group__title">${safe(group.name)}</span><button type="button" class="link-button extras-clear" data-clear-group="${safe(group.id)}" ${Object.keys(value || {}).length ? '' : 'disabled'}>ניקוי ${safe(group.name)}</button></legend>
+  return `<fieldset class="field-group" data-option-group="${safe(group.id)}"><legend class="field-group__head"><span class="field-group__title">${safe(group.name)}</span><button type="button" class="link-button extras-clear" data-clear-group="${safe(group.id)}" ${Object.keys(value || {}).length ? '' : 'disabled'}>${icon('trash')}ניקוי</button></legend>
     <div class="extras-recovery" data-clear-recovery="${safe(group.id)}" hidden><span>התוספות נוקו</span><button type="button" class="link-button" data-undo-clear>${icon('undo')}החזרה</button></div>
     <div class="selected-extras" data-selected-extras="${safe(group.id)}" hidden></div>
     <div class="topping-grid">${group.choices.map((choice) => {
@@ -550,9 +558,9 @@ function multiGroup(group, value) {
         </label>
         ${alternative ? `<button type="button" class="topping__alternative" data-alternative-group="${safe(group.id)}" data-alternative-from="${safe(choice.id)}" data-alternative-to="${safe(alternative.id)}" aria-label="בחירת ${safe(alternative.name)} במקום ${safe(choice.name)}">אפשר במקום: ${safe(alternative.name)} ${icon('plus')}</button>` : ''}
         ${group.placement ? `<button type="button" class="topping__placement-toggle" data-placement-toggle ${available ? '' : 'disabled'} aria-expanded="false" aria-controls="placement-${safe(group.id)}-${safe(choice.id)}" aria-label="${placement ? `מיקום ${safe(choice.name)}: ${placementLabel(placement)}. שינוי מיקום` : `בחירת מיקום ${safe(choice.name)}`}"><span data-placement-label>${placement ? placementShortLabel(placement) : 'מיקום'}</span>${icon('down')}</button>
-        <div class="placement" id="placement-${safe(group.id)}-${safe(choice.id)}" role="radiogroup" aria-label="איפה לשים ${safe(choice.name)}?">${Object.entries(PLACEMENTS).map(([key, info]) => `<label class="placement__option">
+        <div class="placement" id="placement-${safe(group.id)}-${safe(choice.id)}" role="radiogroup" aria-label="איפה לשים ${safe(choice.name)}?">${['whole', 'right', 'left'].map((key) => [key, PLACEMENTS[key]]).map(([key, info]) => `<label class="placement__option">
           <input type="radio" name="place-${safe(group.id)}-${safe(choice.id)}" value="${key}" aria-label="${info.label}, ${choice.price ? money(choicePrice(choice, key)) : 'כלול'}" ${placement === key ? 'checked' : ''} ${available ? '' : 'disabled'} />
-          <span aria-hidden="true">${placementIcon(key)}${key === 'whole' ? 'שלמה' : key === 'right' ? 'ימין' : 'שמאל'}<small><bdi>${choice.price ? `+${money(choicePrice(choice, key))}` : 'כלול'}</bdi></small></span>
+          <span aria-hidden="true">${placementIcon(key)}${key === 'whole' ? 'שלמה' : key === 'right' ? 'חצי ימין' : 'חצי שמאל'}<small><bdi>${choice.price ? `+${money(choicePrice(choice, key))}` : 'כלול'}</bdi></small></span>
         </label>`).join('')}</div>` : ''}
       </div>`;
     }).join('')}</div></fieldset>`;
@@ -639,6 +647,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
         ${variantSection(product, config)}
         ${(product.optionGroups || []).map((group) => (group.type === 'single' ? singleGroup(group, config.options[group.id]) : multiGroup(group, config.options[group.id]))).join('')}
         <div class="field-group field-group--inline builder-quantity" data-builder-quantity><span class="field-group__title" id="qty-title">כמות</span>${stepper({ value: quantity, label: 'כמות' })}</div>
+        <section class="builder-cost" data-builder-summary aria-label="סיכום מחיר"></section>
         <details class="builder-personal" data-personal ${personalOpen ? 'open' : ''}>
         <summary><span><strong>שם והערה</strong><small data-personal-summary></small></span>${icon('down')}</summary>
         <div class="builder-personal__fields">
@@ -654,7 +663,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     <div class="buybar buybar--builder"><p class="buybar__recovery" data-edit-recovery role="status" hidden></p><div class="buybar__inner">
       <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><section class="price-basket" data-builder-basket hidden aria-label="סכומי הסל"><button type="button" data-open-cart><span data-basket-current></span>${icon('down')}</button><p data-basket-projected></p></section><section class="price-changes" data-price-changes hidden><h3>שינויים ביחס לפריט בסל</h3><ul data-price-change-list></ul><p data-price-change-total></p></section><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}משלוח יחושב בקופה.</p></div>
       <button type="button" class="buybar__price" data-price-toggle aria-label="פירוט המחיר" title="פירוט המחיר" aria-expanded="false" aria-controls="price-panel">${icon('receipt')}</button>
-      <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span class="buybar__cta-copy"><span id="add-label"></span><span aria-hidden="true">·</span><bdi id="bar-total"></bdi></span>${icon('forward')}</button>
+      <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span class="buybar__cta-copy"><span id="add-label"></span><span aria-hidden="true">·</span><bdi id="bar-total"></bdi></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.5 12h11L21 6H6M9 20h.01M18 20h.01" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
     </div></div>
     <p class="visually-hidden" aria-live="polite" id="builder-status"></p>`;
 
@@ -819,6 +828,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     document.querySelector('#add-label').textContent = submitLabel();
     document.querySelector('[data-price-toggle]').setAttribute('aria-label', `פירוט המחיר, ${money(total)}`);
     document.querySelector('[data-price-content]').innerHTML = priceMarkup(product, config, quantity);
+    form.querySelector('[data-builder-summary]').innerHTML = builderSummaryMarkup(product, config, quantity);
     syncSaved();
     syncNotePresets();
     syncBasket();

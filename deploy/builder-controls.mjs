@@ -1,6 +1,9 @@
 // Refine only the builder UI. Keep each storefront's pricing, cart and API code.
 export function streamlinedBuilderApp(source) {
   let app = source;
+  const cartArt = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.5 12h11L21 6H6M9 20h.01M18 20h.01" stroke-linecap="round" stroke-linejoin="round" /></svg>';
+  app = app.replace("${icon('box')}<span class=\"cart-button__count\"", cartArt + '<span class="cart-button__count"');
+  app = app.replace("<bdi id=\"bar-total\"></bdi></span>${icon('forward')}", '<bdi id="bar-total"></bdi></span>' + cartArt);
   if (!app.includes("function orderProgress() { return ''; }")) {
     const progress = /function orderProgress\([^]*?\n}\r?\n/;
     if (!progress.test(app)) throw Error('Progress navigation boundary changed');
@@ -13,12 +16,17 @@ export function streamlinedBuilderApp(source) {
   if ([variantStart, groupStart, multiStart, multiEnd].some((index) => index < 0)) throw Error('Builder choice boundaries changed');
 
   let variants = app.slice(variantStart, groupStart);
+  variants = variants.replace('class="field-group__title">גודל</span>', 'class="field-group__title">${product.visual === \'pizza\' ? \'גודל הפיצה\' : \'גודל\'}</span>');
   variants = variants.replace(/\s*\$\{product\.visual === 'pizza' \? `<span class="size-disc"[^\n]+\n/, '\n');
   let single = app.slice(groupStart, multiStart);
+  single = single.replace("group.visualRole === 'crust' ? 'בצק'", "group.visualRole === 'crust' ? 'סוג הבצק'");
   single = single.replace(/\s*\$\{choice\.crust \? `<svg class="crust-icon"[^\n]+\n/, '\n');
   if (!single.includes('field-group--crust')) single = single.replace('class="field-group"', 'class="field-group${group.visualRole === \'crust\' ? \' field-group--crust\' : \'\'}"');
   if (!single.includes('tile-row--crust')) single = single.replace('class="tile-row tile-row--', 'class="tile-row${group.visualRole === \'crust\' ? \' tile-row--crust\' : \'\'} tile-row--');
   let multi = app.slice(multiStart, multiEnd);
+  multi = multi.replace('>ניקוי ${safe(group.name)}</button>', ">${icon('trash')}ניקוי</button>");
+  multi = multi.replace('Object.entries(PLACEMENTS).map', "['whole', 'right', 'left'].map((key) => [key, PLACEMENTS[key]]).map");
+  multi = multi.replace("key === 'right' ? 'ימין' : 'שמאל'", "key === 'right' ? 'חצי ימין' : 'חצי שמאל'");
   multi = multi.replace('<span class="topping__check">${icon(\'check\')}</span>', '<span class="topping__check">${icon(\'plus\')}${icon(\'check\')}</span>');
   multi = multi.replace('class="topping${', 'class="topping topping--compact${').replace('class="topping"', 'class="topping topping--compact"');
   multi = multi.replace('${placementLabel(placement || \'whole\')}', '${placement ? placementShortLabel(placement) : \'מיקום\'}');
@@ -26,6 +34,20 @@ export function streamlinedBuilderApp(source) {
   multi = multi.replace('aria-label="${info.label}"', 'aria-label="${info.label}, ${choice.price ? money(choicePrice(choice, key)) : \'כלול\'}"');
   multi = multi.replace("? 'ימין' : 'שמאל'}</span>", "? 'ימין' : 'שמאל'}<small><bdi>${choice.price ? `+${money(choicePrice(choice, key))}` : 'כלול'}</bdi></small></span>");
   app = app.slice(0, variantStart) + variants + single + multi + app.slice(multiEnd);
+  if (!app.includes('function builderSummaryMarkup(')) {
+    app = app.replace('function variantSection(', `function builderSummaryMarkup(product, config, quantity) {
+  const price = priceBreakdown(product, config, quantity);
+  const base = price.rows[0];
+  const extras = price.unit - base.amount;
+  const count = (product.optionGroups || []).filter((group) => group.type === 'multi').reduce((sum, group) => sum + Object.keys(config.options[group.id] || {}).length, 0);
+  return \`<dl><div><dt>\${safe(base.name)}</dt><dd><bdi>\${money(base.amount * quantity)}</bdi></dd></div><div><dt>תוספות\${count ? \` (\${count})\` : ''}</dt><dd><bdi>\${money(extras * quantity)}</bdi></dd></div><div class="builder-cost__total"><dt>סה״כ\${quantity > 1 ? \` · \${quantity} יח׳\` : ''}</dt><dd><bdi>\${money(price.total)}</bdi></dd></div></dl>\`;
+}
+
+function variantSection(`);
+  }
+  if (!app.includes('class="builder-cost"')) app = app.replace('<details class="builder-personal"', '<section class="builder-cost" data-builder-summary aria-label="סיכום מחיר"></section>\n        <details class="builder-personal"');
+  const refreshPrice = "document.querySelector('[data-price-content]').innerHTML = priceMarkup(product, config, quantity);";
+  if (!app.includes('innerHTML = builderSummaryMarkup(')) app = app.replace(refreshPrice, refreshPrice + "\n    form.querySelector('[data-builder-summary]').innerHTML = builderSummaryMarkup(product, config, quantity);");
   const closeSelected = "      closePlacement(target.closest('.topping'));";
   const revealSelected = "      form.querySelectorAll('.topping.is-editing').forEach(closePlacement);\n      const selectedTopping = target.closest('.topping');\n      const placementControl = selectedTopping.querySelector('[data-placement-toggle]');\n      if (target.checked && placementControl) {\n        selectedTopping.classList.add('is-editing');\n        placementControl.setAttribute('aria-expanded', 'true');\n      }";
   if (!app.includes('const selectedTopping =')) {

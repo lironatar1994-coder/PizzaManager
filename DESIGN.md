@@ -382,6 +382,7 @@ components:
 - **Opening Action** (800, 1.1875rem / 19px, 1.25): משלוח ואיסוף; עד רוחב 360px הגודל 1.0625rem / 17px. **Opening Utility** (600, 1rem / 16px): חיוג וניווט. **Opening Hours** (400, 0.75rem / 12px) ו־**Opening Disclosure** (0.6875rem / 11px, 1.5): שעות וגילוי ההדגמה בתחתית. קיצורי חזרה וחיווי סגירה משתמשים ב־0.875rem / 14px.
 - **Headline** (800, clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem), 1.1): כותרות עמוד כלליות, לרבות קופה וארוחה מתחת ל־900px.
 - **Order Heading** (700, clamp(2.25rem, 2.8vw, 2.5rem), 1.15): כותרת המוצר בהרכבה וכותרות הקופה והארוחה מ־900px. כותרת מסך הפתיחה ממשיכה להשתמש ב־Display.
+- **Builder Photo Heading** (900, clamp(1.375rem, 6vw, 1.875rem) / 22–30px, 1.2): הכותרת ליד הפיצה במובייל, לפי רפרנס הלקוח.
 - **Title** (800, 1.25rem): כותרת גיליון או סיכום וכותרת „ארוחות” בתפריט (גובה שורה 1.35). כותרות קבוצות הבחירה בהרכבה משתמשות באותו גודל ובמשקל 700.
 - **Option Name** (700, 1rem, 1.25): שמות באריחי גודל ובצק.
 - **Topping Name** (600, 1rem, 1.25): שם התוספת לצד הצילום; שם הבחירה נשאר בגודל גוף קריא.
@@ -576,7 +577,7 @@ components:
 ### Don't:
 - **Don't** להחיל את ההגדלה הדרמטית ואת פרטי הפליז של הפתיחה על מסכי התפריט וההזמנה.
 - **Don't** לצרוב שם עסק או פעולות בצילום, או להציג את תמונת ההדגמה כצילום העסק.
-- **Don't** לצבוע בחירה באדום.
+- **Don't** לצבוע בחירה באדום מחוץ להרכבה; במסך ההרכבה רפרנס הלקוח משתמש באדום לבחירה ולסימון ✓.
 - **Don't** לשים צל צבעוני סביב כפתורים.
 - **Don't** להשתמש בהאטה עם קפיצה.
 - **Don't** להציג "ההזמנה התקבלה" או "התשלום בוצע" לפני אישור מהשרת.
@@ -588,7 +589,7 @@ Ordering sections use short nouns. Explanatory placeholders, repeated selection 
 
 Size choices show only name and price in 72px controls, with 1px neutral and 1.5px selected outlines. Diameter, slice counts and audience descriptions remain in managed data. Crust choices use a 52px ivory segmented selector without images or rings. Topping names have a full text column, a small check over the ingredient image, and a 44px placement control opening whole/right/left with current prices. Quantity comes next, followed by collapsed note and save/share sections. Basket totals are inside the price breakdown, and the desktop builder action aligns with its choices column. The desktop preview does not repeat the product heading.
 
-### Floating mobile pizza preview
+### Floating mobile pizza preview — superseded by the reference composition below
 
 Below 900px, the same live pizza stage and the price/add action form one floating dock, with shared 16px outer corners and a single neutral downward shadow. The dark pizza surface joins the ivory action surface without a gap or separate card rounding. The complete dock targets 25svh, clamped to 164–232px; the measured action height is subtracted from the preview height. The whole pizza fits with an 8px framing allowance, at a consistent footprint so toppings stay legible. It folds into a 60px strip by customer choice or temporarily when the keyboard opens. The whole image opens the existing half editor, with separate 44px expand and collapse controls without square backplates. The product heading is visible above size choices; the old preview leaves no space at the top. The dock's measured height reserves scrollable room for the last fields. Price breakdowns can extend above the dock without being clipped. Desktop retains a sticky pizza column up to 520px high, with the whole SVG centered in its available canvas and the action aligned to the choices.
 
@@ -636,3 +637,17 @@ Mobile identity and ordering stay centered; a 128px bottom margin raises the gro
 ### Builder selection clarity — 2026-10-01
 
 Remove the compose/cart/details step navigation from all customer screens: back controls and the existing cart/checkout actions provide navigation. Keep the live pizza dock, quantity, size, dough and all pricing behavior. Topping names use 16px type with 32px imagery and a 22px plus affordance; selected choices show a check. Unselected toppings expose no placement control. Selecting a topping adds the default whole placement and opens its whole/right/left picker; choosing a placement closes it. Only one placement picker opens at a time. Unavailable choices and dynamic half prices remain authoritative. No changes to catalog, products, payments or backend.
+
+### Reference customizer — 2026-10-01, current composition
+
+The user supplied `1000190095.jpg` and explicitly requested its smallest visual details. This composition supersedes the prior bottom pizza dock and popup placement treatment. Mode: Operate. Preserve catalog, availability, pricing, drafts, half editing and order logic.
+
+- Background `#F8F5EF`, white rows, ink `#211C18`, secondary `#6F655C`; tomato `#C93124` marks selections and actions, selected size tint `#FFF4EF`. Neutral 1px borders; control corners 8–10px. These are deliberate reference-specific token extensions.
+- Mobile starts with a 160–210px tabletop image: the live reactive pizza on the left, “הפיצה שלכם” and one short subtitle on the right, a 34×2px tomato underline and a white round expand control. No step navigation. The same stage becomes a 64px strip below the actual header after scrolling beyond it; it reserves its original document space and opens the existing full pizza editor. Keyboard entry hides the strip.
+- Sizes are 64px name/price buttons; dough is a 44px segmented control. Active choices use a tomato outline, text and an 18px round check.
+- Toppings are full-width rows with white backgrounds, ingredient art and name/price on the right, and a 22px tomato check on the left. Names are 16px, selected inline names 14px to preserve space. Only selected rows expose the whole/right/left segmented control, with a 44px touch height and 12px labels. At 380px and below that segment moves to the row's second line; the checkbox still selects/removes the ingredient. Availability alternatives remain visible.
+- Summary uses the incumbent `priceBreakdown`: base amount, extras, total, multiplied by the current quantity. Half prices remain dynamic and in radio accessible names. Optional notes and save/share stay collapsed after the summary.
+- The mobile action row stays at the bottom: quantity on the left with minus left/plus right; a 52px red add button with the current total and shopping cart icon on the right. Desktop retains a sticky light pizza column and a form-width action.
+- `assets/builder-tabletop-v1.webp` is a 1200×480 generated illustrative background (no food product or UI baked in). Its metadata sidecar records generation and reference. It is presentation only, never an actual restaurant photo; the real pizza layer continues updating with choices.
+
+Finish review: compared 390×844 mobile and 1440×900 desktop together. The correction batch reset inherited grid-area positioning on selection checks, made half labels fit without overlap, set the preview accent to tomato and restored plus/right quantity order. A repeat compiler pass is idempotent. Detector's intentional 30px fluid heading endpoint is now part of the type ramp above. Final confirmation and deployment evidence are recorded in the task; no production order is submitted.
