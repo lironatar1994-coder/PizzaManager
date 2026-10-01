@@ -3,7 +3,7 @@ export function streamlinedBuilderApp(source) {
   let app = source;
   const cartArt = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.5 12h11L21 6H6M9 20h.01M18 20h.01" stroke-linecap="round" stroke-linejoin="round" /></svg>';
   app = app.replace("${icon('box')}<span class=\"cart-button__count\"", cartArt + '<span class="cart-button__count"');
-  app = app.replace("<bdi id=\"bar-total\"></bdi></span>${icon('forward')}", '<bdi id="bar-total"></bdi></span>' + cartArt);
+  app = app.replace('<bdi id="bar-total"></bdi></span>' + cartArt, '<bdi id="bar-total"></bdi></span>${icon(\'forward\')}');
   if (!app.includes("function orderProgress() { return ''; }")) {
     const progress = /function orderProgress\([^]*?\n}\r?\n/;
     if (!progress.test(app)) throw Error('Progress navigation boundary changed');
