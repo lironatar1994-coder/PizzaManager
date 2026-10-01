@@ -106,10 +106,19 @@ write('src/styles.css', css);
 write('src/floating-preview.js', module);
 write('index.html', html);
 
+// Replace only the visual base filenames, keeping the incumbent renderer,
+// deterministic topping scatter, variant geometry and half-selection logic.
+const pizzaAssets = [['pizza-base-v2.webp', 'pizza-base-real-v3.webp'], ['pizza-base-thin-v2.webp', 'pizza-base-thin-real-v3.webp']];
+const normalizePizzaAssets = (content) => pizzaAssets.reduce((text, [before, after]) => text.replaceAll(after, before), content);
+const incumbentPizza = read(source, 'src/pizza.js');
+const pizzaModule = pizzaAssets.reduce((text, [before, after]) => text.replaceAll(before, after), incumbentPizza);
+if (!pizzaModule.includes('pizza-base-real-v3.webp') || !pizzaModule.includes('pizza-base-thin-real-v3.webp') || normalizePizzaAssets(pizzaModule) !== normalizePizzaAssets(incumbentPizza)) throw Error('Pizza artwork adapter changed renderer logic');
+write('src/pizza.js', pizzaModule);
+
 const preservedModules = {};
 for (const file of readdirSync(join(source, 'src')).filter((name) => name.endsWith('.js'))) {
   const path = `src/${file}`;
-  if (file !== 'app.js' && file !== 'floating-preview.js') {
+  if (file !== 'app.js' && file !== 'floating-preview.js' && file !== 'pizza.js') {
     if (hash(source, path) !== hash(output, path)) throw Error(`Incumbent module changed: ${file}`);
     preservedModules[path] = hash(source, path);
   }
@@ -121,11 +130,11 @@ function unchangedTree(directory) {
   for (const name of readdirSync(join(source, directory))) {
     const path = join(directory, name);
     if (statSync(join(source, path)).isDirectory()) unchangedTree(path);
-    else if (!['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'assets/product-ui-version.json'].includes(path.replaceAll('\\', '/')) && hash(source, path) !== hash(output, path)) throw Error(`Incumbent file changed: ${path}`);
+    else if (!['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'assets/product-ui-version.json'].includes(path.replaceAll('\\', '/')) && hash(source, path) !== hash(output, path)) throw Error(`Incumbent file changed: ${path}`);
   }
 }
 unchangedTree('src');
 unchangedTree('assets');
-const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'index.html'].map((path) => [path, hash(output, path)]));
-write('assets/product-ui-version.json', JSON.stringify({ revision, surface: 'product-customizer', managedCatalog: true, files, preserved: { appLogic: digest(withoutProductPresentation(app)), otherStyles: digest(withoutFloatingStyles(css)), entryMarkup: digest(withoutEntryTags(html)), modules: preservedModules } }) + '\n');
+const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'index.html'].map((path) => [path, hash(output, path)]));
+write('assets/product-ui-version.json', JSON.stringify({ revision, surface: 'product-customizer', managedCatalog: true, files, preserved: { appLogic: digest(withoutProductPresentation(app)), pizzaRenderer: digest(normalizePizzaAssets(pizzaModule)), otherStyles: digest(withoutFloatingStyles(css)), entryMarkup: digest(withoutEntryTags(html)), modules: preservedModules } }) + '\n');
 console.log(`Compiled product UI ${revision}; app logic, other style surfaces, incumbent modules and assets preserved.`);

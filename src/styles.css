@@ -1373,6 +1373,10 @@ body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3ef
 .buybar--builder #bar-total { white-space: nowrap; font-weight: inherit; }
 .builder:not(.builder--flat) .stage, .pizza-dock .stage { --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --line: #e5dfd8; --surface-2: #f3efea; --select: #c83125; background: var(--ground); color: var(--text); }
 .builder .stage__flare { display: none; }
+.pizza__piece { filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
+.builder .stage .icon, .pizza-dock .icon, .buybar--builder .buybar__cta > .icon { stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
+.builder .stage__composition dt { font-weight: 600; }
+.builder .stage__composition dd { font-weight: 400; }
 @media (max-width: 899px) {
   .builder--floating-preview { display: block; }
   .builder--floating-preview .builder__form { padding-block: 16px calc(var(--dock-height, 200px) + 24px); }
@@ -1394,19 +1398,21 @@ body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3ef
   .has-floating-preview .buybar__cta > .icon { display: block; flex: none; inline-size: 20px; block-size: 20px; }
   .has-floating-preview .buybar__cta-copy { flex: 1; gap: 4px; }
   .has-floating-preview #add-label { white-space: nowrap; }
-  .pizza-dock .buybar__price .icon { inline-size: 20px; block-size: 20px; }
+  .pizza-dock .buybar__price .icon { inline-size: 21px; block-size: 21px; }
   .stage--floating { --preview-height: clamp(104px, 35cqw, 140px); --preview-pizza: calc(var(--preview-height) * 1.5); position: relative; top: auto; inset: auto; z-index: 1; block-size: var(--preview-height); inline-size: 100%; overflow: hidden; isolation: isolate; box-shadow: none; background: var(--ground) !important; transition: block-size .22s cubic-bezier(.16,1,.3,1); }
   .stage--floating .stage__canvas { position: absolute; inset: 0; min-block-size: 0; }
   .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: 43%; right: auto; inline-size: var(--preview-pizza); will-change: auto; transform: translate(-50%, -50%); }
-  .stage--floating .pizza { filter: drop-shadow(0 4px 6px rgba(46,31,19,.14)); }
+  .stage--floating .pizza { filter: drop-shadow(0 3px 5px rgba(46,31,19,.16)); }
   .stage--floating .pizza__disc { transform: scale(.66); }
   .stage--floating .pizza__ring { opacity: 0; }
-  .stage--floating .stage__summary { position: absolute; inset-inline-start: var(--gutter); inset-inline-end: auto; inset-block: 28px 8px; inline-size: 30%; display: grid; align-content: center; padding: 0; min-block-size: 0; }
+  .stage--floating .stage__summary { position: absolute; inset-inline-start: var(--gutter); inset-inline-end: auto; inset-block: 28px 8px; inline-size: 30%; display: grid; align-content: center; gap: 4px; padding: 0; min-block-size: 0; }
   .stage--floating .stage__title { display: none; }
-  .stage--floating .stage__dock-title { display: block; margin: 0; font-size: 1rem; font-weight: 700; line-height: 1.3; }
-  .stage--floating .stage__selection { display: block; margin: 4px 0 0; color: var(--text-2); font-size: .875rem; line-height: 1.4; }
+  .stage--floating .stage__dock-title { display: block; margin: 0; font-size: 1rem; font-weight: 650; line-height: 1.3; text-wrap: balance; }
+  .stage--floating .stage__selection { display: block; margin: 0; color: var(--text-2); font-size: .875rem; font-weight: 400; line-height: 1.4; }
   .stage--floating .stage__detail, .stage--floating .stage__composition { display: none; }
-  .stage--floating .stage__compact { display: block; margin: 4px 0 0; color: var(--text-2); font-size: .875rem; line-height: 1.4; }
+  .stage--floating .stage__compact { display: block; margin: 0; color: var(--text-2); font-size: .875rem; font-weight: 400; line-height: 1.4; }
+  .stage--floating .stage__expand .icon { inline-size: 21px; block-size: 21px; }
+  .stage--floating .stage__collapse .icon { inline-size: 18px; block-size: 18px; }
   .stage--floating .stage__expand, .stage--floating .stage__collapse { position: absolute; z-index: 3; inset-block-start: 0; inset-block-end: auto; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--text); box-shadow: none; }
   .stage--floating .stage__expand { inset-inline-start: 6px; inset-inline-end: auto; }
   .stage--floating .stage__collapse { inset-inline-end: 6px; inset-inline-start: auto; }

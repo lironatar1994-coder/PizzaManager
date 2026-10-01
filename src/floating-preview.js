@@ -6,6 +6,9 @@ export function setupFloatingPreview(stage) {
   const collapse = stage.querySelector('[data-preview-collapse]'), view = stage.querySelector('[data-preview-open]'), expand = stage.querySelector('[data-expand-pizza]');
   const quantity = builder?.querySelector('[data-builder-quantity]'), price = inner?.querySelector('[data-price-toggle]');
   if (!builder || !inner || !collapse || !view || !expand) return () => {};
+  const originalExpandArt = expand.innerHTML, originalPriceArt = price?.innerHTML;
+  expand.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4.5H4.5V8m11.5-3.5h3.5V8m0 8v3.5H16m-8 0H4.5V16"/></svg>';
+  if (price) price.innerHTML = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v15.5l-3-1.5-3 1.5-3-1.5-3 1.5V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M9 8h6m-6 4h6m-6 4h3"/></svg>';
   const stageOrigin = document.createComment('pizza preview origin'); stage.before(stageOrigin);
   const quantityOrigin = document.createComment('quantity origin'), priceOrigin = document.createComment('price origin');
   quantity?.before(quantityOrigin); price?.before(priceOrigin);
@@ -78,6 +81,7 @@ export function setupFloatingPreview(stage) {
   return () => {
     collapse.removeEventListener('click', toggle); view.removeEventListener('click', open);
     pizza.removeEventListener('click', open); titleObserver.disconnect(); dockTitle.remove(); selection.remove();
+    expand.innerHTML = originalExpandArt; if (price) price.innerHTML = originalPriceArt;
     mobile.removeEventListener('change', mount); window.removeEventListener('resize', keyboard); viewport?.removeEventListener('resize', keyboard);
     document.removeEventListener('focusin', keyboard); document.removeEventListener('focusout', keyboard);
     cancelAnimationFrame(frame); cancelAnimationFrame(layoutFrame); observer.disconnect();

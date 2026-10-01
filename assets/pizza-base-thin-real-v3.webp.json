@@ -1,0 +1,11 @@
+{
+  "kind": "generated illustrative pizza base, not an actual restaurant photograph",
+  "tool": "built-in image_gen",
+  "generatedSource": "exec-2ec859da-36b0-4886-85e2-d8f61914d1bf.png",
+  "reference": "classic base exec-3c1d846e-19b0-4579-9dea-36c1e47c1a99.png",
+  "asset": "pizza-base-thin-real-v3.webp",
+  "dimensions": [768, 768],
+  "alpha": true,
+  "purpose": "Thin cheese/crust base for the existing dough selector; topping and pricing logic remains intact.",
+  "prompt": "Use case: precise-object-edit. Generate the THIN CRUST version of this same photorealistic plain cheese pizza base for an interactive ordering UI. Preserve the exact overhead camera, square canvas, center placement, round diameter about92% of canvas, lighting, mozzarella/tomato material, natural food detail and transparent alpha outside food. Change the raised thick puffy crust into a much narrower, lower, crisp thin golden crust, width only about5-6% of radius. Cheese extends nearer to the edge. Use fewer dark/black baked patches and less orange saturation, creamier naturally melted mozzarella with gentle golden spots; appetizing realistic photography, not plastic CGI. ONE entire unsliced pizza only, no toppings whatsoever: no olives, corn, onions, herbs, mushrooms, peppers or meat. No plate, surface, external cast shadow, UI, text, steam or extra objects. True transparent RGBA background. This must remain accurately top-down, not oval perspective, to support left/right half selection."
+}

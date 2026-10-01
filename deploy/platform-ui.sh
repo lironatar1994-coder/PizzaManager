@@ -149,6 +149,10 @@ install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/asset
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
 install -m 644 "$repository/assets/builder-tabletop-v1.webp" "$release/assets/"
 install -m 644 "$repository/assets/builder-tabletop-v1.webp.json" "$release/assets/"
+for base in pizza-base-real-v3 pizza-base-thin-real-v3; do
+  install -m 644 "$repository/assets/$base.webp" "$release/assets/"
+  install -m 644 "$repository/assets/$base.webp.json" "$release/assets/"
+done
 install -d -m 755 "$release/assets/fonts"
 for subset in hebrew latin; do
   install -m 644 "$repository/assets/fonts/heebo-builder-$subset.woff2" "$release/assets/fonts/"
@@ -165,7 +169,7 @@ node "$repository/deploy/platform-storefront.mjs" "$repository" "$old_target" "$
 product_stage=$(mktemp -d "$base/.product-ui.XXXXXXXX")
 cp -a -- "$release/." "$product_stage/"
 node "$repository/deploy/platform-product.mjs" "$repository" "$release" "$product_stage" "$revision"
-for file in src/app.js src/styles.css src/floating-preview.js index.html assets/product-ui-version.json; do
+for file in src/app.js src/styles.css src/floating-preview.js src/pizza.js index.html assets/product-ui-version.json; do
   install -m 644 "$product_stage/$file" "$release/$file"
 done
 chmod -R a+rX "$release"

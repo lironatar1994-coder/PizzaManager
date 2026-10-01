@@ -1,0 +1,11 @@
+{
+  "kind": "generated illustrative pizza base, not an actual restaurant photograph",
+  "tool": "built-in image_gen",
+  "generatedSource": "exec-3c1d846e-19b0-4579-9dea-36c1e47c1a99.png",
+  "reference": "approved realism mockup exec-784f45f2-9336-4b3d-a971-11e31f7ec08c.png",
+  "asset": "pizza-base-real-v3.webp",
+  "dimensions": [768, 768],
+  "alpha": true,
+  "purpose": "Plain classic cheese/crust base; customer-selected toppings remain independent reactive layers.",
+  "prompt": "Use case: product-mockup, production cutout asset for a reactive pizza builder. The reference board's large pizza establishes the approved photorealistic material and lighting. Generate ONLY one round CLASSIC CRUST cheese pizza isolated on a truly transparent RGBA background. No UI, no typography, no scene, no board. This is the plain BASE before customer toppings are dynamically drawn. Completely REMOVE all olives, corn, onions and every other topping from the reference. Ingredients visible must be only baked dough, red tomato sauce and naturally melted mozzarella. Perfectly top-down orthographic framing, nearly circular natural hand-shaped edge, center at the exact square image center. Full pizza visible with 4% transparent margin on every side, pizza diameter 92% of square canvas. Crisp authentic food photography; attractive golden puffy crust, 10-12% of radius rim thickness, natural little blister bubbles and restrained toasted brown patches, no excessive black burning. Soft melted mozzarella with organic creamy folds, small golden baked spots, hints of tomato sauce between cheese areas, subtly appetizing oil sheen. Very high detail and natural texture with believable depth and raised crust, NOT plastic CGI. Soft upper-left light with shallow contact shading INSIDE food surfaces; no cast shadow or ground plane outside the pizza because the app supplies the shadow. No decorations, garnish, basil, meat, herbs, slices, missing sections, floating ingredients, plates, hands, steam or text. Every pixel outside the actual uneven food silhouette must be transparent, no white/checkerboard baked in. Match the reference's premium delicious realism while keeping an accurate overhead shape for interactive left and right halves."
+}

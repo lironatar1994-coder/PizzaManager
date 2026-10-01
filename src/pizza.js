@@ -87,7 +87,7 @@ export function toppingMarkup(topping, entering = false) {
 export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 8)}`, rings = [], label = '', editable = false } = {}) {
   const inner = R - CRUST.thin;
   const hasHalf = state.toppings.some((topping) => topping.placement !== 'whole');
-  const baseImage = state.crust === 'thin' ? './assets/pizza-base-thin-v2.webp' : './assets/pizza-base-v2.webp';
+  const baseImage = state.crust === 'thin' ? './assets/pizza-base-thin-real-v3.webp' : './assets/pizza-base-real-v3.webp';
   return `<svg class="pizza" viewBox="0 0 400 400" ${label ? `role="img" aria-label="${label}"` : 'aria-hidden="true"'}>
     <defs>
       <clipPath id="${uid}-inner"><circle class="pizza__inner-clip" cx="${C}" cy="${C}" r="${R - CRUST[state.crust] - 7}"/></clipPath>
@@ -107,7 +107,7 @@ export function updatePizza(svg, previous, next) {
   const disc = svg.querySelector('.pizza__disc');
   disc.style.setProperty('--scale', next.scale);
   if (previous.crust !== next.crust) {
-    svg.querySelector('.pizza__photo').setAttribute('href', next.crust === 'thin' ? './assets/pizza-base-thin-v2.webp' : './assets/pizza-base-v2.webp');
+    svg.querySelector('.pizza__photo').setAttribute('href', next.crust === 'thin' ? './assets/pizza-base-thin-real-v3.webp' : './assets/pizza-base-real-v3.webp');
     svg.querySelector('.pizza__inner-clip').setAttribute('r', R - CRUST[next.crust] - 7);
   }
   const layer = svg.querySelector('.pizza__toppings');
