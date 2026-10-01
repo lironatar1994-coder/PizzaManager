@@ -149,9 +149,9 @@ install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/asset
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
 install -m 644 "$repository/assets/builder-tabletop-v1.webp" "$release/assets/"
 install -m 644 "$repository/assets/builder-tabletop-v1.webp.json" "$release/assets/"
-for base in pizza-base-real-v3 pizza-base-thin-real-v3; do
-  install -m 644 "$repository/assets/$base.webp" "$release/assets/"
-  install -m 644 "$repository/assets/$base.webp.json" "$release/assets/"
+for pizza_artwork in pizza-base-real-v3 pizza-base-thin-real-v3; do
+  install -m 644 "$repository/assets/$pizza_artwork.webp" "$release/assets/"
+  install -m 644 "$repository/assets/$pizza_artwork.webp.json" "$release/assets/"
 done
 install -d -m 755 "$release/assets/fonts"
 for subset in hebrew latin; do
