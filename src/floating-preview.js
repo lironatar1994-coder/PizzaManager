@@ -9,12 +9,28 @@ export function setupFloatingPreview(stage) {
   const stageOrigin = document.createComment('pizza preview origin'); stage.before(stageOrigin);
   const quantityOrigin = document.createComment('quantity origin'), priceOrigin = document.createComment('price origin');
   quantity?.before(quantityOrigin); price?.before(priceOrigin);
+  const liveTitle = stage.querySelector('#stage-title'), summary = stage.querySelector('.stage__summary');
+  const dockTitle = document.createElement('p'), selection = document.createElement('p');
+  dockTitle.className = 'stage__dock-title'; selection.className = 'stage__selection';
+  summary.prepend(dockTitle, selection);
+  const syncSummary = () => {
+    const variant = builder.querySelector('input[name="variant"]:checked')?.closest('label')?.querySelector('strong')?.textContent || '';
+    const crust = builder.querySelector('.field-group--crust input:checked')?.closest('label')?.querySelector('strong')?.textContent || '';
+    const quantityText = quantity?.querySelector('output')?.textContent;
+    const suffix = [variant, Number(quantityText) > 1 ? `${quantityText} יח׳` : ''].filter(Boolean).join(' · ');
+    const title = liveTitle.textContent;
+    dockTitle.textContent = suffix && title.endsWith(` · ${suffix}`) ? title.slice(0, -suffix.length - 3) : title;
+    selection.textContent = [variant, crust].filter(Boolean).join(' · ');
+  };
+  const titleObserver = new MutationObserver(syncSummary); titleObserver.observe(liveTitle, { childList: true }); syncSummary();
+  const pizza = stage.querySelector('.stage__pizza');
+  view.innerHTML = expand.innerHTML;
   const dock = document.createElement('div'); dock.className = 'pizza-dock';
   const mobile = window.matchMedia('(max-width: 899px)'), viewport = window.visualViewport;
   let fullHeight = window.innerHeight, keyboardOpen = false, frame = 0, layoutFrame = 0;
   const measureDock = () => {
     if (!mobile.matches || !dock.isConnected) return;
-    const height = Math.ceil(dock.getBoundingClientRect().height);
+    const height = Math.ceil(dock.getBoundingClientRect().height + parseFloat(getComputedStyle(bar).paddingBottom));
     if (height) builder.style.setProperty('--dock-height', `${height}px`);
   };
   const observer = new ResizeObserver(measureDock); observer.observe(stage); observer.observe(inner);
@@ -55,11 +71,13 @@ export function setupFloatingPreview(stage) {
   const toggle = () => { collapsedByCustomer = !collapsedByCustomer; paint(); };
   const open = () => expand.click();
   collapse.addEventListener('click', toggle); view.addEventListener('click', open);
+  pizza.addEventListener('click', open);
   mobile.addEventListener('change', mount); window.addEventListener('resize', keyboard); viewport?.addEventListener('resize', keyboard);
   document.addEventListener('focusin', keyboard); document.addEventListener('focusout', keyboard);
   mount(); layoutFrame = requestAnimationFrame(measureDock);
   return () => {
     collapse.removeEventListener('click', toggle); view.removeEventListener('click', open);
+    pizza.removeEventListener('click', open); titleObserver.disconnect(); dockTitle.remove(); selection.remove();
     mobile.removeEventListener('change', mount); window.removeEventListener('resize', keyboard); viewport?.removeEventListener('resize', keyboard);
     document.removeEventListener('focusin', keyboard); document.removeEventListener('focusout', keyboard);
     cancelAnimationFrame(frame); cancelAnimationFrame(layoutFrame); observer.disconnect();

@@ -1,5 +1,5 @@
 /* Floating mobile pizza preview. */
-.stage__collapse, .stage__view, .stage__caption { display: none; }
+.stage__collapse, .stage__view, .stage__caption, .stage__dock-title, .stage__selection { display: none; }
 .builder { --ground: #f8f5ef; --select: #c93124; --select-soft: #fff4ef; --select-ink: #fff; background: var(--ground); }
 .builder__form { padding-block-start: 16px; }
 .builder__form > .field-group { padding-block: 16px 20px; border-block-end: 1px solid var(--line); }
@@ -68,34 +68,44 @@
   .builder--floating-preview .builder__intro h1 { position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none; white-space: normal; font-size: 1.5rem; line-height: 1.25; }
   .builder--floating-preview .builder__intro { padding: 0 0 16px; min-block-size: 0; }
   .builder--floating-preview .builder__about { position: static; }
-  .buybar--builder.has-floating-preview { border: 0; padding: 0; background: var(--ground); backdrop-filter: none; }
-  .pizza-dock { border-block-start: 1px solid var(--line); background: var(--ground); }
-  .has-floating-preview .pizza-dock > .buybar__inner { flex-direction: row-reverse; inline-size: min(100%, 672px); margin-inline: auto; padding: 8px var(--gutter) max(8px, env(safe-area-inset-bottom)); border-radius: 0; background: var(--ground); box-shadow: none; gap: 10px; }
+  .buybar--builder.has-floating-preview { border: 0; padding: 0 12px max(10px, env(safe-area-inset-bottom)); background: transparent; backdrop-filter: none; }
+  .pizza-dock { --ground: #fbf9f5; border: 0; inline-size: min(100%, 672px); margin-inline: auto; border-radius: 16px; background: var(--ground); box-shadow: 0 8px 28px rgba(33, 28, 24, .14); overflow: hidden; }
+  .has-floating-preview .pizza-dock > .buybar__inner { flex-direction: row; inline-size: min(100%, 672px); margin-inline: auto; padding: 8px 12px 12px; border-block-start: 1px solid var(--line); border-radius: 0; background: var(--ground); box-shadow: none; gap: 10px; }
   .pizza-dock .builder-quantity { flex: none; margin: 0; padding: 0; border: 0; }
   .pizza-dock .builder-quantity > .field-group__title { display: none; }
   .pizza-dock .stepper { gap: 0; min-block-size: 48px; padding: 0; border-radius: 10px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); flex-direction: row; }
   .pizza-dock .stepper button { inline-size: 44px; block-size: 48px; min-inline-size: 44px; min-block-size: 48px; }
   .pizza-dock .stepper output { min-inline-size: 28px; font-size: 1rem; }
-  .has-floating-preview .buybar__cta { flex-direction: row-reverse; }
-  .stage--floating { --preview-height: clamp(96px, 16svh, 136px); --preview-pizza: calc(var(--preview-height) * 1.5); position: relative; top: auto; inset: auto; z-index: 1; block-size: var(--preview-height); inline-size: 100%; overflow: hidden; isolation: isolate; box-shadow: none; background: var(--ground) !important; transition: block-size .22s cubic-bezier(.16,1,.3,1); }
+  .has-floating-preview .buybar__cta { flex-direction: row-reverse; padding-inline: 10px; }
+  .has-floating-preview .buybar__cta > .icon { display: none; }
+  .has-floating-preview .buybar__cta-copy { gap: 4px; }
+  .has-floating-preview #add-label { white-space: nowrap; }
+  .pizza-dock .buybar__price .icon { inline-size: 18px; block-size: 18px; }
+  .stage--floating { --preview-height: clamp(104px, 17svh, 144px); --preview-pizza: calc(var(--preview-height) * 1.5); position: relative; top: auto; inset: auto; z-index: 1; block-size: var(--preview-height); inline-size: 100%; overflow: hidden; isolation: isolate; box-shadow: none; background: var(--ground) !important; transition: block-size .22s cubic-bezier(.16,1,.3,1); }
   .stage--floating .stage__canvas { position: absolute; inset: 0; min-block-size: 0; }
-  .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: 38%; right: auto; inline-size: var(--preview-pizza); transform: translate(-50%, -50%); }
+  .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: 46%; right: auto; inline-size: var(--preview-pizza); transform: translate(-50%, -50%); }
   .stage--floating .pizza__ring { opacity: 0; }
-  .stage--floating .stage__summary { position: absolute; inset-inline-start: var(--gutter); inset-inline-end: auto; inset-block: 44px 8px; inline-size: 30%; display: grid; align-content: center; padding: 0; min-block-size: 0; }
-  .stage--floating .stage__title { display: block; font-size: .875rem; font-weight: 700; }
+  .stage--floating .stage__summary { position: absolute; inset-inline-start: var(--gutter); inset-inline-end: auto; inset-block: 32px 12px; inline-size: 28%; display: grid; align-content: center; padding: 0; min-block-size: 0; }
+  .stage--floating .stage__title { display: none; }
+  .stage--floating .stage__dock-title { display: block; margin: 0; font-size: 1rem; font-weight: 700; line-height: 1.3; }
+  .stage--floating .stage__selection { display: block; margin: 4px 0 0; color: var(--text-2); font-size: .875rem; line-height: 1.4; }
   .stage--floating .stage__detail, .stage--floating .stage__composition { display: none; }
-  .stage--floating .stage__compact { font-size: .75rem; }
+  .stage--floating .stage__compact { display: block; margin: 4px 0 0; color: var(--text-2); font-size: .75rem; }
   .stage--floating .stage__expand, .stage--floating .stage__collapse { position: absolute; z-index: 3; inset-block-start: 0; inset-block-end: auto; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--text); box-shadow: none; }
   .stage--floating .stage__expand { inset-inline-start: 6px; inset-inline-end: auto; }
   .stage--floating .stage__collapse { inset-inline-end: 6px; inset-inline-start: auto; }
-  .stage--floating > .buybar__price { position: absolute; z-index: 3; inset-inline-end: 6px; inset-block-end: 4px; display: grid; }
-  .stage--floating .stage__view { position: absolute; z-index: 2; inset: 0 34% 0 16%; display: block; border: 0; background: transparent; cursor: zoom-in; }
+  .stage--floating .stage__collapse .icon { transform: rotate(180deg); }
+  .stage--floating > .buybar__price { position: absolute; z-index: 3; inset-inline-end: 44px; inset-block-start: 0; inset-block-end: auto; display: grid; }
+  .stage--floating .stage__view { position: absolute; z-index: 2; inset: auto; left: calc(46% - var(--preview-height) * .42); inset-block-end: 4px; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: var(--surface-1); color: var(--text); cursor: zoom-in; }
+  .stage--floating .stage__view .icon { inline-size: 18px; block-size: 18px; }
+  .stage--floating .stage__pizza { cursor: zoom-in; }
   .stage--floating.is-minimized { block-size: 64px; }
   .stage--floating.is-minimized .stage__pizza { --preview-pizza: 80px; left: 34%; }
   .stage--floating.is-minimized .stage__summary { inset-block: 0; inline-size: 40%; inset-inline-start: 44px; }
+  .stage--floating.is-minimized .stage__selection, .stage--floating.is-minimized .stage__compact, .stage--floating.is-minimized .stage__view { display: none; }
   .stage--floating.is-minimized .stage__expand { inset-block-start: 10px; inset-inline-start: 0; }
   .stage--floating.is-minimized .stage__collapse { inset-block-start: 10px; }
-  .stage--floating.is-minimized .stage__collapse .icon { transform: rotate(180deg); }
+  .stage--floating.is-minimized .stage__collapse .icon { transform: none; }
   .stage--floating.is-minimized > .buybar__price { display: none; }
   .stage--floating.is-keyboard-hidden { display: none; }
   .has-floating-preview .price-panel { inset-block-end: calc(100% + 8px); max-block-size: 65svh; }
