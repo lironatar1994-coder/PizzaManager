@@ -5,7 +5,7 @@ export function createOrderResume({ products, getDraft, getCart, openCart, clear
   const seenKeys = new Set();
   let returningCart = getCart().length > 0, activeBuilder = null, notice = null, hiddenAt = 0;
   const dismiss = () => { notice?.remove(); notice = null; };
-  const show = ({ cart = false, reset, label = 'הפיצה שלכם' } = {}) => {
+  const show = ({ cart = false, reset, label = 'ההזמנה שלכם' } = {}) => {
     dismiss();
     const node = document.createElement('section');
     node.className = `order-resume${activeBuilder ? ' order-resume--builder' : ''}`;
@@ -45,7 +45,7 @@ export function createOrderResume({ products, getDraft, getCart, openCart, clear
   onCartChange(dismiss);
   return {
     builder({ draft, key, product, form, reset }) {
-      activeBuilder = { reset, label: product.visual === 'pizza' ? 'הפיצה שלכם' : 'ההרכבה שלכם', saved: () => Boolean(getDraft(key, product)) };
+      activeBuilder = { reset, label: 'ההזמנה שלכם', saved: () => Boolean(getDraft(key, product)) };
       // A draft created during this visit must not look like a restored order.
       if (draft && !seenKeys.has(key) && (returningDrafts.has(key) || location.hash === entryHash && /^(edit|copy):/.test(key))) {
         seenKeys.add(key);
