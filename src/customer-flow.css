@@ -1,3 +1,12 @@
+/* Ordering palette: near-white pages, quiet secondary controls. */
+:root { --ground: #fffefd; --surface-2: #f8f7f5; --surface-3: #f1efec; --line: #e9e4df; --line-strong: #cfc7bf; }
+body:not(:has(.hero)) { font-family: 'Heebo Builder', 'Heebo', Arial, sans-serif; --shadow-button: 0 4px 12px rgba(33,28,24,.1); }
+.menu-page { --ground: #fffefd; }
+.menu-topbar { background: #fffefd; }
+.sheet, .info, .add-confirm, .favorites { font-family: 'Heebo Builder', 'Heebo', Arial, sans-serif; }
+.sheet .icon, .checkout .icon, .summary .icon, .menu-page .icon, .info .icon, .add-confirm .icon { stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.sheet__foot .button--primary { box-shadow: 0 4px 12px rgba(33,28,24,.1); }
+
 /* Menu: give every product the same price/action baseline. */
 .menu-item__text { align-content: start; gap: 8px; }
 .menu-item__name { font-weight: 700; }

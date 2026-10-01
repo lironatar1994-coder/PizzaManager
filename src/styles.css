@@ -7,12 +7,12 @@
   -webkit-font-smoothing: antialiased;
 
   /* משטחי ההזמנה: בהירים וחמים, קריאים בטלפון גם באור יום */
-  --ground: #f7f6f2;
+  --ground: #fffefd;
   --surface-1: #ffffff;
-  --surface-2: #f2efe9;
-  --surface-3: #e9e3da;
-  --line: #e4ddd3;
-  --line-strong: #c9bfb2;
+  --surface-2: #f8f7f5;
+  --surface-3: #f1efec;
+  --line: #e9e4df;
+  --line-strong: #cfc7bf;
   --field-line: #a39686;
 
   /* טקסט */
@@ -292,8 +292,8 @@ bdi, output, .stepper, .buybar__total strong { font-variant-numeric: tabular-num
 .repeat-lines .composition > div { grid-template-columns: 82px minmax(0, 1fr); }
 .repeat-page [data-load-repeat] { width: 100%; max-width: 380px; }
 .repeat-page__inner > .link-button { display: flex; align-items: center; gap: var(--space-2); min-height: 44px; margin-block-start: var(--space-3); }
-.menu-topbar { background: #f7f4ee; border-block-end-color: var(--line); }
-.menu-page { --ground: #f7f4ee; --tomato: #c93124; --tomato-hover: #ab291f; min-block-size: calc(100svh - var(--header-h)); background: var(--ground); }
+.menu-topbar { background: #fffefd; border-block-end-color: var(--line); }
+.menu-page { --ground: #fffefd; --tomato: #c93124; --tomato-hover: #ab291f; min-block-size: calc(100svh - var(--header-h)); background: var(--ground); }
 .menu-page > .wrap { max-inline-size: 1040px; padding-block: var(--space-3) var(--space-6); }
 .menu-page--with-cart { padding-block-end: calc(80px + env(safe-area-inset-bottom)); }
 .menu-page--with-cart > .wrap { padding-block-end: 0; }
@@ -1308,7 +1308,7 @@ body:has(.builder) { font-family: 'Heebo Builder', 'Heebo', Arial, sans-serif; }
 body:has(.builder) .brand { font-weight: 700; }
 .builder__intro h1 { font-size: 2rem; font-weight: 800; line-height: 1.2; letter-spacing: -.015em; }
 .stage__collapse, .stage__view, .stage__caption, .stage__dock-title, .stage__selection { display: none; }
-body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3efea; --line: #e5dfd8; --line-strong: #c9c0b6; --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --tomato: #c83125; --tomato-hover: #ad281f; --select: #c83125; --select-soft: #fff5f1; --selection: #fbe4dc; background: var(--ground); }
+body:has(.builder) { --ground: #fffefd; --surface-1: #ffffff; --surface-2: #f8f7f5; --line: #e9e4df; --line-strong: #cfc7bf; --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --tomato: #c83125; --tomato-hover: #ad281f; --select: #c83125; --select-soft: #fff5f1; --selection: #fbe4dc; background: var(--ground); }
 .builder { --select-ink: #fff; --placement-soft: #fbe4dc; --placement-ink: #b82c22; background: var(--ground); }
 .builder__form { padding-block-start: 16px; }
 .builder__form > .field-group { padding-block: 12px 16px; border-block-end: 1px solid var(--line); }
@@ -1371,7 +1371,7 @@ body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3ef
 .buybar--builder .buybar__cta { flex: 1; min-inline-size: 0; min-block-size: 52px; font-size: 1rem; font-weight: 650; gap: 8px; box-shadow: none; }
 .buybar--builder .buybar__cta-copy { display: flex; align-items: center; justify-content: center; flex-wrap: nowrap; gap: 6px; }
 .buybar--builder #bar-total { white-space: nowrap; font-weight: inherit; }
-.builder:not(.builder--flat) .stage, .pizza-dock .stage { --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --line: #e5dfd8; --surface-2: #f3efea; --select: #c83125; background: var(--ground); color: var(--text); }
+.builder:not(.builder--flat) .stage, .pizza-dock .stage { --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --line: #e9e4df; --surface-2: #f8f7f5; --select: #c83125; background: var(--ground); color: var(--text); }
 .builder .stage__flare { display: none; }
 .pizza__piece { filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
 .builder .stage .icon, .pizza-dock .icon, .buybar--builder .buybar__cta > .icon { stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
@@ -1384,7 +1384,7 @@ body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3ef
   .builder--floating-preview .builder__intro { padding: 0 0 16px; min-block-size: 0; }
   .builder--floating-preview .builder__about { position: static; }
   .buybar--builder.has-floating-preview { border: 0; padding: 0 12px max(10px, env(safe-area-inset-bottom)); background: transparent; backdrop-filter: none; }
-  .pizza-dock { --ground: #fcfaf7; --dock-red-top: #cf3227; --dock-red-bottom: #bc291f; border: 0; container-type: inline-size; inline-size: min(100%, 672px); margin-inline: auto; border-radius: 16px; background: var(--ground); box-shadow: 0 8px 28px rgba(33, 28, 24, .12); overflow: hidden; }
+  .pizza-dock { --ground: #ffffff; --dock-red-top: #cf3227; --dock-red-bottom: #bc291f; border: 0; container-type: inline-size; inline-size: min(100%, 672px); margin-inline: auto; border-radius: 16px; background: var(--ground); box-shadow: 0 6px 24px rgba(33, 28, 24, .09); overflow: hidden; }
   .has-floating-preview .pizza-dock > .buybar__inner { flex-direction: row-reverse; inline-size: min(100%, 672px); margin-inline: auto; padding: 8px 12px 16px; border: 0; border-radius: 0; background: var(--ground); box-shadow: none; gap: 12px; }
   .pizza-dock .builder-quantity { display: block; flex: none; margin: 0; padding: 0; border: 0; gap: 0; }
   .pizza-dock .builder-quantity > .field-group__title { display: none; }
@@ -1452,6 +1452,15 @@ body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3ef
 /* End floating mobile pizza preview. */
 
 /* Customer flow: quiet, compact surfaces. */
+/* Ordering palette: near-white pages, quiet secondary controls. */
+:root { --ground: #fffefd; --surface-2: #f8f7f5; --surface-3: #f1efec; --line: #e9e4df; --line-strong: #cfc7bf; }
+body:not(:has(.hero)) { font-family: 'Heebo Builder', 'Heebo', Arial, sans-serif; --shadow-button: 0 4px 12px rgba(33,28,24,.1); }
+.menu-page { --ground: #fffefd; }
+.menu-topbar { background: #fffefd; }
+.sheet, .info, .add-confirm, .favorites { font-family: 'Heebo Builder', 'Heebo', Arial, sans-serif; }
+.sheet .icon, .checkout .icon, .summary .icon, .menu-page .icon, .info .icon, .add-confirm .icon { stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.sheet__foot .button--primary { box-shadow: 0 4px 12px rgba(33,28,24,.1); }
+
 /* Menu: give every product the same price/action baseline. */
 .menu-item__text { align-content: start; gap: 8px; }
 .menu-item__name { font-weight: 700; }

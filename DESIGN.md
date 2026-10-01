@@ -2,13 +2,13 @@
 name: פיצת התנור
 description: אתר הזמנות לפיצרייה בעברית ו־RTL מלא. מסך פתיחה צילומי כהה, זרימת הזמנה בהירה, והפיצה עצמה היא הממשק.
 colors:
-  ground: "#f7f6f2"
-  menu-ground: "#f7f4ee"
+  ground: "#fffefd"
+  menu-ground: "#fffefd"
   surface-1: "#ffffff"
-  surface-2: "#f2efe9"
-  surface-3: "#e9e3da"
-  line: "#e4ddd3"
-  line-strong: "#c9bfb2"
+  surface-2: "#f8f7f5"
+  surface-3: "#f1efec"
+  line: "#e9e4df"
+  line-strong: "#cfc7bf"
   field-line: "#a39686"
   text: "#211c18"
   text-2: "#6f655c"
@@ -696,3 +696,8 @@ Preview and action icons share 1.45px rounded strokes. Expand becomes a simple f
 
 Returning customers see a compact white notice above the mobile pizza dock, with 16px semibold heading, 14px secondary copy and 44px controls. Restored builder drafts offer “ממשיכים” / “מתחילים מחדש”; a restored cart offers “לסל”. Reset needs a second explicit click, and only clears the relevant draft or cart. Continuing retains the restored choices and scroll. Changing a choice dismisses the notice. Only drafts present before this visit trigger the return message during ordinary navigation; later page restoration or a return after 30 seconds away can show the current saved work again. Prices and availability use the incumbent normalization, and no order is submitted by the notice.
 
+
+
+## Whiter ordering surfaces — 2026-10-02
+
+Page and menu backgrounds use near-white #fffefd; the mobile pizza dock is pure white. Secondary controls use #f8f7f5, with lighter separators and a quieter dock shadow. The menu, cart and checkout share the builder's locally hosted variable Heebo and rounded 1.5px icons. Primary action shadows are reduced on the light flow. The photographic homepage remains dark; tomato actions and warm selection fills retain their existing roles. Catalog, prices, drafts and checkout behavior are preserved.
