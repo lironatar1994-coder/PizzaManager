@@ -1,6 +1,5 @@
 /* Floating mobile pizza preview. */
 .stage__collapse, .stage__view, .stage__caption { display: none; }
-.preview-spacer { display: none; }
 .builder { --ground: #f8f5ef; --select: #c93124; --select-soft: #fff4ef; --select-ink: #fff; background: var(--ground); }
 .builder__form { padding-block-start: 16px; }
 .builder__form > .field-group { padding-block: 16px 20px; border-block-end: 1px solid var(--line); }
@@ -61,15 +60,14 @@
 .buybar--builder .buybar__cta { flex: 1; min-inline-size: 0; min-block-size: 52px; font-size: 1rem; font-weight: 700; gap: 8px; box-shadow: none; }
 .buybar--builder .buybar__cta-copy { display: flex; align-items: center; justify-content: center; flex-wrap: nowrap; gap: 6px; }
 .buybar--builder #bar-total { white-space: nowrap; font-weight: inherit; }
-.builder:not(.builder--flat) .stage { --text: #211c18; --text-2: #6f655c; --text-3: #6f655c; --line: #e4ddd3; --surface-2: #f2efe9; --select: #c93124; background: var(--ground); color: var(--text); }
+.builder:not(.builder--flat) .stage, .pizza-dock .stage { --text: #211c18; --text-2: #6f655c; --text-3: #6f655c; --line: #e4ddd3; --surface-2: #f2efe9; --select: #c93124; background: var(--ground); color: var(--text); }
 .builder .stage__flare { display: none; }
 @media (max-width: 899px) {
-  .preview-spacer { display: block; }
   .builder--floating-preview { display: block; }
-  .builder--floating-preview .builder__form { padding-block: 12px calc(var(--dock-action-height, 76px) + 28px); }
-  .builder--floating-preview .builder__intro h1 { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .builder--floating-preview .builder__intro { padding: 0; min-block-size: 0; }
-  .builder--floating-preview .builder__about { position: absolute; inset-inline-end: 8px; inset-block-start: calc(var(--header-h) + 8px); z-index: 21; }
+  .builder--floating-preview .builder__form { padding-block: 16px calc(var(--dock-height, 200px) + 24px); }
+  .builder--floating-preview .builder__intro h1 { position: static; inline-size: auto; block-size: auto; overflow: visible; clip-path: none; white-space: normal; font-size: 1.5rem; line-height: 1.25; }
+  .builder--floating-preview .builder__intro { padding: 0 0 16px; min-block-size: 0; }
+  .builder--floating-preview .builder__about { position: static; }
   .buybar--builder.has-floating-preview { border: 0; padding: 0; background: var(--ground); backdrop-filter: none; }
   .pizza-dock { border-block-start: 1px solid var(--line); background: var(--ground); }
   .has-floating-preview .pizza-dock > .buybar__inner { flex-direction: row-reverse; inline-size: min(100%, 672px); margin-inline: auto; padding: 8px var(--gutter) max(8px, env(safe-area-inset-bottom)); border-radius: 0; background: var(--ground); box-shadow: none; gap: 10px; }
@@ -79,30 +77,29 @@
   .pizza-dock .stepper button { inline-size: 44px; block-size: 48px; min-inline-size: 44px; min-block-size: 48px; }
   .pizza-dock .stepper output { min-inline-size: 28px; font-size: 1rem; }
   .has-floating-preview .buybar__cta { flex-direction: row-reverse; }
-  .stage--floating { --preview-pizza: min(78vw, 300px); position: relative; top: auto; inset: auto; z-index: 20; block-size: var(--preview-expanded-height, 180px); inline-size: 100%; overflow: hidden; isolation: isolate; box-shadow: none; background: var(--builder-tabletop) left center / cover no-repeat, var(--ground) !important; transition: block-size .22s cubic-bezier(.16,1,.3,1); }
+  .stage--floating { --preview-height: clamp(96px, 16svh, 136px); --preview-pizza: calc(var(--preview-height) * 1.5); position: relative; top: auto; inset: auto; z-index: 1; block-size: var(--preview-height); inline-size: 100%; overflow: hidden; isolation: isolate; box-shadow: none; background: var(--ground) !important; transition: block-size .22s cubic-bezier(.16,1,.3,1); }
   .stage--floating .stage__canvas { position: absolute; inset: 0; min-block-size: 0; }
-  .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: -8%; right: auto; inline-size: var(--preview-pizza); transform: translateY(-50%); }
+  .stage--floating .stage__pizza { position: absolute; inset-block-start: 50%; left: 38%; right: auto; inline-size: var(--preview-pizza); transform: translate(-50%, -50%); }
   .stage--floating .pizza__ring { opacity: 0; }
-  .stage--floating .stage__summary { display: none; }
-  .stage--floating .stage__caption { position: absolute; inset-inline-start: 16px; inset-block: 0; inline-size: 44%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 6px; pointer-events: none; }
-  .stage__caption h2 { margin: 0; font-size: clamp(1.375rem, 6vw, 1.875rem); font-weight: 900; line-height: 1.2; }
-  .stage__caption p { margin: 0; color: var(--text-2); font-size: .875rem; }
-  .stage__caption > span { inline-size: 34px; block-size: 2px; margin-block-start: 6px; background: var(--select); }
-  .stage--floating .stage__expand { position: absolute; z-index: 3; inset-inline-start: auto; inset-inline-end: 16px; inset-block-start: auto; inset-block-end: 12px; inline-size: 40px; block-size: 40px; display: grid; place-items: center; border: 0; border-radius: 50%; background: var(--surface-1); color: var(--text); box-shadow: none; }
-  .stage--floating .stage__collapse, .stage--floating > .buybar__price { display: none; }
-  .stage--floating .stage__view { position: absolute; z-index: 2; inset: 0 46% 0 0; display: block; border: 0; background: transparent; cursor: zoom-in; }
-  .stage--floating.is-minimized { block-size: 64px; background: var(--ground) !important; }
-  .stage--floating.is-minimized .stage__pizza { --preview-pizza: 80px; left: 40px; }
-  .stage--floating.is-minimized .stage__caption, .stage--floating.is-minimized .stage__expand { display: none; }
-  .stage--floating.is-minimized .stage__summary { position: absolute; inset-inline: 16px 120px; inset-block: 0; display: grid; align-content: center; padding: 0; min-block-size: 0; }
-  .stage--floating.is-minimized .stage__title { display: block; font-size: .875rem; font-weight: 700; }
-  .stage--floating.is-minimized .stage__detail, .stage--floating.is-minimized .stage__composition { display: none; }
-  .stage--floating.is-minimized .stage__compact { font-size: .75rem; }
-  .stage--floating.is-minimized > .buybar__price { position: absolute; z-index: 3; inset-inline-end: 6px; inset-block-start: 10px; display: grid; }
-  .stage--floating.is-pinned { position: fixed; inset-inline: 0; inset-block-start: var(--preview-header-height, 64px); border-block-end: 1px solid var(--line); }
+  .stage--floating .stage__summary { position: absolute; inset-inline-start: var(--gutter); inset-inline-end: auto; inset-block: 44px 8px; inline-size: 30%; display: grid; align-content: center; padding: 0; min-block-size: 0; }
+  .stage--floating .stage__title { display: block; font-size: .875rem; font-weight: 700; }
+  .stage--floating .stage__detail, .stage--floating .stage__composition { display: none; }
+  .stage--floating .stage__compact { font-size: .75rem; }
+  .stage--floating .stage__expand, .stage--floating .stage__collapse { position: absolute; z-index: 3; inset-block-start: 0; inset-block-end: auto; inline-size: 44px; block-size: 44px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--text); box-shadow: none; }
+  .stage--floating .stage__expand { inset-inline-start: 6px; inset-inline-end: auto; }
+  .stage--floating .stage__collapse { inset-inline-end: 6px; inset-inline-start: auto; }
+  .stage--floating > .buybar__price { position: absolute; z-index: 3; inset-inline-end: 6px; inset-block-end: 4px; display: grid; }
+  .stage--floating .stage__view { position: absolute; z-index: 2; inset: 0 34% 0 16%; display: block; border: 0; background: transparent; cursor: zoom-in; }
+  .stage--floating.is-minimized { block-size: 64px; }
+  .stage--floating.is-minimized .stage__pizza { --preview-pizza: 80px; left: 34%; }
+  .stage--floating.is-minimized .stage__summary { inset-block: 0; inline-size: 40%; inset-inline-start: 44px; }
+  .stage--floating.is-minimized .stage__expand { inset-block-start: 10px; inset-inline-start: 0; }
+  .stage--floating.is-minimized .stage__collapse { inset-block-start: 10px; }
+  .stage--floating.is-minimized .stage__collapse .icon { transform: rotate(180deg); }
+  .stage--floating.is-minimized > .buybar__price { display: none; }
   .stage--floating.is-keyboard-hidden { display: none; }
   .has-floating-preview .price-panel { inset-block-end: calc(100% + 8px); max-block-size: 65svh; }
-  .builder--floating-preview .builder__form .field-group, .builder--floating-preview .builder-cost { scroll-margin-block-start: calc(var(--header-h) + 80px); }
+  .builder--floating-preview .builder__form .field-group, .builder--floating-preview .builder-cost { scroll-margin-block-start: calc(var(--header-h) + 16px); }
 }
 @media (min-width: 900px) {
   .builder:not(.builder--flat) .stage { block-size: min(520px, calc(100svh - var(--header-h) - 64px)); min-block-size: 300px; }

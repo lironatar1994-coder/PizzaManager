@@ -638,7 +638,7 @@ Mobile identity and ordering stay centered; a 128px bottom margin raises the gro
 
 Remove the compose/cart/details step navigation from all customer screens: back controls and the existing cart/checkout actions provide navigation. Keep the live pizza dock, quantity, size, dough and all pricing behavior. Topping names use 16px type with 32px imagery and a 22px plus affordance; selected choices show a check. Unselected toppings expose no placement control. Selecting a topping adds the default whole placement and opens its whole/right/left picker; choosing a placement closes it. Only one placement picker opens at a time. Unavailable choices and dynamic half prices remain authoritative. No changes to catalog, products, payments or backend.
 
-### Reference customizer — 2026-10-01, current composition
+### Reference customizer — 2026-10-01, selection composition
 
 The user supplied `1000190095.jpg` and explicitly requested its smallest visual details. This composition supersedes the prior bottom pizza dock and popup placement treatment. Mode: Operate. Preserve catalog, availability, pricing, drafts, half editing and order logic.
 
@@ -651,3 +651,7 @@ The user supplied `1000190095.jpg` and explicitly requested its smallest visual 
 - `assets/builder-tabletop-v1.webp` is a 1200×480 generated illustrative background (no food product or UI baked in). Its metadata sidecar records generation and reference. It is presentation only, never an actual restaurant photo; the real pizza layer continues updating with choices.
 
 Finish review: compared 390×844 mobile and 1440×900 desktop together. The correction batch reset inherited grid-area positioning on selection checks, made half labels fit without overlap, set the preview accent to tomato and restored plus/right quantity order. A repeat compiler pass is idempotent. Detector's intentional 30px fluid heading endpoint is now part of the type ramp above. Final confirmation and deployment evidence are recorded in the task; no production order is submitted.
+
+### Bottom pizza preview — 2026-10-01, current mobile placement
+
+At the user's request, the existing reactive pizza moves into the fixed bottom action dock above quantity and add-to-cart. Its warm ivory preview is 16svh, clamped to 96–136px, with 44px expand, collapse and price controls. The selected product/size is shown alongside it; there is no introductory photo banner or repeated subtitle. Collapse reduces the preview to 64px, and keyboard entry hides the preview temporarily. A ResizeObserver measures the complete dock and reserves that height plus 24px in the form so the last fields can scroll above it. The same stage, quantity and price nodes restore to their original locations on desktop and during route cleanup. The product heading is visible at the top, 24px/700. Reference selection rows and all managed prices remain unchanged. Mobile and desktop were inspected together; no new image asset was required.
