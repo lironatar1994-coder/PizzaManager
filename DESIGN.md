@@ -46,6 +46,17 @@ colors:
   paper: "#fffdf8"
   paper-ink: "#231a14"
 typography:
+  builder-heading:
+    fontFamily: "Heebo Builder, Heebo, Arial, sans-serif"
+    fontSize: "1.625rem"
+    fontWeight: 800
+    lineHeight: 1.2
+    letterSpacing: "-0.015em"
+  builder-placement:
+    fontFamily: "Heebo Builder, Heebo, Arial, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: 1.35
   display:
     fontFamily: "Heebo, Arial, sans-serif"
     fontSize: "clamp(3.25rem, 15.5vw, 6rem)"
@@ -669,3 +680,9 @@ The repeated reference fixes the smaller details: surface `#FCFAF5`, preview hei
 The newest full-page reference pins a lighter, quieter builder. Scope the palette to the builder route: canvas `#FAF8F5`, white cards, secondary surface `#F3EFEA`, fine rules `#E5DFD8`, ink `#1E1B18`, supporting text `#6D6862`, action/selection `#C83125`. Selected size and dough surfaces use `#FFF5F1`; their name/check is red and the price remains ink. Both dough choices share a white track. Half placement uses `#FBE4DC` with darker tomato text `#B82C22` for contrast, 44px targets and quiet straight separators rather than solid red buttons. Selected ingredient names are 15px, placement labels 13px, ingredient art 38px. Group padding is 12px above/16px below with an 8px heading gap, preserving compact flow. No help subtitle is reintroduced. Explicit light ink tokens on the pizza stage prevent its old dark-theme cream text from leaking into the light surface.
 
 The ivory dock `#FCFAF7` has a restrained shadow, a complete pizza centered at 43% width and the existing summary at right. The dock alone normalizes the pizza disc to 0.66 of its 1.5-height SVG box, so small, medium and large remain wholly visible at the same readable footprint; selected size and pricing remain authoritative and the full editor/desktop keep variant scaling. Collapse is top-left, price receipt lower-left, expand top-right. The duplicate circular expand button is hidden; touching the pizza still opens its editor. Quantity sits left, add-to-cart right, with a shared beige quantity track and fine dividers. The button uses the cart icon and a warm tomato depth `#CF3227` to `#BC291F`; amount stays white. Complete dock height continues reserving form space. Managed catalog, dough/topping behavior and the order flow are unchanged.
+
+### Builder typography reference — 2026-10-01
+
+Retain Heebo's Hebrew shapes, with locally served variable Hebrew/Latin WOFF2 subsets (42 KB combined), scoped as `Heebo Builder` to the builder route. The existing Heebo SIL OFL applies; upstream source is Google Fonts Heebo v28. `font-display: swap` keeps text visible. The root demo and platform compiler resolve the same local files; homepage typography stays incumbent.
+
+Hierarchy: product heading 26px/800 on mobile, 32px/800 desktop, line-height 1.2 and tracking -0.015em; section labels 18px/650; size/dough and topping names 16px/600; size prices 16px/500; topping prices and dock metadata 14px/400; placement labels 13px/400 with selected placement 600; dock heading 16px/700; quantity 18px/500; main action and amount 16px/650. Tabular numerals keep prices and quantity stable. The 13px dense placement role is intentional; normal fields and ordering labels remain 16px. All selected/unselected topping names use the same size. Short line heights give choices a consistent baseline while prices and supporting text recede. Preserve managed product names, prices, RTL isolation and all existing interactions.

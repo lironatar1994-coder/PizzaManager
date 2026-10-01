@@ -87,7 +87,7 @@ const app = mobileQuantity(incumbentApp).replace(floatImport, `$1?v=${tag}$2`);
 if (withoutProductPresentation(app) !== withoutProductPresentation(incumbentApp)) throw Error('Product release changed incumbent app logic');
 
 const incumbentCss = read(source, 'src/styles.css');
-const rootCss = read(repository, 'src/floating-preview.css').replace(/\r\n/g, '\n').trim();
+const rootCss = read(repository, 'src/floating-preview.css').replace(/\r\n/g, '\n').replaceAll('../assets/', '../../assets/').trim();
 const rootBlock = cssBlock(rootCss);
 if (rootBlock.first !== 0 || rootBlock.end !== rootCss.length) throw Error('Product stylesheet must contain only its marked floating preview block');
 const incumbentBlock = cssBlock(incumbentCss);

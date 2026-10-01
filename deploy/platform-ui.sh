@@ -149,6 +149,10 @@ install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp" "$release/asset
 install -m 644 "$repository/assets/menu-pizza-editorial-v2.webp.json" "$release/assets/"
 install -m 644 "$repository/assets/builder-tabletop-v1.webp" "$release/assets/"
 install -m 644 "$repository/assets/builder-tabletop-v1.webp.json" "$release/assets/"
+install -d -m 755 "$release/assets/fonts"
+for subset in hebrew latin; do
+  install -m 644 "$repository/assets/fonts/heebo-builder-$subset.woff2" "$release/assets/fonts/"
+done
 for viewport in mobile desktop; do
   install -m 644 "$repository/assets/hero-pizzeria-$viewport-v3.webp" "$release/assets/"
   install -m 644 "$repository/assets/hero-pizzeria-$viewport-v3.webp.json" "$release/assets/"
