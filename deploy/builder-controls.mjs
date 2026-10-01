@@ -3,7 +3,7 @@ export function streamlinedBuilderApp(source) {
   let app = source;
   const cartArt = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.5 12h11L21 6H6M9 20h.01M18 20h.01" stroke-linecap="round" stroke-linejoin="round" /></svg>';
   app = app.replace("${icon('box')}<span class=\"cart-button__count\"", cartArt + '<span class="cart-button__count"');
-  app = app.replace('<bdi id="bar-total"></bdi></span>' + cartArt, '<bdi id="bar-total"></bdi></span>${icon(\'forward\')}');
+  app = app.replace('<bdi id="bar-total"></bdi></span>${icon(\'forward\')}', '<bdi id="bar-total"></bdi></span>' + cartArt);
   if (!app.includes("function orderProgress() { return ''; }")) {
     const progress = /function orderProgress\([^]*?\n}\r?\n/;
     if (!progress.test(app)) throw Error('Progress navigation boundary changed');
@@ -79,7 +79,7 @@ function variantSection(`);
     const add = '<span id="add-label"></span>${icon(\'forward\')}';
     if (!app.includes(price) || !app.includes(add)) throw Error('Builder price/action boundary changed');
     app = app.replace(price, '<button type="button" class="buybar__price" data-price-toggle aria-label="פירוט המחיר" title="פירוט המחיר" aria-expanded="false" aria-controls="price-panel">${icon(\'receipt\')}</button>');
-    app = app.replace(add, '<span class="buybar__cta-copy"><span id="add-label"></span><span aria-hidden="true">·</span><bdi id="bar-total"></bdi></span>${icon(\'forward\')}');
+    app = app.replace(add, '<span class="buybar__cta-copy"><span id="add-label"></span><span aria-hidden="true">·</span><bdi id="bar-total"></bdi></span>' + cartArt);
   }
   // Keep the white button text readable during its short price-change cue.
   const reactionStart = app.indexOf('function reactToChoice(');

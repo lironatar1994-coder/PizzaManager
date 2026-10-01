@@ -1,5 +1,5 @@
 import { mountCheckoutFlow } from './customer-flow.js';
-import { setupFloatingPreview } from './floating-preview.js?v=20261001-detail1';
+import { setupFloatingPreview } from './floating-preview.js?v=20261001-palette1';
 import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
 import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20260929-pizzeria2';
@@ -663,7 +663,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     <div class="buybar buybar--builder"><p class="buybar__recovery" data-edit-recovery role="status" hidden></p><div class="buybar__inner">
       <div class="price-panel" id="price-panel" hidden><header><h2 tabindex="-1">מה כלול במחיר?</h2><button type="button" class="icon-button" data-close-price aria-label="סגירת פירוט המחיר">${icon('close')}</button></header><div data-price-content></div><section class="price-basket" data-builder-basket hidden aria-label="סכומי הסל"><button type="button" data-open-cart><span data-basket-current></span>${icon('down')}</button><p data-basket-projected></p></section><section class="price-changes" data-price-changes hidden><h3>שינויים ביחס לפריט בסל</h3><ul data-price-change-list></ul><p data-price-change-total></p></section><p>${shop.demoOnly ? 'מחירי הדגמה. ' : ''}משלוח יחושב בקופה.</p></div>
       <button type="button" class="buybar__price" data-price-toggle aria-label="פירוט המחיר" title="פירוט המחיר" aria-expanded="false" aria-controls="price-panel">${icon('receipt')}</button>
-      <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span class="buybar__cta-copy"><span id="add-label"></span><span aria-hidden="true">·</span><bdi id="bar-total"></bdi></span>${icon('forward')}</button>
+      <button type="button" id="add-to-cart" class="button button--primary buybar__cta"><span class="buybar__cta-copy"><span id="add-label"></span><span aria-hidden="true">·</span><bdi id="bar-total"></bdi></span><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 3h3l2.5 12h11L21 6H6M9 20h.01M18 20h.01" stroke-linecap="round" stroke-linejoin="round" /></svg></button>
     </div></div>
     <p class="visually-hidden" aria-live="polite" id="builder-status"></p>`;
 
