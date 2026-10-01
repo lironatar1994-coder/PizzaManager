@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
+import { orderResumeApp, withoutOrderResume } from './order-resume.mjs';
 
 // Presentation only: retain the current tenant, catalog, cart and payment code.
 const [repository, source, output, revision] = process.argv.slice(2).map((value, index) => index < 3 ? resolve(value) : value);
@@ -71,7 +72,7 @@ function withoutQuantityTransport(source) {
   for (const [before, after] of quantityQueries) result = result.replace(after, before);
   return result;
 }
-const withoutProductPresentation = (content) => withoutImportTag(withoutQuantityTransport(content));
+const withoutProductPresentation = (content) => withoutOrderResume(withoutImportTag(withoutQuantityTransport(content)));
 
 const incumbentApp = read(source, 'src/app.js');
 for (const contract of ["from '../../shared/runtime.js'", 'function productPage(', 'setupFloatingPreview(stage)', 'submitOrder(', 'finishPayment(', 'onCartChange((change)', '#/status/']) {
@@ -83,7 +84,7 @@ if (imports.length !== 1) throw Error('Expected one incumbent floating preview i
 // stepper through the form. Only its DOM ownership changes when it docks.
 // Move the exact existing handler body to the control and scope its lookups
 // there, retaining every line of quantity arithmetic, price and cart logic.
-const app = mobileQuantity(incumbentApp).replace(floatImport, `$1?v=${tag}$2`);
+const app = orderResumeApp(mobileQuantity(incumbentApp).replace(floatImport, `$1?v=${tag}$2`), tag);
 if (withoutProductPresentation(app) !== withoutProductPresentation(incumbentApp)) throw Error('Product release changed incumbent app logic');
 
 const incumbentCss = read(source, 'src/styles.css');
@@ -91,8 +92,10 @@ const rootCss = read(repository, 'src/floating-preview.css').replace(/\r\n/g, '\
 const rootBlock = cssBlock(rootCss);
 if (rootBlock.first !== 0 || rootBlock.end !== rootCss.length) throw Error('Product stylesheet must contain only its marked floating preview block');
 const incumbentBlock = cssBlock(incumbentCss);
-const css = incumbentCss.slice(0, incumbentBlock.first) + rootCss + incumbentCss.slice(incumbentBlock.end);
-if (withoutFloatingStyles(css) !== withoutFloatingStyles(incumbentCss)) throw Error('Product release changed another stylesheet surface');
+const withoutResumeStyles = content => content.replace(/\n\/\* Saved-order return notice\. \*\/[\s\S]*?\/\* End saved-order return notice\. \*\//g, '');
+const resumeCss = read(repository, 'src/order-resume.css').replace(/\r\n/g, '\n').trim();
+const css = withoutResumeStyles(incumbentCss.slice(0, incumbentBlock.first) + rootCss + incumbentCss.slice(incumbentBlock.end)) + '\n' + resumeCss;
+if (withoutResumeStyles(withoutFloatingStyles(css)) !== withoutResumeStyles(withoutFloatingStyles(incumbentCss))) throw Error('Product release changed another stylesheet surface');
 
 const module = read(repository, 'src/floating-preview.js').replace(/\r\n/g, '\n');
 if (!module.includes('export function setupFloatingPreview(stage)') || /^\s*import\s/m.test(module)) throw Error('Floating preview module contract changed');
@@ -104,6 +107,7 @@ if (withoutEntryTags(html) !== withoutEntryTags(incumbentHtml)) throw Error('Pro
 write('src/app.js', app);
 write('src/styles.css', css);
 write('src/floating-preview.js', module);
+write('src/order-resume.js', read(repository, 'src/order-resume.js').replace(/\r\n/g, '\n'));
 write('index.html', html);
 
 // Replace only the visual base filenames, keeping the incumbent renderer,
@@ -118,7 +122,7 @@ write('src/pizza.js', pizzaModule);
 const preservedModules = {};
 for (const file of readdirSync(join(source, 'src')).filter((name) => name.endsWith('.js'))) {
   const path = `src/${file}`;
-  if (file !== 'app.js' && file !== 'floating-preview.js' && file !== 'pizza.js') {
+  if (file !== 'app.js' && file !== 'floating-preview.js' && file !== 'pizza.js' && file !== 'order-resume.js') {
     if (hash(source, path) !== hash(output, path)) throw Error(`Incumbent module changed: ${file}`);
     preservedModules[path] = hash(source, path);
   }
@@ -130,11 +134,11 @@ function unchangedTree(directory) {
   for (const name of readdirSync(join(source, directory))) {
     const path = join(directory, name);
     if (statSync(join(source, path)).isDirectory()) unchangedTree(path);
-    else if (!['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'assets/product-ui-version.json'].includes(path.replaceAll('\\', '/')) && hash(source, path) !== hash(output, path)) throw Error(`Incumbent file changed: ${path}`);
+    else if (!['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'src/order-resume.js', 'assets/product-ui-version.json'].includes(path.replaceAll('\\', '/')) && hash(source, path) !== hash(output, path)) throw Error(`Incumbent file changed: ${path}`);
   }
 }
 unchangedTree('src');
 unchangedTree('assets');
-const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'index.html'].map((path) => [path, hash(output, path)]));
-write('assets/product-ui-version.json', JSON.stringify({ revision, surface: 'product-customizer', managedCatalog: true, files, preserved: { appLogic: digest(withoutProductPresentation(app)), pizzaRenderer: digest(normalizePizzaAssets(pizzaModule)), otherStyles: digest(withoutFloatingStyles(css)), entryMarkup: digest(withoutEntryTags(html)), modules: preservedModules } }) + '\n');
+const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/order-resume.js', 'src/pizza.js', 'index.html'].map((path) => [path, hash(output, path)]));
+write('assets/product-ui-version.json', JSON.stringify({ revision, surface: 'product-customizer', managedCatalog: true, files, preserved: { appLogic: digest(withoutProductPresentation(app)), pizzaRenderer: digest(normalizePizzaAssets(pizzaModule)), otherStyles: digest(withoutResumeStyles(withoutFloatingStyles(css))), entryMarkup: digest(withoutEntryTags(html)), modules: preservedModules } }) + '\n');
 console.log(`Compiled product UI ${revision}; app logic, other style surfaces, incumbent modules and assets preserved.`);

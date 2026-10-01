@@ -1631,3 +1631,19 @@ body:has(.builder) { --ground: #faf8f5; --surface-1: #ffffff; --surface-2: #f3ef
   .cart-line__disclosure > summary .icon { transition: none; }
 }
 /* End customer flow. */
+/* Saved-order return notice. */
+.order-resume{position:fixed;z-index:65;inset-inline:16px;bottom:calc(var(--buybar-h, 0px) + 12px);max-width:360px;margin-inline:auto;padding:14px 16px;background:#fff;color:#211c18;border:1px solid #e4ded7;border-radius:14px;font-family:inherit;box-shadow:0 8px 24px rgb(33 28 24 / .09)}
+.order-resume__copy{display:grid;gap:4px;padding-inline-end:32px;line-height:1.4}
+.order-resume__copy strong{font-size:16px;font-weight:650}
+.order-resume__copy span{font-size:14px;color:#6f655c}
+.order-resume button{font:inherit;cursor:pointer}
+.order-resume [data-resume-close]{position:absolute;inset-inline-end:6px;top:6px;display:grid;place-items:center;width:44px;height:44px;border:0;background:transparent;color:#6f655c;border-radius:10px}
+.order-resume svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+.order-resume__actions{display:flex;gap:8px;margin-top:10px}
+.order-resume__actions button{min-height:44px;padding:8px 12px;font-size:14px;font-weight:600;border:0;border-radius:9px}
+.order-resume [data-resume-continue]{background:#c93124;color:#fff}
+.order-resume [data-resume-reset]{background:transparent;color:#6f655c}
+.order-resume button:focus-visible{outline:2px solid #c93124;outline-offset:3px}
+.order-resume [data-resume-reset]:hover{background:#f2efe9}
+@media(min-width:900px){.order-resume{inset-inline-start:auto;inset-inline-end:24px;bottom:24px;width:360px}.order-resume--builder{top:88px;bottom:auto}}
+/* End saved-order return notice. */

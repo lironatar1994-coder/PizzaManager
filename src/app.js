@@ -1,3 +1,6 @@
+/* Saved-order hooks. */
+import { createOrderResume } from './order-resume.js?v=20261001-resume1';
+/* End saved-order hooks. */
 import { mountCheckoutFlow } from './customer-flow.js';
 import { setupFloatingPreview } from './floating-preview.js?v=20261001-real1';
 import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
@@ -11,6 +14,9 @@ import { searchAddresses, zoneForAddress } from './address.js?v=20260929-pizzeri
 import { createNavigator } from './navigation.js?v=20260929-transition3';
 
 const app = document.querySelector('#app');
+/* Saved-order hooks. */
+const orderResume = createOrderResume({ products: activeProducts(), getDraft, getCart, openCart, clearCart, render, onCartChange });
+/* End saved-order hooks. */
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const navigatePage = createNavigator({ reducedMotion, pizzaSrc: './assets/pizza-base-v2.webp' });
 const safe = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
@@ -1121,6 +1127,9 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
 
   if (isPizza) teardown.push(setupStage(document.querySelector('.stage')));
   refresh();
+/* Saved-order hooks. */
+  teardown.push(orderResume.builder({ draft, key: draftKey, product, form, reset: () => { hasDraft = false; clearDraft(draftKey); freshBuilder = true; render(); } }));
+/* End saved-order hooks. */
   return savedScroll;
 }
 
@@ -2194,6 +2203,9 @@ function notFound() {
 }
 
 function render() {
+/* Saved-order hooks. */
+  orderResume.dismiss();
+/* End saved-order hooks. */
   teardown.forEach((cleanup) => cleanup());
   teardown = [];
   freshBuilder = false;
@@ -2235,6 +2247,9 @@ function render() {
     teardown.push(() => observer.disconnect());
   } else document.documentElement.style.removeProperty('--buybar-h');
   window.scrollTo({ top: restoreScroll, behavior: 'instant' });
+/* Saved-order hooks. */
+  orderResume.page();
+/* End saved-order hooks. */
 }
 
 function navigate() {

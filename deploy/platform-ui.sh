@@ -169,7 +169,7 @@ node "$repository/deploy/platform-storefront.mjs" "$repository" "$old_target" "$
 product_stage=$(mktemp -d "$base/.product-ui.XXXXXXXX")
 cp -a -- "$release/." "$product_stage/"
 node "$repository/deploy/platform-product.mjs" "$repository" "$release" "$product_stage" "$revision"
-for file in src/app.js src/styles.css src/floating-preview.js src/pizza.js index.html assets/product-ui-version.json; do
+for file in src/app.js src/styles.css src/floating-preview.js src/order-resume.js src/pizza.js index.html assets/product-ui-version.json; do
   install -m 644 "$product_stage/$file" "$release/$file"
 done
 chmod -R a+rX "$release"
