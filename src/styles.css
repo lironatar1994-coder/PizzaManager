@@ -1374,6 +1374,26 @@ body:has(.builder) { --ground: #fffefd; --surface-1: #ffffff; --surface-2: #f8f7
 .builder:not(.builder--flat) .stage, .pizza-dock .stage { --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --line: #e9e4df; --surface-2: #f8f7f5; --select: #c83125; background: var(--ground); color: var(--text); }
 .builder .stage__flare { display: none; }
 .pizza__piece { filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
+/* A visible landing in the small dock; animate only the changed ingredient. */
+:is(.builder, .pizza-dock) .pizza__topping.is-entering .pizza__piece { --landing-turn: -14deg; animation: pizza-ingredient-land .56s cubic-bezier(.22,.72,.2,1) both; animation-delay: calc(var(--i) * 6ms); }
+:is(.builder, .pizza-dock) .pizza__topping[data-shape="olive"] .pizza__piece { --landing-turn: 55deg; }
+:is(.builder, .pizza-dock) .pizza__topping[data-shape="mushroom"] .pizza__piece { --landing-turn: -22deg; }
+:is(.builder, .pizza-dock) .pizza__topping[data-shape="corn"] .pizza__piece { --landing-turn: 18deg; }
+:is(.builder, .pizza-dock) .pizza__topping[data-shape="onion"] .pizza__piece { --landing-turn: -45deg; }
+:is(.builder, .pizza-dock) .pizza__topping[data-shape="jalapeno"] .pizza__piece { --landing-turn: 30deg; }
+:is(.builder, .pizza-dock) .pizza__topping.is-leaving { opacity: 1; transition: none; }
+:is(.builder, .pizza-dock) .pizza__topping.is-leaving .pizza__piece { animation: pizza-ingredient-away .24s cubic-bezier(.4,0,.7,.2) forwards; }
+@keyframes pizza-ingredient-land {
+  0% { opacity: 0; transform: translate(calc(var(--drift) * 3), -52px) rotate(var(--landing-turn)) scale(1.18); }
+  18% { opacity: 1; }
+  76% { opacity: 1; transform: translate(0, 2px) rotate(0deg) scale(1.025, .975); }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+}
+@keyframes pizza-ingredient-away { to { opacity: 0; transform: translateY(-18px) scale(.9); } }
+@media (prefers-reduced-motion: reduce) {
+  :is(.builder, .pizza-dock) .pizza__topping.is-entering .pizza__piece, :is(.builder, .pizza-dock) .pizza__topping.is-leaving .pizza__piece { animation: none; }
+  :is(.builder, .pizza-dock) .pizza__topping.is-leaving { opacity: 0; }
+}
 .builder .stage .icon, .pizza-dock .icon, .buybar--builder .buybar__cta > .icon { stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
 .builder .stage__composition dt { font-weight: 600; }
 .builder .stage__composition dd { font-weight: 400; }

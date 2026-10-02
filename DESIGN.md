@@ -701,3 +701,8 @@ Returning customers see a compact white notice above the mobile pizza dock, with
 ## Whiter ordering surfaces — 2026-10-02
 
 Page and menu backgrounds use near-white #fffefd; the mobile pizza dock is pure white. Secondary controls use #f8f7f5, with lighter separators and a quieter dock shadow. The menu, cart and checkout share the builder's locally hosted variable Heebo and rounded 1.5px icons. Primary action shadows are reduced on the light flow. The photographic homepage remains dark; tomato actions and warm selection fills retain their existing roles. Catalog, prices, drafts and checkout behavior are preserved.
+
+
+## Clear topping feedback — 2026-10-02
+
+Only the changed ingredient lands: 52 SVG units of descent, shape-specific rotation and a short soft settle, over 560ms with 6ms piece staggering (under 760ms overall). Removal keeps the group visible long enough for its pieces to lift and fade over 240ms, matching incumbent removal timing. The mobile dock makes the descent visible without a new overlay or blocked interaction. Existing toppings, deterministic positions, half placement and pricing remain unchanged. Reduced-motion preference renders changes immediately.
