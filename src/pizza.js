@@ -76,6 +76,30 @@ export function pizzaState(product, config) {
   return state;
 }
 
+// Begin randomized ingredient landing.
+function landingMotion(point, index, entering) {
+  // New motion per addition; static previews keep the same final geometry.
+  const next = entering ? Math.random : random(hash('landing-' + index));
+  const height = 44 + next() * 34;
+  const drift = (next() - .5) * 24;
+  const turn = (next() - .5) * 34;
+  const skid = (next() - .5) * 3.6;
+  const duration = Math.round(440 + Math.sqrt(height / 44) * 100 + next() * 60);
+  const delay = index === 0 ? 0 : Math.round(next() * 150);
+  const angle = point.rotation * Math.PI / 180;
+  const cosine = Math.cos(angle), sine = Math.sin(angle);
+  // Invert each piece's resting rotation/scale so gravity stays screen-down.
+  return [
+    '--fall-x:' + ((cosine * drift - sine * height) / point.size).toFixed(1) + 'px',
+    '--fall-y:' + ((-sine * drift - cosine * height) / point.size).toFixed(1) + 'px',
+    '--settle-x:' + (cosine * skid / point.size).toFixed(1) + 'px',
+    '--settle-y:' + (-sine * skid / point.size).toFixed(1) + 'px',
+    '--piece-turn:' + turn.toFixed(1) + 'deg',
+    '--fall-time:' + duration + 'ms',
+    '--fall-delay:' + delay + 'ms',
+  ].join(';');
+}
+// End randomized ingredient landing.
 export function toppingMarkup(topping, entering = false) {
   const shape = SHAPES[topping.shape] || FALLBACK_SHAPE;
   const piece = shape.src
@@ -83,7 +107,7 @@ export function toppingMarkup(topping, entering = false) {
     : shape.draw;
   const points = scatter(topping.id, shape.count, SCATTER_RADIUS, shape.gap)
     .filter((point) => topping.placement === 'whole' || (topping.placement === 'right' ? point.x > 6 : point.x < -6));
-  return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-shape="${topping.shape}" data-placement="${topping.placement}">${points.map((point, index) => `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__landing-shadow" style="--fall-time:${520 + index % 5 * 18}ms;--fall-delay:${index * 13 % 19 * 7}ms"><ellipse rx="${((shape.size || 20) * .4).toFixed(1)}" ry="${((shape.size || 20) * .18).toFixed(1)}" cy="1.5"/></g><g class="pizza__piece" style="--i:${index};--drift:${(point.x * .035).toFixed(1)}px;--fall-x:${(-Math.sin(point.rotation * Math.PI / 180) * (48 + index % 4 * 5) / point.size).toFixed(1)}px;--fall-y:${(-Math.cos(point.rotation * Math.PI / 180) * (48 + index % 4 * 5) / point.size).toFixed(1)}px;--settle-x:${(Math.cos(point.rotation * Math.PI / 180) * (index % 3 - 1) * 2 / point.size).toFixed(1)}px;--settle-y:${(-Math.sin(point.rotation * Math.PI / 180) * (index % 3 - 1) * 2 / point.size).toFixed(1)}px;--piece-turn:${-7 + index % 5 * 3.5}deg;--fall-time:${520 + index % 5 * 18}ms;--fall-delay:${index * 13 % 19 * 7}ms">${piece}</g></g>`).join('')}</g>`;
+  return `<g class="pizza__topping${entering ? ' is-entering' : ''}" data-topping="${topping.id}" data-shape="${topping.shape}" data-placement="${topping.placement}">${points.map((point, index) => { const motion = landingMotion(point, index, entering); return `<g transform="translate(${(C + point.x).toFixed(1)} ${(C + point.y).toFixed(1)}) rotate(${point.rotation.toFixed(0)}) scale(${point.size.toFixed(2)})"><g class="pizza__landing-shadow" style="${motion}"><ellipse rx="${((shape.size || 20) * .4).toFixed(1)}" ry="${((shape.size || 20) * .18).toFixed(1)}" cy="1.5"/></g><g class="pizza__piece" style="--i:${index};--drift:${(point.x * .035).toFixed(1)}px;${motion}">${piece}</g></g>`; }).join('')}</g>`;
 }
 
 export function pizzaSVG(state, { uid = `p${Math.random().toString(36).slice(2, 8)}`, rings = [], label = '', editable = false } = {}) {
