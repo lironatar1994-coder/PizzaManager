@@ -87,6 +87,11 @@ verify() {
       product_revision=$(curl -fsS --max-time 20 "$url/assets/product-ui-version.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["revision"])')
       test "$product_revision" = "$expected"
       curl -fsS --max-time 20 "$url/p/oven-demo/" | grep -F "product1-${expected:0:12}" >/dev/null
+      remote=$(curl -fsS --max-time 20 "$url/storefront/src/extra-toppings.js?v=$expected" | sha256sum | cut -d' ' -f1)
+      test "$remote" = "$(sha256sum "$storefront/src/extra-toppings.js" | cut -d' ' -f1)"
+      for ingredient in green-olive tomato roasted-pepper pineapple; do
+        curl -fsS --max-time 20 -o /dev/null "$url/assets/toppings/$ingredient.webp"
+      done
     fi
     curl -fsS --max-time 20 -o /dev/null "$url/assets/menu-pizza-v1.webp"
     if [[ -f "$storefront/assets/builder-tabletop-v1.webp" ]]; then
@@ -154,6 +159,10 @@ for pizza_artwork in pizza-base-real-v3 pizza-base-thin-real-v3; do
   install -m 644 "$repository/assets/$pizza_artwork.webp.json" "$release/assets/"
 done
 install -d -m 755 "$release/assets/fonts"
+for ingredient in green-olive tomato roasted-pepper pineapple; do
+  install -m 644 "$repository/assets/toppings/$ingredient.webp" "$release/assets/toppings/"
+  install -m 644 "$repository/assets/toppings/$ingredient.webp.json" "$release/assets/toppings/"
+done
 for subset in hebrew latin; do
   install -m 644 "$repository/assets/fonts/heebo-builder-$subset.woff2" "$release/assets/fonts/"
 done
@@ -169,7 +178,7 @@ node "$repository/deploy/platform-storefront.mjs" "$repository" "$old_target" "$
 product_stage=$(mktemp -d "$base/.product-ui.XXXXXXXX")
 cp -a -- "$release/." "$product_stage/"
 node "$repository/deploy/platform-product.mjs" "$repository" "$release" "$product_stage" "$revision"
-for file in src/app.js src/styles.css src/floating-preview.js src/order-resume.js src/pizza.js index.html assets/product-ui-version.json; do
+for file in src/app.js src/styles.css src/floating-preview.js src/order-resume.js src/pizza.js src/extra-toppings.js index.html assets/product-ui-version.json; do
   install -m 644 "$product_stage/$file" "$release/$file"
 done
 chmod -R a+rX "$release"

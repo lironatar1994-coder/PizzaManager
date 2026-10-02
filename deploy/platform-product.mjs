@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { orderResumeApp, withoutOrderResume } from './order-resume.mjs';
 import { toppingDepth, withoutToppingDepth } from './topping-depth.mjs';
 import { previewPolishApp, withoutPreviewPolish } from './preview-polish.mjs';
+import { extraToppings, withoutExtraToppings } from './extra-toppings.mjs';
 
 // Presentation only: retain the current tenant, catalog, cart and payment code.
 const [repository, source, output, revision] = process.argv.slice(2).map((value, index) => index < 3 ? resolve(value) : value);
@@ -115,16 +116,18 @@ write('index.html', html);
 // Replace only the visual base filenames, keeping the incumbent renderer,
 // deterministic topping scatter, variant geometry and half-selection logic.
 const pizzaAssets = [['pizza-base-v2.webp', 'pizza-base-real-v3.webp'], ['pizza-base-thin-v2.webp', 'pizza-base-thin-real-v3.webp']];
-const normalizePizzaAssets = (content) => withoutToppingDepth(pizzaAssets.reduce((text, [before, after]) => text.replaceAll(after, before), content));
+const normalizePizzaAssets = (content) => withoutExtraToppings(withoutToppingDepth(pizzaAssets.reduce((text, [before, after]) => text.replaceAll(after, before), content)));
 const incumbentPizza = read(source, 'src/pizza.js');
-const pizzaModule = toppingDepth(pizzaAssets.reduce((text, [before, after]) => text.replaceAll(before, after), incumbentPizza));
+const pizzaModule = extraToppings(toppingDepth(pizzaAssets.reduce((text, [before, after]) => text.replaceAll(before, after), incumbentPizza)), tag);
 if (!pizzaModule.includes('pizza-base-real-v3.webp') || !pizzaModule.includes('pizza-base-thin-real-v3.webp') || normalizePizzaAssets(pizzaModule) !== normalizePizzaAssets(incumbentPizza)) throw Error('Pizza artwork adapter changed renderer logic');
 write('src/pizza.js', pizzaModule);
+const extraShapes = read(repository, 'src/extra-toppings.js').replace(/\r\n/g, '\n').replace(/'\.\/assets\/([^']+)'/g, (_, path) => `appUrl('/assets/${path}')`);
+write('src/extra-toppings.js', "import { appUrl } from '../../shared/runtime.js';\n" + extraShapes);
 
 const preservedModules = {};
 for (const file of readdirSync(join(source, 'src')).filter((name) => name.endsWith('.js'))) {
   const path = `src/${file}`;
-  if (file !== 'app.js' && file !== 'floating-preview.js' && file !== 'pizza.js' && file !== 'order-resume.js') {
+  if (!['app.js', 'floating-preview.js', 'pizza.js', 'order-resume.js', 'extra-toppings.js'].includes(file)) {
     if (hash(source, path) !== hash(output, path)) throw Error(`Incumbent module changed: ${file}`);
     preservedModules[path] = hash(source, path);
   }
@@ -136,11 +139,13 @@ function unchangedTree(directory) {
   for (const name of readdirSync(join(source, directory))) {
     const path = join(directory, name);
     if (statSync(join(source, path)).isDirectory()) unchangedTree(path);
-    else if (!['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'src/order-resume.js', 'assets/product-ui-version.json'].includes(path.replaceAll('\\', '/')) && hash(source, path) !== hash(output, path)) throw Error(`Incumbent file changed: ${path}`);
+    else if (!['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/pizza.js', 'src/order-resume.js', 'src/extra-toppings.js', 'assets/product-ui-version.json'].includes(path.replaceAll('\\', '/')) && hash(source, path) !== hash(output, path)) throw Error(`Incumbent file changed: ${path}`);
   }
 }
 unchangedTree('src');
 unchangedTree('assets');
-const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/order-resume.js', 'src/pizza.js', 'index.html'].map((path) => [path, hash(output, path)]));
+const extraSyntax = spawnSync(process.execPath, ['--check', join(output, 'src/extra-toppings.js')], { encoding: 'utf8' });
+if (extraSyntax.status !== 0) throw Error(`Invalid ingredient registry: ${extraSyntax.stderr}`);
+const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/order-resume.js', 'src/pizza.js', 'src/extra-toppings.js', 'index.html'].map((path) => [path, hash(output, path)]));
 write('assets/product-ui-version.json', JSON.stringify({ revision, surface: 'product-customizer', managedCatalog: true, files, preserved: { appLogic: digest(withoutProductPresentation(app)), pizzaRenderer: digest(normalizePizzaAssets(pizzaModule)), otherStyles: digest(withoutResumeStyles(withoutFloatingStyles(css))), entryMarkup: digest(withoutEntryTags(html)), modules: preservedModules } }) + '\n');
 console.log(`Compiled product UI ${revision}; app logic, other style surfaces, incumbent modules and assets preserved.`);

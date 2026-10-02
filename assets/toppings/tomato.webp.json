@@ -1,0 +1,18 @@
+{
+  "prompt": "Use case: product-mockup. Asset type: a transparent food ingredient sprite for the existing realistic Hebrew pizza configurator. Generate ONE isolated piece photographed directly from overhead (90 degrees). True transparent background and clean cutout with no ground, no cast shadow, no plate, no pizza, no hands, no text, no logo. Square composition, the single ingredient occupies about 70 percent of the frame with transparent margin. Warm appetizing realistic food photography, natural uneven texture, gently baked as it would look on a wood-fired mozzarella pizza. Sharp detail; avoid illustration, plastic CGI, or decorative extra ingredients. Subject: ONE small thin semicircular slice of ripe red cherry tomato, viewed flat from above, juicy red flesh and natural translucent seeds, slightly roasted edge. Keep a recognizable tomato slice, not an entire tomato.",
+  "tool": "built-in image_gen",
+  "createdAt": "2026-10-02T02:52:31.864071+00:00",
+  "transparent_background": true,
+  "source": "exec-af9d08d5-71e5-4171-b5c8-68c7a426ea25.png",
+  "crop": [
+    89,
+    41,
+    1210,
+    1246
+  ],
+  "dimensions": [
+    192,
+    192
+  ],
+  "conversion": "Alpha preserved; transparent margin cropped and padded; resized to WebP quality 88. Synthetic demo ingredient."
+}

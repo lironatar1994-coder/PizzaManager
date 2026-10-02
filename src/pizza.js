@@ -1,5 +1,6 @@
 // מציג בסיס פיצה מצולם עם תוספות מצולמות מתוך התצורה; כל מסכי ההזמנה משתמשים באותה תצוגה.
 import { selectedVariant } from './order.js?v=20260929-pizzeria2';
+import { EXTRA_SHAPES } from './extra-toppings.js';
 
 const C = 200;
 const R = 188;
@@ -42,6 +43,7 @@ function scatter(key, count, radius, gap) {
 }
 
 const SHAPES = {
+  ...EXTRA_SHAPES,
   olive: { count: 21, gap: 26, size: 22, src: './assets/toppings/olive.webp' },
   mushroom: { count: 14, gap: 34, size: 29, src: './assets/toppings/mushroom.webp' },
   corn: { count: 34, gap: 17, size: 13, src: './assets/toppings/corn.webp' },

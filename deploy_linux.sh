@@ -93,6 +93,7 @@ if (( platform_route )); then
     tar -xzf "$archive" -C "$stage"
     test -f "$stage/deploy/platform-ui.sh"
     install -m 755 "$stage/deploy/platform-ui.sh" "$base/incoming/platform-ui.sh"
+    bash "$stage/deploy/platform-toppings.sh" "$stage" "$revision"
     bash "$stage/deploy/platform-ui.sh" deploy "$stage" "$revision"
     exit 0
 fi

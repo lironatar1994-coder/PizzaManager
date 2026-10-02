@@ -1,0 +1,6 @@
+[
+  { "id": "green-olives", "name": "זיתים ירוקים", "price": 6, "shape": "green-olive" },
+  { "id": "tomato", "name": "עגבניות", "price": 6, "shape": "tomato" },
+  { "id": "roasted-pepper", "name": "פלפל קלוי", "price": 6, "shape": "roasted-pepper" },
+  { "id": "pineapple", "name": "אננס", "price": 6, "shape": "pineapple" }
+]

@@ -100,6 +100,10 @@ export const products = [
           // דוגמת חוסר מוצגת רק עם ?demo=soldout; אינה טוענת דבר על מלאי עסק אמיתי.
           { id: 'jalapeno', name: 'חלפיניו', price: 6, shape: 'jalapeno', available: true, demoSoldOut: true, alternatives: ['onion'], foodInfo: { reviewed: false, ingredients: ['פלפל חלפיניו'], allergens: [] } },
           { id: 'feta', name: 'בולגרית', price: 9, shape: 'feta', foodInfo: { reviewed: false, ingredients: ['גבינה בולגרית'], allergens: ['חלב'] } },
+          { id: 'green-olives', name: 'זיתים ירוקים', price: 6, shape: 'green-olive', foodInfo: { reviewed: false, ingredients: ['זיתים ירוקים'], allergens: [] } },
+          { id: 'tomato', name: 'עגבניות', price: 6, shape: 'tomato', foodInfo: { reviewed: false, ingredients: ['עגבניות'], allergens: [] } },
+          { id: 'roasted-pepper', name: 'פלפל קלוי', price: 6, shape: 'roasted-pepper', foodInfo: { reviewed: false, ingredients: ['פלפל קלוי'], allergens: [] } },
+          { id: 'pineapple', name: 'אננס', price: 6, shape: 'pineapple', foodInfo: { reviewed: false, ingredients: ['אננס'], allergens: [] } },
         ],
       },
     ],

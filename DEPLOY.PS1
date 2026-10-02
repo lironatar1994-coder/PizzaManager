@@ -48,12 +48,19 @@ function VerifyLive([string]$ExpectedRevision) {
         if ($productManifest.revision -ne $ExpectedRevision) { throw "Live product UI revision mismatch: $($productManifest.revision)" }
     }
     $assets = @('app.js', 'styles.css', 'order.js', 'store.js', 'address.js', 'config-links.js') | ForEach-Object { $sourcePrefix + $_ }
+    if ($ExpectedRevision) { $assets += $sourcePrefix + 'extra-toppings.js' }
     if ($sourcePrefix -eq 'src/') { $assets += 'src/schedule.js' }
     if ($ExpectedRevision) { $assets += @('floating-preview.js', 'customer-flow.js', 'hero-motion.js', 'startup.js') | ForEach-Object { $sourcePrefix + $_ } }
     $assets += @('assets/brand/oven-mark.svg', 'assets/brand/favicon.svg', 'assets/pizza-hero-mobile.jpg', 'assets/pizza-base-v2.webp', 'assets/pizza-base-thin-v2.webp', 'assets/garlic-bread-demo.webp', 'assets/toppings/olive.webp', 'assets/toppings/mushroom.webp', 'assets/toppings/corn.webp', 'assets/toppings/onion.webp', 'assets/toppings/jalapeno.webp', 'assets/toppings/feta.webp')
     foreach ($asset in $assets) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}${asset}" -Method Head -UseBasicParsing -TimeoutSec 20
         if ($response.StatusCode -ne 200) { throw "Missing live asset: $asset" }
+    }
+    if ($ExpectedRevision) {
+      foreach ($ingredient in @('green-olive', 'tomato', 'roasted-pepper', 'pineapple')) {
+        $response = Invoke-WebRequest -Uri "${SiteUrl}assets/toppings/${ingredient}.webp" -Method Head -UseBasicParsing -TimeoutSec 20
+        if ($response.StatusCode -ne 200) { throw "Missing live ingredient: $ingredient" }
+      }
     }
     foreach ($menuPhoto in $(if ($ExpectedRevision) { @('pizza', 'garlic', 'family', 'combo') } else { @() })) {
         $response = Invoke-WebRequest -Uri "${SiteUrl}assets/menu-${menuPhoto}-v1.webp" -Method Head -UseBasicParsing -TimeoutSec 20

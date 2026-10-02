@@ -1,0 +1,18 @@
+{
+  "prompt": "Use case: product-mockup. Asset type: a transparent food ingredient sprite for the existing realistic Hebrew pizza configurator. Generate ONE isolated piece photographed directly from overhead (90 degrees). True transparent background and clean cutout with no ground, no cast shadow, no plate, no pizza, no hands, no text, no logo. Square composition, the single ingredient occupies about 70 percent of the frame with transparent margin. Warm appetizing realistic food photography, natural uneven texture, gently baked as it would look on a wood-fired mozzarella pizza. Sharp detail; avoid illustration, plastic CGI, or decorative extra ingredients. Subject: ONE small irregular golden-yellow pineapple chunk, softly roasted caramel-gold edges, juicy pale yellow fibrous flesh, realistic food texture. A single small pineapple cube/chunk, not a slice or whole pineapple.",
+  "tool": "built-in image_gen",
+  "createdAt": "2026-10-02T02:52:33.507307+00:00",
+  "transparent_background": true,
+  "source": "exec-6c1ada69-5687-4cd2-b76b-4523ebfb185b.png",
+  "crop": [
+    0,
+    20,
+    1230,
+    1236
+  ],
+  "dimensions": [
+    192,
+    192
+  ],
+  "conversion": "Alpha preserved; transparent margin cropped and padded; resized to WebP quality 88. Synthetic demo ingredient."
+}

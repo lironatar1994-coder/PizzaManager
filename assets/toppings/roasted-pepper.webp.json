@@ -1,0 +1,18 @@
+{
+  "prompt": "Use case: product-mockup. Asset type: a transparent food ingredient sprite for the existing realistic Hebrew pizza configurator. Generate ONE isolated piece photographed directly from overhead (90 degrees). True transparent background and clean cutout with no ground, no cast shadow, no plate, no pizza, no hands, no text, no logo. Square composition, the single ingredient occupies about 70 percent of the frame with transparent margin. Warm appetizing realistic food photography, natural uneven texture, gently baked as it would look on a wood-fired mozzarella pizza. Sharp detail; avoid illustration, plastic CGI, or decorative extra ingredients. Subject: ONE curved narrow strip of roasted red bell pepper, rich red and orange flesh, lightly wrinkled, a tiny natural charred edge, soft supple glossy texture. A single elegant C-shaped pepper strip, not an entire pepper or chili.",
+  "tool": "built-in image_gen",
+  "createdAt": "2026-10-02T02:52:32.605264+00:00",
+  "transparent_background": true,
+  "source": "exec-37cb998a-d58b-4a15-90fa-7feb7a829eb9.png",
+  "crop": [
+    0,
+    21,
+    1230,
+    1206
+  ],
+  "dimensions": [
+    192,
+    192
+  ],
+  "conversion": "Alpha preserved; transparent margin cropped and padded; resized to WebP quality 88. Synthetic demo ingredient."
+}
