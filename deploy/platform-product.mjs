@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { orderResumeApp, withoutOrderResume } from './order-resume.mjs';
 import { toppingDepth, withoutToppingDepth } from './topping-depth.mjs';
+import { previewPolishApp, withoutPreviewPolish } from './preview-polish.mjs';
 
 // Presentation only: retain the current tenant, catalog, cart and payment code.
 const [repository, source, output, revision] = process.argv.slice(2).map((value, index) => index < 3 ? resolve(value) : value);
@@ -73,7 +74,7 @@ function withoutQuantityTransport(source) {
   for (const [before, after] of quantityQueries) result = result.replace(after, before);
   return result;
 }
-const withoutProductPresentation = (content) => withoutOrderResume(withoutImportTag(withoutQuantityTransport(content)));
+const withoutProductPresentation = (content) => withoutPreviewPolish(withoutOrderResume(withoutImportTag(withoutQuantityTransport(content))));
 
 const incumbentApp = read(source, 'src/app.js');
 for (const contract of ["from '../../shared/runtime.js'", 'function productPage(', 'setupFloatingPreview(stage)', 'submitOrder(', 'finishPayment(', 'onCartChange((change)', '#/status/']) {
@@ -85,7 +86,7 @@ if (imports.length !== 1) throw Error('Expected one incumbent floating preview i
 // stepper through the form. Only its DOM ownership changes when it docks.
 // Move the exact existing handler body to the control and scope its lookups
 // there, retaining every line of quantity arithmetic, price and cart logic.
-const app = orderResumeApp(mobileQuantity(incumbentApp).replace(floatImport, `$1?v=${tag}$2`), tag);
+const app = previewPolishApp(orderResumeApp(mobileQuantity(incumbentApp).replace(floatImport, `$1?v=${tag}$2`), tag));
 if (withoutProductPresentation(app) !== withoutProductPresentation(incumbentApp)) throw Error('Product release changed incumbent app logic');
 
 const incumbentCss = read(source, 'src/styles.css');

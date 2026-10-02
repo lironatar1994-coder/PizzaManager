@@ -1374,26 +1374,116 @@ body:has(.builder) { --ground: #fffefd; --surface-1: #ffffff; --surface-2: #f8f7
 .builder:not(.builder--flat) .stage, .pizza-dock .stage { --text: #1e1b18; --text-2: #6d6862; --text-3: #6d6862; --line: #e9e4df; --surface-2: #f8f7f5; --select: #c83125; background: var(--ground); color: var(--text); }
 .builder .stage__flare { display: none; }
 .pizza__piece { filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
-/* A visible landing in the small dock; animate only the changed ingredient. */
-:is(.builder, .pizza-dock) .pizza__topping.is-entering .pizza__piece { --landing-turn: -14deg; animation: pizza-ingredient-land .58s cubic-bezier(.22,.72,.2,1) both; animation-delay: calc(var(--i) * 6ms); }
-:is(.builder, .pizza-dock) .pizza__topping[data-shape="olive"] .pizza__piece { --landing-turn: 55deg; }
-:is(.builder, .pizza-dock) .pizza__topping[data-shape="mushroom"] .pizza__piece { --landing-turn: -22deg; }
-:is(.builder, .pizza-dock) .pizza__topping[data-shape="corn"] .pizza__piece { --landing-turn: 18deg; }
-:is(.builder, .pizza-dock) .pizza__topping[data-shape="onion"] .pizza__piece { --landing-turn: -45deg; }
-:is(.builder, .pizza-dock) .pizza__topping[data-shape="jalapeno"] .pizza__piece { --landing-turn: 30deg; }
-:is(.builder, .pizza-dock) .pizza__topping.is-leaving { opacity: 1; transition: none; }
-:is(.builder, .pizza-dock) .pizza__topping.is-leaving .pizza__piece { animation: pizza-ingredient-away .24s cubic-bezier(.4,0,.7,.2) forwards; }
+/* A short gravity-led fall; stationary landing shadows use scale and opacity. */
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-entering .pizza__piece { --landing-turn: -12deg; animation: pizza-ingredient-land var(--fall-time, .56s) linear both; animation-delay: var(--fall-delay, 0ms); }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping[data-shape="olive"] .pizza__piece { --landing-turn: 36deg; }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping[data-shape="mushroom"] .pizza__piece { --landing-turn: -18deg; }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping[data-shape="corn"] .pizza__piece { --landing-turn: 16deg; }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping[data-shape="onion"] .pizza__piece { --landing-turn: -28deg; }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping[data-shape="jalapeno"] .pizza__piece { --landing-turn: 22deg; }
+.pizza__landing-shadow { opacity: 0; fill: #302018; transform-box: fill-box; transform-origin: center; pointer-events: none; }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-entering .pizza__landing-shadow { animation: pizza-landing-shadow var(--fall-time, .56s) linear both; animation-delay: var(--fall-delay, 0ms); }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-leaving { opacity: 1; transition: none; }
+:is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-leaving .pizza__piece { animation: pizza-ingredient-away .24s cubic-bezier(.4,0,.7,.2) forwards; }
 @keyframes pizza-ingredient-land {
-  0% { opacity: 0; transform: translate(var(--fall-x, 0px), var(--fall-y, -64px)) rotate(var(--landing-turn)) skewX(-7deg) scale(1.38, .82); filter: saturate(.96) brightness(1.04) drop-shadow(0 14px 2.5px rgba(30,18,11,.12)); }
-  18% { opacity: 1; }
-  60% { opacity: 1; transform: translate(calc(var(--fall-x, 0px) * .08), calc(var(--fall-y, -64px) * .08)) rotate(0deg) skewX(2deg) scale(1.06, 1.02); filter: saturate(.96) brightness(1) drop-shadow(0 3px 1.2px rgba(30,18,11,.2)); }
-  80% { opacity: 1; transform: translate(0, 0) rotate(0deg) skewX(0deg) scale(1.025, .965); filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
-  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) skewX(0deg) scale(1); filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
+  0% { opacity: 0; transform: translate(var(--fall-x, 0px), var(--fall-y, -54px)) rotate(calc(var(--landing-turn) + var(--piece-turn, 0deg))) skewX(-4deg) scale(1.18, .9); animation-timing-function: cubic-bezier(.42,0,1,1); }
+  12% { opacity: 1; transform: translate(calc(var(--fall-x, 0px) * .97), calc(var(--fall-y, -54px) * .97)) rotate(calc(var(--landing-turn) + var(--piece-turn, 0deg))) skewX(-4deg) scale(1.16, .92); animation-timing-function: cubic-bezier(.42,0,1,1); }
+  70% { opacity: 1; transform: translate(var(--settle-x, 0px), var(--settle-y, 0px)) rotate(var(--piece-turn, 0deg)) skewX(0deg) scale(1.015, .985); animation-timing-function: cubic-bezier(.16,1,.3,1); }
+  88% { opacity: 1; transform: translate(calc(var(--settle-x, 0px) * .2), calc(var(--settle-y, 0px) * .2)) rotate(0deg) skewX(0deg) scale(1.005, .995); animation-timing-function: ease-out; }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) skewX(0deg) scale(1); }
+}
+@keyframes pizza-landing-shadow {
+  0% { opacity: 0; transform: scale(1.5); }
+  12% { opacity: .06; transform: scale(1.45); animation-timing-function: cubic-bezier(.42,0,1,1); }
+  70% { opacity: .16; transform: scale(.8); animation-timing-function: ease-out; }
+  100% { opacity: 0; transform: scale(.65); }
 }
 @keyframes pizza-ingredient-away { to { opacity: 0; transform: translateY(-18px) scale(.9); } }
 @media (prefers-reduced-motion: reduce) {
-  :is(.builder, .pizza-dock) .pizza__topping.is-entering .pizza__piece, :is(.builder, .pizza-dock) .pizza__topping.is-leaving .pizza__piece { animation: none; }
-  :is(.builder, .pizza-dock) .pizza__topping.is-leaving { opacity: 0; }
+  :is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-entering :is(.pizza__piece, .pizza__landing-shadow), :is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-leaving .pizza__piece { animation: none; }
+  :is(.builder, .pizza-dock, .pizza-preview) .pizza__topping.is-leaving { opacity: 0; }
+}
+/* The enlarged editor shares the light ordering palette and thin icon family. */
+.pizza-preview { --ground: #fffefd; --surface-1: #ffffff; --surface-2: #f8f7f5; --surface-3: #f2efeb; --text: #1e1b18; --text-2: #6d6862; --text-3: #77716a; --line: #e9e4df; --line-strong: #cfc7bf; --select: #c83125; --select-soft: #fff5f1; --select-ink: #ffffff; --ember: #c83125; --paper: #ffffff; --paper-ink: #1e1b18; --shadow-float: 0 12px 32px rgba(33,28,24,.12); font-family: 'Heebo Builder', 'Heebo', Arial, sans-serif; background: var(--ground); color: var(--text); overflow: hidden; color-scheme: light; }
+body:has(.pizza-preview[open]) { overflow: hidden; }
+.pizza-preview::backdrop { background: rgba(30,27,24,.56); backdrop-filter: none; }
+.pizza-preview__shell { gap: 10px; padding: max(12px, env(safe-area-inset-top)) 16px max(12px, env(safe-area-inset-bottom)); background: var(--ground); }
+.pizza-preview__head { min-block-size: 44px; gap: 12px; }
+.pizza-preview__head h2 { min-inline-size: 0; margin: 0; font-size: 1.125rem; font-weight: 650; line-height: 1.35; text-wrap: balance; }
+.pizza-preview .icon { stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pizza-preview__head .icon-button { flex: none; inline-size: 44px; block-size: 44px; border-radius: 12px; background: var(--surface-2); color: var(--text); box-shadow: none; }
+.pizza-preview__head .icon-button:hover { background: var(--surface-3); }
+.pizza-preview__head .icon-button .icon { inline-size: 20px; block-size: 20px; }
+.pizza-preview :focus-visible { outline: 2px solid var(--select); outline-offset: 2px; }
+.pizza-preview__art { width: min(76vw, 290px, 31dvh); margin-block: 0; }
+.pizza-preview__art .pizza { filter: drop-shadow(0 7px 10px rgba(46,31,19,.14)); }
+.pizza-preview__hitareas button { border-radius: 50%; }
+.pizza-preview__hitareas button:hover { background: transparent; }
+.pizza-preview__hitareas button:focus-visible { outline-offset: -6px; }
+.pizza-preview__art[data-scope="right"] .pizza__focus-right, .pizza-preview__art[data-scope="left"] .pizza__focus-left { fill: rgba(200,49,37,.09); stroke: var(--select); stroke-opacity: .65; }
+.pizza-preview__scope { gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface-2); }
+.pizza-preview__scope button { min-block-size: 44px; gap: 8px; border-radius: 9px; color: var(--text-2); font-size: .9375rem; font-weight: 500; }
+.pizza-preview__scope button:hover { color: var(--text); }
+.pizza-preview__scope button[aria-pressed="true"] { background: var(--surface-1); color: var(--select); font-weight: 650; box-shadow: inset 0 0 0 1px var(--line); }
+.pizza-preview__scope .placement__icon { inline-size: 16px; block-size: 16px; }
+.pizza-preview__options { min-block-size: 80px; padding: 2px; scrollbar-color: var(--line-strong) var(--ground); }
+.pizza-preview .half-actions { gap: 8px; margin-block-end: 4px; }
+.pizza-preview .half-actions:not(:has(button:enabled)) { display: none; }
+.pizza-preview .half-actions button { min-block-size: 44px; padding: 6px 8px; border-radius: 10px; color: var(--text-2); font-size: .8125rem; font-weight: 400; background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); }
+.pizza-preview .half-actions button:hover:not(:disabled) { color: var(--text); background: var(--surface-2); }
+.pizza-preview .half-actions button:disabled { opacity: .55; }
+.pizza-preview .preview-clear { justify-content: flex-end; gap: 4px 12px; margin-block-end: 4px; }
+.pizza-preview .preview-clear__title { align-self: center; margin-inline-end: auto; color: var(--text); font-size: 1rem; font-weight: 600; }
+.pizza-preview .preview-clear button { min-block-size: 44px; color: var(--text-2); font-size: .8125rem; font-weight: 400; }
+.pizza-preview .preview-clear button:hover:not(:disabled) { color: var(--select); }
+.pizza-preview .preview-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pizza-preview .preview-choice { inline-size: 100%; min-block-size: 68px; gap: 8px; padding: 10px; border-radius: 12px; color: var(--text); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line); transition: background .15s, box-shadow .15s; }
+.pizza-preview .preview-choice:hover:not(:disabled) { background: var(--surface-2); }
+.pizza-preview .preview-choice[aria-pressed="true"] { background: var(--select-soft); box-shadow: inset 0 0 0 1px var(--select); }
+.pizza-preview .preview-choice:disabled { opacity: .6; cursor: default; }
+.pizza-preview .preview-choice__art { inline-size: 34px; block-size: 38px; }
+.pizza-preview .preview-choice__text { gap: 3px; }
+.pizza-preview .preview-choice__text strong { font-size: .9375rem; font-weight: 600; line-height: 1.3; }
+.pizza-preview .preview-choice__text small { font-size: .8125rem; font-weight: 400; line-height: 1.4; white-space: nowrap; }
+.pizza-preview .preview-choice__check { display: grid; flex: none; place-items: center; inline-size: 20px; block-size: 20px; opacity: 1; border-radius: 50%; color: var(--surface-1); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.pizza-preview .preview-choice__check .icon { inline-size: 12px; block-size: 12px; opacity: 0; stroke-width: 1.8; }
+.pizza-preview .preview-choice[aria-pressed="true"] .preview-choice__check { background: var(--select); box-shadow: none; }
+.pizza-preview .preview-choice[aria-pressed="true"] .preview-choice__check .icon { opacity: 1; }
+.pizza-preview .preview-composition { margin-block-start: 16px; padding-block-start: 12px; font-size: .8125rem; line-height: 1.5; }
+.pizza-preview .preview-composition dt { font-weight: 600; }
+.pizza-preview .preview-composition dd { font-weight: 400; }
+.pizza-preview__foot { gap: 6px; padding-block-start: 8px; border-block-start: 1px solid var(--line); background: var(--ground); }
+.pizza-preview .preview-price summary { min-block-size: 40px; padding-inline: 2px; }
+.pizza-preview .preview-price summary bdi { font-size: 1.5rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.pizza-preview .preview-price summary span { color: var(--text-2); font-size: .8125rem; font-weight: 400; }
+.pizza-preview .preview-price [data-preview-price] { background: var(--surface-1); border-radius: 12px; }
+.pizza-preview__return { min-block-size: 52px; gap: 10px; border-radius: 12px; background: var(--select); color: var(--select-ink); font-size: 1rem; font-weight: 600; box-shadow: none; }
+.pizza-preview__return:hover { background: #ad281f; }
+.pizza-preview__return .icon { inline-size: 20px; block-size: 20px; }
+@media (max-width: 360px) {
+  .pizza-preview__shell { padding-inline: 12px; }
+  .pizza-preview .preview-choice { gap: 6px; padding: 8px; }
+  .pizza-preview .preview-choice__art { inline-size: 28px; block-size: 34px; }
+  .pizza-preview .preview-choice__text strong { font-size: .875rem; }
+  .pizza-preview .preview-choice__check { inline-size: 18px; block-size: 18px; }
+}
+@media (max-height: 700px) and (max-width: 899px) {
+  .pizza-preview__shell { gap: 6px; }
+  .pizza-preview__art { width: min(70vw, 26dvh); }
+  .pizza-preview__head h2 { font-size: 1rem; }
+}
+@media (min-width: 700px) {
+  .pizza-preview { border-radius: 20px; }
+  .pizza-preview__shell { padding: 20px; }
+}
+@media (min-width: 900px) {
+  .pizza-preview { width: min(900px, calc(100% - 64px)); height: min(650px, calc(100dvh - 64px)); }
+  .pizza-preview__shell { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); grid-template-rows: 44px 52px minmax(80px, 1fr) auto; gap: 12px 28px; padding: 24px; }
+  .pizza-preview__head h2 { font-size: 1.25rem; }
+  .pizza-preview__art { grid-row: 2 / 4; width: min(100%, 350px); }
+  .pizza-preview__options { block-size: 100%; }
+  .pizza-preview__foot { grid-column: 1; grid-row: 4; }
+  .pizza-preview__shell:not(:has(.pizza-preview__options)) .pizza-preview__foot { grid-column: 1 / -1; }
 }
 .builder .stage .icon, .pizza-dock .icon, .buybar--builder .buybar__cta > .icon { stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
 .builder .stage__composition dt { font-weight: 600; }
