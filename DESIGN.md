@@ -706,3 +706,8 @@ Page and menu backgrounds use near-white #fffefd; the mobile pizza dock is pure 
 ## Clear topping feedback — 2026-10-02
 
 Only the changed ingredient lands: 52 SVG units of descent, shape-specific rotation and a short soft settle, over 560ms with 6ms piece staggering (under 760ms overall). Removal keeps the group visible long enough for its pieces to lift and fade over 240ms, matching incumbent removal timing. The mobile dock makes the descent visible without a new overlay or blocked interaction. Existing toppings, deterministic positions, half placement and pricing remain unchanged. Reduced-motion preference renders changes immediately.
+
+
+## Ingredient depth illusion — 2026-10-02
+
+The same small ingredient images suggest height through scale, foreshortening, rotation and a tightening shadow. Each piece falls from above: its local fall coordinates compensate for the existing random rotation and scale. A 580ms fall plus bounded 6ms staggering settles into the original position, size and contact shadow; only the new ingredient moves. This is a lightweight optical depth effect using 2D SVG/CSS transforms, not a 3D engine, so no models or new network assets are loaded. Reduced Motion remains immediate. Actual iPhone Safari performance is not confirmed by a Chrome mobile viewport.

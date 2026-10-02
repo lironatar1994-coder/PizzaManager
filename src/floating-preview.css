@@ -72,7 +72,7 @@ body:has(.builder) { --ground: #fffefd; --surface-1: #ffffff; --surface-2: #f8f7
 .builder .stage__flare { display: none; }
 .pizza__piece { filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
 /* A visible landing in the small dock; animate only the changed ingredient. */
-:is(.builder, .pizza-dock) .pizza__topping.is-entering .pizza__piece { --landing-turn: -14deg; animation: pizza-ingredient-land .56s cubic-bezier(.22,.72,.2,1) both; animation-delay: calc(var(--i) * 6ms); }
+:is(.builder, .pizza-dock) .pizza__topping.is-entering .pizza__piece { --landing-turn: -14deg; animation: pizza-ingredient-land .58s cubic-bezier(.22,.72,.2,1) both; animation-delay: calc(var(--i) * 6ms); }
 :is(.builder, .pizza-dock) .pizza__topping[data-shape="olive"] .pizza__piece { --landing-turn: 55deg; }
 :is(.builder, .pizza-dock) .pizza__topping[data-shape="mushroom"] .pizza__piece { --landing-turn: -22deg; }
 :is(.builder, .pizza-dock) .pizza__topping[data-shape="corn"] .pizza__piece { --landing-turn: 18deg; }
@@ -81,10 +81,11 @@ body:has(.builder) { --ground: #fffefd; --surface-1: #ffffff; --surface-2: #f8f7
 :is(.builder, .pizza-dock) .pizza__topping.is-leaving { opacity: 1; transition: none; }
 :is(.builder, .pizza-dock) .pizza__topping.is-leaving .pizza__piece { animation: pizza-ingredient-away .24s cubic-bezier(.4,0,.7,.2) forwards; }
 @keyframes pizza-ingredient-land {
-  0% { opacity: 0; transform: translate(calc(var(--drift) * 3), -52px) rotate(var(--landing-turn)) scale(1.18); }
+  0% { opacity: 0; transform: translate(var(--fall-x, 0px), var(--fall-y, -64px)) rotate(var(--landing-turn)) skewX(-7deg) scale(1.38, .82); filter: saturate(.96) brightness(1.04) drop-shadow(0 14px 2.5px rgba(30,18,11,.12)); }
   18% { opacity: 1; }
-  76% { opacity: 1; transform: translate(0, 2px) rotate(0deg) scale(1.025, .975); }
-  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  60% { opacity: 1; transform: translate(calc(var(--fall-x, 0px) * .08), calc(var(--fall-y, -64px) * .08)) rotate(0deg) skewX(2deg) scale(1.06, 1.02); filter: saturate(.96) brightness(1) drop-shadow(0 3px 1.2px rgba(30,18,11,.2)); }
+  80% { opacity: 1; transform: translate(0, 0) rotate(0deg) skewX(0deg) scale(1.025, .965); filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
+  100% { opacity: 1; transform: translate(0, 0) rotate(0deg) skewX(0deg) scale(1); filter: saturate(.96) brightness(.98) drop-shadow(0 .65px .7px rgba(30,18,11,.24)); }
 }
 @keyframes pizza-ingredient-away { to { opacity: 0; transform: translateY(-18px) scale(.9); } }
 @media (prefers-reduced-motion: reduce) {
