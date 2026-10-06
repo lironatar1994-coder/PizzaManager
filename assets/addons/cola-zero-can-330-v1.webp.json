@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 330 ml aluminum cola-zero can, plain near-black sleeve, silver metallic top and bottom and realistic pull tab, small neutral silver accent on the rim. No writing.",
+  "generatedSource": "exec-b95274e0-68b1-44f7-b109-c853979717a2.png",
+  "sourceSha256": "457c1f041c892a0d691d454b3e9cda85d118d3f9c656b0a5622978ddaa2282ad",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 17498,
+  "sha256": "80927b7d5933c5f21ec21a4c055b04ecbcad583f370db88c7c52a0e7140e9779",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-zero-can-330-v1.png"
+}

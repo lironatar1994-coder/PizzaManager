@@ -6,6 +6,7 @@ import { compactCustomerCopy, compactCustomerStyles } from './storefront-copy.mj
 import { floatingPreviewApp, floatingPreviewStyles } from './floating-preview.mjs';
 import { streamlinedBuilderApp } from './builder-controls.mjs';
 import { customerFlowApp, customerFlowStyles } from './customer-flow.mjs';
+import { withAddonsApp, withAddonsOrder } from './addons.mjs';
 
 // Apply the menu surface and concise customer copy. Its API, tenant storage,
 // pricing, checkout and payment adapters remain the source of truth.
@@ -65,7 +66,9 @@ const cartAnchor = "document.querySelectorAll('[data-hero-cart]').forEach((node)
 if (!app.includes(cartAnchor)) throw Error('Platform cart update boundary changed');
 app = app.replace(cartAnchor + '\n  refreshMenuCart();', cartAnchor);
 app = app.replace(cartAnchor, cartAnchor + '\n  refreshMenuCart();');
-write('src/app.js', customerFlowApp(streamlinedBuilderApp(floatingPreviewApp(compactCustomerCopy(app, { platform: true }))), { platform: true }));
+write('src/app.js', withAddonsApp(customerFlowApp(streamlinedBuilderApp(floatingPreviewApp(compactCustomerCopy(app, { platform: true }))), { platform: true }), { platform: true }));
+write('src/order.js', withAddonsOrder(read(source, 'src/order.js')));
+for (const file of ['addons.js', 'addon-model.js', 'addons.css']) write(`src/${file}`, read(repository, `src/${file}`));
 write('src/floating-preview.js', read(repository, 'src/floating-preview.js'));
 write('src/customer-flow.js', read(repository, 'src/customer-flow.js'));
 write('src/hero-motion.js', read(repository, 'src/hero-motion.js'));
@@ -97,6 +100,8 @@ css = css.replace(/\/\* Hero heat motion: the photograph remains[\s\S]*?\/\* End
 css += '\n' + read(repository, 'src/hero-motion.css');
 write('src/styles.css', customerFlowStyles(floatingPreviewStyles(compactCustomerStyles(css), read(repository, 'src/floating-preview.css')), read(repository, 'src/customer-flow.css')));
 let html = read(source, 'index.html').replace(/(\/storefront\/src\/(?:styles\.css|app\.js)\?v=)[^"']+/g, `$1${tag}`);
+html = html.replace(/^.*<link rel="stylesheet" href="\/storefront\/src\/addons\.css[^>]*>.*\r?\n/gm, '');
+html = html.replace('  </head>', `    <link rel="stylesheet" href="/storefront/src/addons.css?v=${tag}" />\n  </head>`);
 html = html.replaceAll('hero-pizzeria-mobile-v2.webp', 'hero-pizzeria-mobile-v3.webp').replaceAll('hero-pizzeria-desktop-v2.webp', 'hero-pizzeria-desktop-v3.webp');
 html = html.replace(/^.*<script type="module" src="\/storefront\/src\/hero-motion\.js[^>]*><\/script>.*\r?\n/gm, '');
 html = html.replace('  </head>', `    <script type="module" src="/storefront/src/hero-motion.js?v=${tag}"></script>\n  </head>`);
@@ -117,5 +122,5 @@ for (const file of readdirSync(join(output, 'src')).filter((name) => name.endsWi
   if (syntax.status !== 0) throw Error(`Invalid platform module ${file}: ${syntax.stderr}`);
 }
 const hash = (path) => createHash('sha256').update(readFileSync(join(output, path))).digest('hex');
-write('assets/menu-ui-version.json', JSON.stringify({ revision, surface: 'customer-ui', managedCatalog: true, files: { 'src/app.js': hash('src/app.js'), 'src/styles.css': hash('src/styles.css'), 'src/floating-preview.js': hash('src/floating-preview.js'), 'src/customer-flow.js': hash('src/customer-flow.js') } }) + '\n');
+write('assets/menu-ui-version.json', JSON.stringify({ revision, surface: 'customer-ui', managedCatalog: true, files: { 'src/app.js': hash('src/app.js'), 'src/styles.css': hash('src/styles.css'), 'src/floating-preview.js': hash('src/floating-preview.js'), 'src/customer-flow.js': hash('src/customer-flow.js'), 'src/addons.js': hash('src/addons.js'), 'src/addon-model.js': hash('src/addon-model.js'), 'src/addons.css': hash('src/addons.css') } }) + '\n');
 console.log(`Compiled platform customer UI ${revision}; preserved live catalog and checkout adapters.`);

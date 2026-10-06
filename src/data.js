@@ -1,3 +1,4 @@
+import { demoAddons } from './addons-catalog.js?v=20260929-pizzeria2';
 // נתוני הדגמה בלבד. בהמשך יוחלף הקובץ בנתונים מממשק הניהול.
 export const shop = {
   name: 'פיצת התנור',
@@ -55,6 +56,7 @@ export const shop = {
 };
 
 export const products = [
+  ...demoAddons,
   {
     id: 'house-pizza',
     active: true,

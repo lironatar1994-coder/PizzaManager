@@ -1,0 +1,266 @@
+[
+  {
+    "key": "cola-can-330",
+    "path": "assets/addons/cola-can-330-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup.\nAsset type: a single photorealistic e-commerce product photograph for an Israeli pizza ordering app, also shown as a small manager/cart/checkout thumbnail.\nSubject: one unbranded 330 ml aluminum cola can with a deep red plain sleeve, silver top and realistic pull tab. No logos and absolutely no lettering, numbers or symbols.\nComposition: square 1024 by 1024, entire upright can fully visible, centered, occupies about 70 percent of frame height, generous clean space around it. Three-quarter front view with top visible. The can is the only subject.\nMaterials: natural aluminum, a few subtle condensation droplets, convincing highlights, real photographic detail.\nBackdrop and lighting: seamless pure white studio background, soft neutral daylight from upper left, subtle soft contact shadow beneath, realistic commercial beverage photography. No pedestal, props, people, hands, collage, illustration, cartoon, plastic CGI look or watermark.\nThis is a synthetic generic catalog image, not an image of a branded product.",
+    "generatedSource": "exec-1c2e01f5-b769-476d-9698-9e8692db617c.png",
+    "sourceSha256": "621f9043f3a37c56d9439fb6edae3f1dd0d83ab6ca8e0f7fbda9f71b46b51076",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 18060,
+    "sha256": "bab6d14341296d55e6fc257a0f0b380a4db811161dcdd27d6136956bcf4e4773",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-can-330-v1.png"
+  },
+  {
+    "key": "cola-bottle-1500",
+    "path": "assets/addons/cola-bottle-1500-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 1.5 liter transparent PET bottle filled with dark brown cola, plain deep red cap and plain deep red label sleeve, natural bottle ridges and plausible cola highlights.",
+    "generatedSource": "exec-c7561ade-fd89-4f1f-bc19-27bcd62c2f2b.png",
+    "sourceSha256": "e2e53be112bb2d2939e77f3dee0ecbb57f59d608ee4919d9daf5939dcab83c00",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 14872,
+    "sha256": "e3547a477b5d2907bb32b45c6f9dd588c4f82b08eb42df9f6d25a3c461453c3a",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-bottle-1500-v1.png"
+  },
+  {
+    "key": "cola-zero-can-330",
+    "path": "assets/addons/cola-zero-can-330-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 330 ml aluminum cola-zero can, plain near-black sleeve, silver metallic top and bottom and realistic pull tab, small neutral silver accent on the rim. No writing.",
+    "generatedSource": "exec-b95274e0-68b1-44f7-b109-c853979717a2.png",
+    "sourceSha256": "457c1f041c892a0d691d454b3e9cda85d118d3f9c656b0a5622978ddaa2282ad",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 17498,
+    "sha256": "80927b7d5933c5f21ec21a4c055b04ecbcad583f370db88c7c52a0e7140e9779",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-zero-can-330-v1.png"
+  },
+  {
+    "key": "cola-zero-bottle-1500",
+    "path": "assets/addons/cola-zero-bottle-1500-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 1.5 liter transparent PET bottle filled with dark brown zero-sugar cola, plain near-black cap and plain near-black label sleeve, natural bottle ridges.",
+    "generatedSource": "exec-17cb3e86-f82b-448a-9290-3b8efdb0b1ba.png",
+    "sourceSha256": "02adf4916d74644de3ea28e13e56d257f3ff593359e03258adf60fe91e1fe8ad",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 15428,
+    "sha256": "29936e8515546f05021905c2073750fce729aa1fddde7ab0b165cb34668f8a8f",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-zero-bottle-1500-v1.png"
+  },
+  {
+    "key": "lemon-lime-can-330",
+    "path": "assets/addons/lemon-lime-can-330-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 330 ml aluminum lemon-lime soda can, plain fresh green sleeve, silver metallic top and bottom and realistic pull tab. No writing.",
+    "generatedSource": "exec-15170f73-a148-489b-86ee-67f39427a1ce.png",
+    "sourceSha256": "71d0ca7218ccfa551af200ac342e648841ca40a4e86df37a26e1f2401051949d",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 19444,
+    "sha256": "8f0d7dd72867ce2792ffb628dc36c04b144ae263e5e33c3c8406e0845f5360ea",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/lemon-lime-can-330-v1.png"
+  },
+  {
+    "key": "lemon-lime-bottle-1500",
+    "path": "assets/addons/lemon-lime-bottle-1500-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One upright transparent PET 1.5 liter bottle of nearly clear sparkling lemon-lime soda, plain fresh green cap and plain fresh green label sleeve. Natural ridged bottle, clear liquid with fine tiny bubbles and some subtle condensation. Three-quarter front view with the top visible.",
+    "generatedSource": "exec-59d32ad4-2477-4490-8183-056a6b1fc710.png",
+    "sourceSha256": "a553fbd93325bdad76a123d24574bc2958422152bbe423000efebd5cb44a2c44",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 11654,
+    "sha256": "69cd4f57a81248404bfae7a913d0b945132002bb2406b44ff937611df245f17b",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/lemon-lime-bottle-1500-v1.png"
+  },
+  {
+    "key": "water-bottle-500",
+    "path": "assets/addons/water-bottle-500-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One upright transparent PET 500 ml water bottle full of still clear water, plain medium-blue screw cap and plain medium-blue label sleeve. Natural compact ridged bottle, realistic water refraction and subtle condensation. Three-quarter front view with top visible. No bubbles in liquid.",
+    "generatedSource": "exec-102b0d52-5a4f-4f82-849d-9b8224694841.png",
+    "sourceSha256": "235d9d06f351d41f18a3af9a719bde09dc47e75a013b8f7a353f55caa2f52906",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 12458,
+    "sha256": "935f71629383b1b9beb4bd3bb60aab50da353c61dd8fd36e7e3aa8d1f07b7c8a",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/water-bottle-500-v1.png"
+  },
+  {
+    "key": "soda-bottle-500",
+    "path": "assets/addons/soda-bottle-500-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One upright transparent PET 500 ml sparkling water bottle with clear fizzy water, plain pale turquoise screw cap and plain pale turquoise label sleeve. Compact natural ridged bottle with visible fine bubbles and subtle condensation. Three-quarter front view with top visible.",
+    "generatedSource": "exec-e81825cc-01f8-4052-9c9c-b05e3f787a5f.png",
+    "sourceSha256": "01d69ff28649f3201801f9be189bac98ffdd2969ba2649b3d65355935e408999",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 14028,
+    "sha256": "0035048666b56d4301a87669a432a33f8d83763b46a140eb541cbd17c94f2f7a",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/soda-bottle-500-v1.png"
+  },
+  {
+    "key": "garlic-cup-50",
+    "path": "assets/addons/garlic-cup-50-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One open small 50 ml clear disposable dipping sauce cup, realistically proportioned and filled with creamy ivory garlic sauce with very fine subtle garlic texture and a few tiny herb specks. Three-quarter camera view from about 35 degrees above so sauce and translucent plastic cup wall are visible. Cup is centered and occupies about 65 percent of frame width. No lid, no extra ingredients, no bowls or utensils.",
+    "generatedSource": "exec-65651caf-a62a-4bfa-9e93-a6f3c6ef92b7.png",
+    "sourceSha256": "bed90c18a9fdae8056278536d2575820fe9202d308056fab9029f5f67f7ceac6",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 10230,
+    "sha256": "63e014e6259b71c883c8216a4be31f75675bc58ebc6558288723e006af7645b2",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/garlic-cup-50-v1.png"
+  },
+  {
+    "key": "bbq-cup-50",
+    "path": "assets/addons/bbq-cup-50-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic dipping-sauce product image for an Israeli pizza app, also shown small in manager, cart and checkout. Square 1024 by 1024. Exactly one open small 50 ml clear disposable plastic dipping cup, entire cup visible, centered, occupies about 70 percent of width with generous white padding. Three-quarter view from 35 degrees above, sauce surface and translucent cup wall both visible. Pure white seamless studio background, soft neutral light from upper left and subtle contact shadow. Detailed real food photography, natural sauce gloss and realistic thin clear plastic. Generic unbranded product. No lid, extra ingredients, bowl, spoon, herbs on backdrop, props, person, hand, text, brand, symbols, watermarks, collage, illustration or CGI appearance.\nSubject: Fill the dipping cup with glossy rich dark brown barbecue sauce, smooth thick texture with a gentle natural swirl, no green specks.",
+    "generatedSource": "exec-5b491290-402d-4442-aa0b-b8fe5a7b7cd6.png",
+    "sourceSha256": "88ca4d802d8be647fc34fa68298d790cccf525a232a472c103f6ece8ad6967d9",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 21600,
+    "sha256": "833cc29eb4e8143c178bdf9d6f422494377f454fdfcc83585f2a11c810ce0309",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/bbq-cup-50-v1.png"
+  },
+  {
+    "key": "sweet-chili-cup-50",
+    "path": "assets/addons/sweet-chili-cup-50-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic dipping-sauce product image for an Israeli pizza app, also shown small in manager, cart and checkout. Square 1024 by 1024. Exactly one open small 50 ml clear disposable plastic dipping cup, entire cup visible, centered, occupies about 70 percent of width with generous white padding. Three-quarter view from 35 degrees above, sauce surface and translucent cup wall both visible. Pure white seamless studio background, soft neutral light from upper left and subtle contact shadow. Detailed real food photography, natural sauce gloss and realistic thin clear plastic. Generic unbranded product. No lid, extra ingredients, bowl, spoon, herbs on backdrop, props, person, hand, text, brand, symbols, watermarks, collage, illustration or CGI appearance.\nSubject: Fill the dipping cup with glossy translucent amber-red sweet chili sauce, naturally visible tiny red pepper flakes and a few pale seeds, syrupy clear gel texture.",
+    "generatedSource": "exec-b09491bd-079b-490c-977c-1d9de1a4749c.png",
+    "sourceSha256": "c400cff704622f7bb5b4085d234fd74059b22bee838029ea67638cf9bc6f65f9",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 26310,
+    "sha256": "7c1730657b0fbc1d284691ab5f1c6a60ab710175343cf0a89e334e8a3f58cc9b",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/sweet-chili-cup-50-v1.png"
+  },
+  {
+    "key": "hot-cup-50",
+    "path": "assets/addons/hot-cup-50-v1.webp",
+    "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+    "generator": "built-in image_gen",
+    "generatedAt": "2026-10-07",
+    "prompt": "Use case: product-mockup. Asset type: one photorealistic dipping-sauce product image for an Israeli pizza app, also shown small in manager, cart and checkout. Square 1024 by 1024. Exactly one open small 50 ml clear disposable plastic dipping cup, entire cup visible, centered, occupies about 70 percent of width with generous white padding. Three-quarter view from 35 degrees above, sauce surface and translucent cup wall both visible. Pure white seamless studio background, soft neutral light from upper left and subtle contact shadow. Detailed real food photography, natural sauce gloss and realistic thin clear plastic. Generic unbranded product. No lid, extra ingredients, bowl, spoon, herbs on backdrop, props, person, hand, text, brand, symbols, watermarks, collage, illustration or CGI appearance.\nSubject: Fill the dipping cup with spicy red-orange pepper sauce, smooth medium-thick texture with subtle fine pepper flecks and a gentle natural surface swirl. Clearly redder and more opaque than sweet chili.",
+    "generatedSource": "exec-cb29ce3d-1cf6-4b14-b4b2-195d5c88e621.png",
+    "sourceSha256": "89ba191202c4cad076ffcdee20075f6b46ae27785b3b479a51f5bd3c649fea17",
+    "sourceDimensions": [
+      1254,
+      1254
+    ],
+    "dimensions": [
+      512,
+      512
+    ],
+    "bytes": 19696,
+    "sha256": "dbcf42b949c28ca8441f9fa94b31d21a89ff96d44029fce1a7a4a0b6eccd1822",
+    "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+    "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/hot-cup-50-v1.png"
+  }
+]

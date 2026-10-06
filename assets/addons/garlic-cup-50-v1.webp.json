@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One open small 50 ml clear disposable dipping sauce cup, realistically proportioned and filled with creamy ivory garlic sauce with very fine subtle garlic texture and a few tiny herb specks. Three-quarter camera view from about 35 degrees above so sauce and translucent plastic cup wall are visible. Cup is centered and occupies about 65 percent of frame width. No lid, no extra ingredients, no bowls or utensils.",
+  "generatedSource": "exec-65651caf-a62a-4bfa-9e93-a6f3c6ef92b7.png",
+  "sourceSha256": "bed90c18a9fdae8056278536d2575820fe9202d308056fab9029f5f67f7ceac6",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 10230,
+  "sha256": "63e014e6259b71c883c8216a4be31f75675bc58ebc6558288723e006af7645b2",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/garlic-cup-50-v1.png"
+}

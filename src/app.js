@@ -1,9 +1,11 @@
+import { createAddonFlow, addonArt } from './addons.js';
+import { primaryProducts, isAddon, containsPizza, configurationOrderable } from './addon-model.js';
 /* Saved-order hooks. */
 import { createOrderResume } from './order-resume.js?v=20261001-resume1';
 /* End saved-order hooks. */
 import { mountCheckoutFlow } from './customer-flow.js';
 import { setupFloatingPreview } from './floating-preview.js?v=20261001-real1';
-import { shop, activeProducts, findProduct, isAvailable } from './data.js?v=20260929-pizzeria2';
+import { products as catalogProducts, shop, activeProducts, findProduct, isAvailable  } from './data.js?v=20260929-pizzeria2';
 import { money, PLACEMENTS, variantsFor, defaultConfig, normalizeConfig, choicePrice, unitPrice, priceBreakdown, describe, lineTotal, copyHalf, swapHalves, replaceExtra, clearExtras, configurationIssues, configurationChanges, prepareRepeatOrder, minimumSuggestions, bundleParts, bundleSavings, complementarySuggestion } from './order.js?v=20260929-pizzeria2';
 import { pizzaState, pizzaSVG, updatePizza, shapeIcon } from './pizza.js?v=20261002-editor1';
 import { getCart, getLine, cartCount, cartSubtotal, onCartChange, addLine, updateLine, removeLine, lastRemovedLine, undoRemoveLine, clearCart, saveLastOrder, getLastOrder, getRepeatOrder, remembersRepeatOrder, rememberRepeatOrder, getDraft, saveDraft, clearDraft, getMode, saveMode, getFavorites, getFavorite, matchingFavorite, saveFavorite, removeFavorite, onFavoritesChange, favoriteStorageIsPersistent, getCustomerDetails, saveCustomerDetails, forgetCustomerDetails } from './store.js?v=20260929-pizzeria2';
@@ -105,6 +107,7 @@ function contactButtons(className) {
 }
 
 function productArt(product, config, label = '') {
+  if (isAddon(product)) return addonArt(product, variantsFor(product).find(item => item.id === config?.variantId) || variantsFor(product)[0], value => value);
   if (product.bundle) return `<span class="bundle-art"${label ? ` role="img" aria-label="${safe(label)}"` : ' aria-hidden="true"'}>${bundleParts(product, config).filter((part) => part.product).map((part) => `<span>${productArt(part.product, part.config)}</span>`).join('')}</span>`;
   if (product.visual === 'pizza') return pizzaSVG(pizzaState(product, config), { label });
   if (product.image) return `<img src="${safe(product.image)}" alt="${label ? safe(product.imageAlt || label) : ''}" loading="lazy" />`;
@@ -194,16 +197,25 @@ function updateRepeatPreference(enabled) {
   });
 }
 
+// Add-ons integration v1.
+const addonFlow = createAddonFlow({
+  getProducts: () => catalogProducts, findProduct, getCart, defaultConfig, addLine, updateLine, removeLine, onCartChange, cartSubtotal, money,
+  assetUrl: value => value, demoOnly: shop.demoOnly,
+  beforeOpen: () => { if (sheet.open) sheet.close(); }, openCart, onMore: () => freshProduct(),
+  onProduct: id => { window.location.hash = `#/product/${id}`; },
+});
+document.addEventListener('click', event => { if (event.target.closest('[data-reload-catalog]')) window.location.reload(); });
+
 function productHref() {
-  const list = activeProducts();
+  const list = primaryProducts(activeProducts());
   return list.length === 1 ? `#/product/${list[0].id}` : '#/menu';
 }
 
 /* ---------- מסך פתיחה ---------- */
 
 function home() {
-  const list = activeProducts();
-  const unavailable = list.length === 0;
+  const catalog = activeProducts(), list = primaryProducts(catalog);
+  const unavailable = catalog.length === 0;
   const status = openingStatus();
   const closed = !status.open;
   const remembered = typeof getRepeatOrder === 'function' && getRepeatOrder()?.lines?.length;
@@ -286,7 +298,7 @@ function toggleHeroContact(kind) {
 /* ---------- תפריט ---------- */
 
 function menu() {
-  const list = activeProducts();
+  const list = primaryProducts(activeProducts());
   const menuItems = (items, group) => `<ul class="menu-list menu-list--${group}">${items.map((product, index) => {
     const lead = group === 'products' && index === 0;
     const config = defaultConfig(product);
@@ -316,7 +328,7 @@ function menu() {
       <header class="menu-head"><h1>התפריט</h1>${getFavorites().length ? `<button type="button" class="icon-button menu-favorites" data-open-favorites aria-label="המועדפים שלי">${icon('heart')}</button>` : ''}</header>
       ${individual.length ? `<section class="menu-section" aria-labelledby="individual-title"><h2 class="visually-hidden" id="individual-title">מוצרים להרכבה</h2>${menuItems(individual, 'products')}</section>` : ''}
       ${bundles.length ? `<section class="menu-section menu-section--bundles" aria-labelledby="combos-title"><h2 id="combos-title">ארוחות</h2>${menuItems(bundles, 'meals')}</section>` : ''}
-      <p class="menu-note">${shop.demoOnly ? 'נתוני ותמונות הדגמה' : 'המחירים לפני תוספות'}</p>
+      ${addonFlow.menuMarkup()}<p class="addon-menu-status" data-addon-menu-status role="status"></p><p class="menu-note">${shop.demoOnly ? 'נתוני ותמונות הדגמה' : 'המחירים לפני תוספות'}</p>
     </div><footer class="menu-cart" data-menu-cart hidden><div class="menu-cart__inner"><button type="button" class="button button--primary menu-cart__button" data-open-cart><span class="menu-cart__action">${icon('box')}לסל</span><span class="menu-cart__count" data-menu-cart-count></span><bdi data-menu-cart-total></bdi></button></div></footer></main>`;
   refreshMenuCart();
 }
@@ -782,7 +794,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
     const availability = form.querySelector('[data-builder-availability]');
     availability.hidden = !issues.length;
     availability.textContent = issues.length ? `אזל להיום: ${issues.map((issue) => issue.name).join(', ')}. הסירו את הבחירה או בחרו חלופה לפני ההוספה.` : '';
-    document.querySelector('#add-to-cart').disabled = isAdding || Boolean(issues.length);
+    document.querySelector('#add-to-cart').disabled = isAdding || Boolean(issues.length) || !configurationOrderable(product, config);
     const undo = form.querySelector('[data-builder-undo]');
     undo.hidden = !lastChange;
     if (lastChange) {
@@ -1091,6 +1103,7 @@ function productPage(product, editLine, copyLine, source, returnToCheckout = fal
   teardown.push(() => { document.removeEventListener('click', closeOutside); document.removeEventListener('keydown', closeOnEscape); });
 
   document.querySelector('#add-to-cart').addEventListener('click', async (event) => {
+    if (!configurationOrderable(product, readConfig(form, product))) { status.textContent = 'המוצר או הגודל שבחרתם אינם זמינים כרגע.'; return; }
     if (isAdding || configurationIssues(product, config).length) return;
     const button = event.currentTarget;
     isAdding = true;
@@ -1330,6 +1343,7 @@ document.body.append(added);
 let addedProduct = null;
 
 function openAdded(line, updated) {
+  if (!updated && containsPizza(findProduct(line.config.productId), catalogProducts) && addonFlow.openStep({ line })) return;
   const product = findProduct(line.config.productId);
   const selection = describe(product, line.config);
   addedProduct = product;
@@ -1343,7 +1357,7 @@ function openAdded(line, updated) {
 
 function freshProduct() {
   freshBuilder = true;
-  const products = activeProducts();
+  const products = primaryProducts(activeProducts());
   const route = getRoute();
   if (route.page === 'product') clearDraft(`product:${route.id}`);
   if (addedProduct) clearDraft(`product:${addedProduct.id}`);
@@ -1381,7 +1395,7 @@ function cartLineMarkup(line, compact = false) {
     </div>
     <div class="cart-line__side"><bdi class="cart-line__price" data-line-price>${money(lineTotal(line, product))}</bdi>${stepper({ value: line.qty, label: `כמות: ${line.config.label || info.title}`, attr: 'data-line-qty', small: true })}</div>
     ${compact ? `<details class="cart-line__details cart-line__disclosure" data-cart-composition="${safe(line.id)}" ${cartExpanded.has(line.id) ? 'open' : ''}><summary aria-label="פירוט ההרכב: ${safe(line.config.label || info.title)}"><span>פירוט ההרכב${info.extras.length ? ` · ${extrasSummary}` : ''}${line.config.note ? ' והערה' : ''}</span>${icon('down')}</summary>` : '<div class="cart-line__details">'}${compositionMarkup(info)}${line.config.note ? `<p class="cart-line__note">הערה: <bdi>${safe(line.config.note)}</bdi></p>` : ''}${compact ? '</details>' : '</div>'}
-    <div class="cart-line__actions"><a class="cart-action" href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet aria-label="עריכת ${safe(line.config.label || info.title)}" title="עריכה">${icon('edit')}</a><a class="cart-action" href="#/product/${safe(product.id)}/copy/${safe(line.id)}" data-copy-line="${safe(line.id)}" data-close-sheet aria-label="שכפול ושינוי ${safe(line.config.label || info.title)}" title="שכפול ושינוי">${icon('copy')}</a><button type="button" class="cart-action cart-action--remove" data-remove aria-label="הסרת ${safe(line.config.label || info.title)} מהסל" title="הסרה">${icon('trash')}</button></div>
+    ${!configurationOrderable(product, line.config) ? '<p class="addon-unavailable-note">המוצר או הנפח אינם זמינים. יש לערוך או להסיר מהסל.</p>' : ''}<div class="cart-line__actions"><a class="cart-action" href="#/product/${safe(product.id)}/edit/${safe(line.id)}" data-close-sheet aria-label="עריכת ${safe(line.config.label || info.title)}" title="עריכה">${icon('edit')}</a><a class="cart-action" href="#/product/${safe(product.id)}/copy/${safe(line.id)}" data-copy-line="${safe(line.id)}" data-close-sheet aria-label="שכפול ושינוי ${safe(line.config.label || info.title)}" title="שכפול ושינוי">${icon('copy')}</a><button type="button" class="cart-action cart-action--remove" data-remove aria-label="הסרת ${safe(line.config.label || info.title)} מהסל" title="הסרה">${icon('trash')}</button></div>
   </li>`;
 }
 
@@ -1395,7 +1409,7 @@ function renderCart() {
     ${removed ? `<div class="cart-undo" role="status"><span>הפריט הוסר <bdi>${safe(removedTitle)}</bdi></span><button type="button" class="link-button" data-undo-remove>${icon('undo')}החזרה</button></div>` : ''}
     ${cart.length ? `<ul class="cart-lines${cart.length >= 3 ? ' cart-lines--compact' : ''}">${cart.map((line) => cartLineMarkup(line, true)).join('')}</ul>
       <div data-cart-offer>${cartOfferMarkup()}</div>
-      <footer class="sheet__foot">
+      <footer class="sheet__foot">${addonFlow.hasAvailable() ? '<button type="button" class="link-button addon-cart-link" data-open-addons="drinks">שתייה ורטבים</button>' : ''}
         <div class="sheet__subtotal"><span>סכום ביניים</span><strong data-sheet-subtotal>${money(cartSubtotal())}</strong></div>
         ${checkout.mode === 'delivery' ? '<p class="sheet__hint">משלוח יחושב בקופה</p>' : ''}
         <a class="button button--primary" href="#/checkout" data-close-sheet><span>לפרטים ותשלום</span>${icon('forward')}</a>
@@ -1792,7 +1806,7 @@ function checkoutState() {
   const totals = checkoutTotals();
   const out = checkout.mode === 'delivery' && checkout.check.status === 'out';
   const needsAddress = checkout.mode === 'delivery' && checkout.check.status !== 'ok';
-  const unavailable = getCart().some((line) => lineIssues(line).length);
+  const unavailable = getCart().some((line) => lineIssues(line).length || !configurationOrderable(findProduct(line.config.productId), line.config));
   const blocked = !fulfillment.valid || unavailable || totals.shortBy > 0 || needsAddress;
   const reason = unavailable ? 'עדכנו את הפריטים שאינם זמינים' : !fulfillment.valid ? fulfillment.reason : totals.shortBy ? `חסרים ${money(totals.shortBy)} למינימום` : out ? 'הכתובת מחוץ לאזור' : needsAddress ? checkout.check.status === 'checking' ? 'בודקים את הכתובת…' : 'בחרו כתובת למשלוח' : '';
   return { open, totals, blocked, reason, fulfillment };
@@ -1868,7 +1882,7 @@ function checkoutPage(focusId) {
     <main class="page checkout"><div class="wrap checkout__layout">
       <form class="checkout__form" id="checkout-form" novalidate>
         ${orderProgress('details')}
-        <header class="page-head"><h1>פרטים ותשלום</h1></header>
+        <header class="page-head"><h1>פרטים ותשלום</h1></header>${getCart().some(line => !configurationOrderable(findProduct(line.config.productId), line.config)) ? '<div class="notice notice--warn" data-unavailable-cart role="alert"><span>יש פריט שאינו זמין כרגע. אפשר לערוך אותו בסל או לבדוק שוב את התפריט.</span><button type="button" class="button button--quiet button--small" data-reload-catalog>רענון התפריט</button></div>' : ''}
         <div class="notice notice--warn checkout-demo" role="status">${icon('alert')}<span><strong>הדגמה · ללא הזמנה או חיוב.</strong></span></div>
         <div data-business-status>${businessNoticeMarkup()}</div>
         ${checkout.failure ? `<div class="notice notice--error" role="alert" tabindex="-1" id="failure">${icon('alert')}<span><strong>בהדגמה דימינו תשלום שנכשל.</strong> לא בוצע חיוב ואפשר לנסות שוב.</span></div>` : ''}
@@ -2209,6 +2223,7 @@ function render() {
   teardown.forEach((cleanup) => cleanup());
   teardown = [];
   freshBuilder = false;
+  addonFlow.close();
   if (sheet.open) sheet.close();
   if (info.open) info.close();
   if (pizzaPreview.open) pizzaPreview.close();
@@ -2220,7 +2235,7 @@ function render() {
   // מסך הפתיחה כהה, שאר הזרימה בהירה: צבע סרגל הדפדפן בטלפון עוקב.
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', route.page ? '#f7f6f2' : '#120e0c');
   const list = activeProducts();
-  if (route.page === 'menu' && list.length > 1) menu();
+  if (route.page === 'menu' && list.length > 0) menu();
   else if (route.page === 'product') {
     const product = list.find((item) => item.id === route.id);
     const source = ['edit', 'copy'].includes(route.action) ? getLine(route.lineId) : null;

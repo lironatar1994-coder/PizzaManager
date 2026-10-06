@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One upright transparent PET 1.5 liter bottle of nearly clear sparkling lemon-lime soda, plain fresh green cap and plain fresh green label sleeve. Natural ridged bottle, clear liquid with fine tiny bubbles and some subtle condensation. Three-quarter front view with the top visible.",
+  "generatedSource": "exec-59d32ad4-2477-4490-8183-056a6b1fc710.png",
+  "sourceSha256": "a553fbd93325bdad76a123d24574bc2958422152bbe423000efebd5cb44a2c44",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 11654,
+  "sha256": "69cd4f57a81248404bfae7a913d0b945132002bb2406b44ff937611df245f17b",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/lemon-lime-bottle-1500-v1.png"
+}

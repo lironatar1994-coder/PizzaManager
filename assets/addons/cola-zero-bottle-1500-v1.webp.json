@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 1.5 liter transparent PET bottle filled with dark brown zero-sugar cola, plain near-black cap and plain near-black label sleeve, natural bottle ridges.",
+  "generatedSource": "exec-17cb3e86-f82b-448a-9290-3b8efdb0b1ba.png",
+  "sourceSha256": "02adf4916d74644de3ea28e13e56d257f3ff593359e03258adf60fe91e1fe8ad",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 15428,
+  "sha256": "29936e8515546f05021905c2073750fce729aa1fddde7ab0b165cb34668f8a8f",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-zero-bottle-1500-v1.png"
+}

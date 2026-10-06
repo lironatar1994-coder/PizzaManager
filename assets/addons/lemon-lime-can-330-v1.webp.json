@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: one photorealistic beverage catalog photograph for a pizza store, usable as a manager, cart and checkout thumbnail. Square 1024 by 1024. Exactly one upright product, entire object centered, occupies about 72 percent of frame height, three-quarter front view with top visible. Seamless pure white studio background with a soft contact shadow. Soft neutral daylight from upper left, convincing physical materials, subtle condensation. Real commercial product photography, no illustration or CGI appearance. No brand names, logos, text, numbers, symbols, watermark, people, hands, props or pedestal. The packaging is generic and deliberately unbranded.\nSubject: one realistic 330 ml aluminum lemon-lime soda can, plain fresh green sleeve, silver metallic top and bottom and realistic pull tab. No writing.",
+  "generatedSource": "exec-15170f73-a148-489b-86ee-67f39427a1ce.png",
+  "sourceSha256": "71d0ca7218ccfa551af200ac342e648841ca40a4e86df37a26e1f2401051949d",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 19444,
+  "sha256": "8f0d7dd72867ce2792ffb628dc36c04b144ae263e5e33c3c8406e0845f5360ea",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/lemon-lime-can-330-v1.png"
+}

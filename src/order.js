@@ -1,3 +1,4 @@
+import { isAddon } from './addon-model.js';
 import { shop, isAvailable, findProduct, demoFlags } from './data.js?v=20260929-pizzeria2';
 
 export const money = (amount) => `₪${new Intl.NumberFormat('he-IL').format(amount)}`;
@@ -132,7 +133,8 @@ export function normalizeConfig(product, config) {
   const base = defaultConfig(product);
   if (!config) return base;
   const variants = variantsFor(product);
-  const variantId = variants.some((variant) => variant.id === config.variantId) ? config.variantId : base.variantId;
+  // Keep unavailable add-on volumes explicit. The customer chooses a replacement.
+  const variantId = isAddon(product) && typeof config.variantId === 'string' ? config.variantId : variants.some((variant) => variant.id === config.variantId) ? config.variantId : base.variantId;
   const options = {};
   for (const group of product.optionGroups || []) {
     const saved = config.options?.[group.id];

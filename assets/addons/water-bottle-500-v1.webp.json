@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One upright transparent PET 500 ml water bottle full of still clear water, plain medium-blue screw cap and plain medium-blue label sleeve. Natural compact ridged bottle, realistic water refraction and subtle condensation. Three-quarter front view with top visible. No bubbles in liquid.",
+  "generatedSource": "exec-102b0d52-5a4f-4f82-849d-9b8224694841.png",
+  "sourceSha256": "235d9d06f351d41f18a3af9a719bde09dc47e75a013b8f7a353f55caa2f52906",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 12458,
+  "sha256": "935f71629383b1b9beb4bd3bb60aab50da353c61dd8fd36e7e3aa8d1f07b7c8a",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/water-bottle-500-v1.png"
+}

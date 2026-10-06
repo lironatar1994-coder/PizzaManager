@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -148,4 +148,12 @@ const extraSyntax = spawnSync(process.execPath, ['--check', join(output, 'src/ex
 if (extraSyntax.status !== 0) throw Error(`Invalid ingredient registry: ${extraSyntax.stderr}`);
 const files = Object.fromEntries(['src/app.js', 'src/styles.css', 'src/floating-preview.js', 'src/order-resume.js', 'src/pizza.js', 'src/extra-toppings.js', 'index.html'].map((path) => [path, hash(output, path)]));
 write('assets/product-ui-version.json', JSON.stringify({ revision, surface: 'product-customizer', managedCatalog: true, files, preserved: { appLogic: digest(withoutProductPresentation(app)), pizzaRenderer: digest(normalizePizzaAssets(pizzaModule)), otherStyles: digest(withoutResumeStyles(withoutFloatingStyles(css))), entryMarkup: digest(withoutEntryTags(html)), modules: preservedModules } }) + '\n');
+// The combined release's manifest describes the final artifact after both stages.
+if (existsSync(join(output, 'assets/menu-ui-version.json'))) {
+  const menu = JSON.parse(read(output, 'assets/menu-ui-version.json'));
+  if (menu.revision === revision) {
+    menu.files = Object.fromEntries(Object.keys(menu.files).map(path => [path, hash(output, path)]));
+    write('assets/menu-ui-version.json', JSON.stringify(menu) + '\n');
+  }
+}
 console.log(`Compiled product UI ${revision}; app logic, other style surfaces, incumbent modules and assets preserved.`);

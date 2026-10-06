@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: a single photorealistic e-commerce product photograph for a pizza ordering app, also shown as a manager, cart and checkout thumbnail. Square 1024 by 1024. Entire single product visible and centered, generous white padding, about 72 percent of frame height. Pure white seamless studio background, soft neutral daylight from upper left and a subtle contact shadow. Real photographic materials and convincing fine detail. No text, numbers, logos, brands, symbols, watermark, people, hands, utensils, props, pedestal, collage, illustration or CGI appearance. Generic unbranded product.\nSubject: One upright transparent PET 500 ml sparkling water bottle with clear fizzy water, plain pale turquoise screw cap and plain pale turquoise label sleeve. Compact natural ridged bottle with visible fine bubbles and subtle condensation. Three-quarter front view with top visible.",
+  "generatedSource": "exec-e81825cc-01f8-4052-9c9c-b05e3f787a5f.png",
+  "sourceSha256": "01d69ff28649f3201801f9be189bac98ffdd2969ba2649b3d65355935e408999",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 14028,
+  "sha256": "0035048666b56d4301a87669a432a33f8d83763b46a140eb541cbd17c94f2f7a",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/soda-bottle-500-v1.png"
+}

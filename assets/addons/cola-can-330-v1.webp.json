@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup.\nAsset type: a single photorealistic e-commerce product photograph for an Israeli pizza ordering app, also shown as a small manager/cart/checkout thumbnail.\nSubject: one unbranded 330 ml aluminum cola can with a deep red plain sleeve, silver top and realistic pull tab. No logos and absolutely no lettering, numbers or symbols.\nComposition: square 1024 by 1024, entire upright can fully visible, centered, occupies about 70 percent of frame height, generous clean space around it. Three-quarter front view with top visible. The can is the only subject.\nMaterials: natural aluminum, a few subtle condensation droplets, convincing highlights, real photographic detail.\nBackdrop and lighting: seamless pure white studio background, soft neutral daylight from upper left, subtle soft contact shadow beneath, realistic commercial beverage photography. No pedestal, props, people, hands, collage, illustration, cartoon, plastic CGI look or watermark.\nThis is a synthetic generic catalog image, not an image of a branded product.",
+  "generatedSource": "exec-1c2e01f5-b769-476d-9698-9e8692db617c.png",
+  "sourceSha256": "621f9043f3a37c56d9439fb6edae3f1dd0d83ab6ca8e0f7fbda9f71b46b51076",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 18060,
+  "sha256": "bab6d14341296d55e6fc257a0f0b380a4db811161dcdd27d6136956bcf4e4773",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/cola-can-330-v1.png"
+}

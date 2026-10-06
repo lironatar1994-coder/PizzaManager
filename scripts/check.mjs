@@ -50,3 +50,5 @@ console.log('Static demo checks passed. No backend or real payment is included.'
 await import('./bundles-check.mjs');
 await import('./navigation-check.mjs');
 await import('./startup-check.mjs');
+
+await import('./addons-check.mjs');

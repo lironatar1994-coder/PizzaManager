@@ -1,0 +1,20 @@
+{
+  "kind": "AI-generated illustrative product photography; not an actual branded product or restaurant photograph",
+  "generator": "built-in image_gen",
+  "generatedAt": "2026-10-07",
+  "prompt": "Use case: product-mockup. Asset type: one photorealistic dipping-sauce product image for an Israeli pizza app, also shown small in manager, cart and checkout. Square 1024 by 1024. Exactly one open small 50 ml clear disposable plastic dipping cup, entire cup visible, centered, occupies about 70 percent of width with generous white padding. Three-quarter view from 35 degrees above, sauce surface and translucent cup wall both visible. Pure white seamless studio background, soft neutral light from upper left and subtle contact shadow. Detailed real food photography, natural sauce gloss and realistic thin clear plastic. Generic unbranded product. No lid, extra ingredients, bowl, spoon, herbs on backdrop, props, person, hand, text, brand, symbols, watermarks, collage, illustration or CGI appearance.\nSubject: Fill the dipping cup with glossy translucent amber-red sweet chili sauce, naturally visible tiny red pepper flakes and a few pale seeds, syrupy clear gel texture.",
+  "generatedSource": "exec-b09491bd-079b-490c-977c-1d9de1a4749c.png",
+  "sourceSha256": "c400cff704622f7bb5b4085d234fd74059b22bee838029ea67638cf9bc6f65f9",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "dimensions": [
+    512,
+    512
+  ],
+  "bytes": 26310,
+  "sha256": "7c1730657b0fbc1d284691ab5f1c6a60ab710175343cf0a89e334e8a3f58cc9b",
+  "processing": "RGB conversion, proportional square resize to 512 px and WebP quality 86; no content edits",
+  "originalBackup": ".deploy/addons-20261006T202411Z/generated-sources/sweet-chili-cup-50-v1.png"
+}
