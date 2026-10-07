@@ -202,6 +202,7 @@ const addonFlow = createAddonFlow({
   getProducts: () => catalogProducts, findProduct, getCart, defaultConfig, addLine, updateLine, removeLine, onCartChange, cartSubtotal, money,
   assetUrl: value => value, demoOnly: shop.demoOnly,
   beforeOpen: () => { if (sheet.open) sheet.close(); }, openCart, onMore: () => freshProduct(),
+  onCheckout: () => { window.location.hash = '#/checkout'; },
   onProduct: id => { window.location.hash = `#/product/${id}`; },
 });
 document.addEventListener('click', event => { if (event.target.closest('[data-reload-catalog]')) window.location.reload(); });
