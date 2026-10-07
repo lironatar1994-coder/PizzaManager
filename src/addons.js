@@ -21,50 +21,62 @@ export function createAddonFlow(api) {
   dialog.className = 'addon-flow';
   dialog.setAttribute('aria-labelledby', 'addon-title');
   document.body.append(dialog);
-  let origin = null, source = null, recommendations = [], selected = new Map(), menuSelected = new Map(), refreshing = false, refreshSequence = 0;
+  let origin = null, source = null, drinksFirst = 'personal', refreshing = false, refreshSequence = 0;
   const products = () => api.getProducts().filter(product => product.active && isAddon(product));
   const categories = () => ['drinks', 'sauces'].filter(value => products().some(product => categoryOf(product) === value));
-  const chosen = (product, inDialog) => {
-    const map = inDialog ? selected : menuSelected, variants = addonVariants(product);
-    const saved = variants.find(variant => variant.id === map.get(product.id));
-    const recommendation = inDialog && recommendations.find(item => item.productId === product.id);
-    return saved || variants.find(variant => addonQuantity(api.getCart(), product.id, variant.id) > 0) || variants.find(variant => variant.id === recommendation?.variantId) || variants.find(variant => variant.available !== false) || variants[0];
-  };
+  function cards(items, inDialog) {
+    return `<ul class="addon-list" role="list">${items.map(({ product, variant, complex }) => {
+      const available = orderable(product), soldOut = !available || variant.available === false;
+      const qty = addonQuantity(api.getCart(), product.id, variant.id);
+      const canAdd = !soldOut && !(inDialog && refreshing) && qty < 99 && (qty > 0 || api.getCart().length < 40);
+      const attrs = `data-addon-product-id="${escape(product.id)}" data-addon-variant="${escape(variant.id)}"`;
+      const name = `${escape(product.name)}, ${escape(variant.name || 'ליחידה')}`;
+      const addLabel = `הוספת ${name}, ${api.money(variant.price)}`;
+      const pick = complex ? `data-addon-custom="${escape(product.id)}" aria-label="בחירת אפשרויות עבור ${escape(product.name)}"${available ? '' : ' disabled'}` : `data-addon-pick ${attrs} aria-label="${addLabel}"${canAdd ? '' : ' disabled'}`;
+      return `<li class="addon-card${soldOut ? ' addon-card--unavailable' : ''}" data-addon-product="${escape(product.id)}" data-addon-choice="${escape(variant.id)}">
+        <button type="button" class="addon-card__pick" ${pick}>
+          <span class="addon-card__art">${addonArt(product, variant, api.assetUrl)}</span>
+          <span class="addon-card__name">${escape(product.name)}</span>
+          <span class="addon-card__pack">${complex ? 'לבחירת נפח ואפשרויות' : escape(variant.name || 'ליחידה')}</span>
+          <bdi class="addon-card__price">${complex ? 'מ־' : ''}${api.money(complex ? Math.min(...addonVariants(product).filter(item => item.available !== false || !available).map(item => item.price)) : variant.price)}</bdi>
+        </button>
+        ${qty && soldOut ? '<small class="addon-option__stock">אזל כרגע</small>' : ''}
+        <div class="addon-card__controls">${complex ? `<button type="button" class="addon-add" data-addon-custom="${escape(product.id)}"${available ? '' : ' disabled'}>בחירת אפשרויות</button>` : qty ? `<div class="addon-qty" role="group" aria-label="כמות ${name}"><button type="button" data-addon-action="minus" ${attrs} aria-label="הסרת יחידה של ${name}">${glyph('minus')}</button><span><bdi>${qty}</bdi><small>בסל</small></span><button type="button" data-addon-action="plus" ${attrs} aria-label="${addLabel}"${canAdd ? '' : ' disabled'}>${glyph('plus')}</button></div>` : `<button type="button" class="addon-add" data-addon-action="plus" ${attrs} aria-label="${addLabel}"${canAdd ? '' : ' disabled'}>${glyph('plus')}<span>${soldOut ? 'אזל כרגע' : 'הוספה'}</span></button>`}</div>
+      </li>`;
+    }).join('')}</ul>`;
+  }
   function rows(value, inDialog) {
-    return products().filter(product => categoryOf(product) === value).map(product => {
-      const variant = chosen(product, inDialog), variants = addonVariants(product);
-      const available = orderable(product);
-      const complex = Boolean(product.optionGroups?.length);
-      const heading = inDialog ? 'h4' : 'h3';
-      return `<li class="addon-card${available ? '' : ' addon-card--unavailable'}" data-addon-product="${escape(product.id)}">
-        <div class="addon-card__art">${addonArt(product, variant, api.assetUrl)}</div><div class="addon-card__copy">
-          <div class="addon-card__heading"><${heading}>${escape(product.name)}</${heading}></div>
-          ${complex ? `<button type="button" class="button button--quiet button--small" data-addon-custom="${escape(product.id)}"${available ? '' : ' disabled'}>בחירת אפשרויות</button>` : `<div class="addon-options">${variants.map(item => {
-            const qty = addonQuantity(api.getCart(), product.id, item.id);
-            const canAdd = available && item.available !== false && !(inDialog && refreshing) && qty < 99 && (qty > 0 || api.getCart().length < 40);
-            const attrs = `data-addon-product-id="${escape(product.id)}" data-addon-variant="${escape(item.id)}"`;
-            const soldOut = !available || item.available === false;
-            return `<div class="addon-option${qty ? ' addon-option--added' : ''}" data-addon-choice="${escape(item.id)}"><div class="addon-option__label"><span>${escape(item.name || 'ליחידה')}</span><bdi>${api.money(item.price)}</bdi>${qty && soldOut ? '<small class="addon-option__stock">אזל כרגע</small>' : ''}</div>${qty ? `<div class="addon-qty" role="group" aria-label="כמות ${escape(product.name)}, ${escape(item.name)}"><button type="button" data-addon-action="minus" ${attrs} aria-label="הסרת יחידה של ${escape(product.name)}, ${escape(item.name)}">${glyph('minus')}</button><span><bdi>${qty}</bdi><small>בסל</small></span><button type="button" data-addon-action="plus" ${attrs} aria-label="הוספת ${escape(product.name)}, ${escape(item.name)}, ${api.money(item.price)}"${canAdd ? '' : ' disabled'}>${glyph('plus')}</button></div>` : `<button type="button" class="addon-add" data-addon-action="plus" ${attrs} aria-label="הוספת ${escape(product.name)}, ${escape(item.name)}, ${api.money(item.price)}"${canAdd ? '' : ' disabled'}>${glyph('plus')}<span>${soldOut ? 'אזל כרגע' : 'הוספה'}</span></button>`}</div>`;
-          }).join('')}</div>`}
-        </div></li>`;
-    }).join('');
+    // Packages are independent products to the shopper. Their photos never switch.
+    const items = products().filter(product => categoryOf(product) === value).flatMap(product => {
+      const variants = addonVariants(product), complex = Boolean(product.optionGroups?.length);
+      return (complex ? [variants.find(item => item.available !== false) || variants[0]] : variants).map(variant => ({ product, variant, complex }));
+    });
+    if (value !== 'drinks') return cards(items, inDialog);
+    const groupOf = ({ variant, complex }) => complex || !variant.volumeMl ? 'other' : variant.volumeMl >= 1000 ? 'sharing' : 'personal';
+    const drinkGroups = [['personal', 'שתייה אישית'], ['sharing', 'בקבוקים לשיתוף']];
+    if (inDialog && drinksFirst === 'sharing') drinkGroups.reverse();
+    const groups = [...drinkGroups, ['other', 'שתייה נוספת']]
+      .map(([key, label]) => ({ key, label, items: items.filter(item => groupOf(item) === key) })).filter(group => group.items.length);
+    const heading = inDialog ? 'h4' : 'h3';
+    return groups.map(group => `<div class="addon-group" data-addon-group="${group.key}">${groups.length > 1 ? `<${heading} class="addon-group__title">${group.label}</${heading}>` : ''}${cards(group.items, inDialog)}</div>`).join('');
   }
   function preserve(container, render) {
     const active = document.activeElement;
-    const focus = container.contains(active) ? { action: active.dataset.addonAction, variant: active.dataset.addonVariant, product: active.dataset.addonProductId } : null;
+    const focus = container.contains(active) ? { pick: active.hasAttribute('data-addon-pick'), action: active.dataset.addonAction, variant: active.dataset.addonVariant, product: active.dataset.addonProductId } : null;
     const scroll = container.scrollTop;
     render();
     container.scrollTop = scroll;
     if (focus?.product) {
-      const selector = `[data-addon-product-id="${CSS.escape(focus.product)}"][data-addon-variant="${CSS.escape(focus.variant)}"][data-addon-action="${focus.action}"]`;
+      const selector = `[data-addon-product-id="${CSS.escape(focus.product)}"][data-addon-variant="${CSS.escape(focus.variant)}"]${focus.pick ? '[data-addon-pick]' : `[data-addon-action="${focus.action}"]`}`;
       const target = container.querySelector(selector);
-      (target && !target.disabled ? target : container.querySelector(`[data-addon-product-id="${CSS.escape(focus.product)}"][data-addon-variant="${CSS.escape(focus.variant)}"]:not(:disabled)`))?.focus({ preventScroll: true });
+      const sameItem = `[data-addon-product-id="${CSS.escape(focus.product)}"][data-addon-variant="${CSS.escape(focus.variant)}"]`;
+      (target && !target.disabled ? target : container.querySelector(`${sameItem}[data-addon-action="plus"]:not(:disabled)`) || container.querySelector(`${sameItem}:not(:disabled)`))?.focus({ preventScroll: true });
     }
   }
   function renderDialog() {
     if (!dialog.open) return;
     const content = dialog.querySelector('[data-addon-content]');
-    preserve(content, () => { content.innerHTML = categories().map(value => `<section class="addon-category" aria-labelledby="addon-category-${value}"><h3 id="addon-category-${value}">${labels[value]}</h3><ul class="addon-list">${rows(value, true)}</ul></section>`).join(''); });
+    preserve(content, () => { content.innerHTML = categories().map(value => `<section class="addon-category" aria-labelledby="addon-category-${value}"><h3 id="addon-category-${value}">${labels[value]}</h3>${rows(value, true)}</section>`).join(''); });
     dialog.querySelector('[data-addon-total]').textContent = api.money(api.cartSubtotal());
   }
   function refreshMenus() {
@@ -78,12 +90,14 @@ export function createAddonFlow(api) {
       if (!products().some(orderable) && !api.refreshCatalog) return false;
       origin = document.activeElement;
       source = line;
-      recommendations = addonRecommendations(api.getCart(), api.getProducts());
-      selected = new Map();
+      // Put the relevant shelf first once, without selecting or adding anything.
+      const recommendation = addonRecommendations(api.getCart().filter(item => categoryOf(api.findProduct(item.config.productId)) === 'food'), api.getProducts()).find(item => categoryOf(api.findProduct(item.productId)) === 'drinks');
+      const suggested = recommendation && addonVariants(api.findProduct(recommendation.productId)).find(item => item.id === recommendation.variantId);
+      drinksFirst = suggested?.volumeMl >= 1000 ? 'sharing' : 'personal';
       api.beforeOpen?.();
       const product = line && api.findProduct(line.config.productId);
       dialog.innerHTML = `<div class="addon-flow__panel">
-        <!-- Optional basket completion: explicit one-tap sizes, both categories, then checkout. -->
+        <!-- Optional basket completion: independent one-tap packages, then checkout. -->
         <header class="addon-flow__header"><div><h2 id="addon-title" tabindex="-1">${product ? 'הפיצה נוספה לסל' : 'שתייה ורטבים'}</h2><p>${product ? 'רוצים גם שתייה או רוטב?' : 'אפשר להוסיף, או להמשיך להזמנה.'}</p></div><button type="button" class="icon-button" data-addon-close aria-label="סגירת שתייה ורטבים">${glyph('close')}</button></header>
         <div class="addon-flow__content" data-addon-content></div>
         <p class="addon-flow__status" data-addon-status role="status"></p>
@@ -103,7 +117,6 @@ export function createAddonFlow(api) {
           if (!dialog.open || sequence !== refreshSequence) return;
           refreshing = false;
           if (!products().some(orderable)) { controller.close(); api.openCart(); return; }
-          recommendations = addonRecommendations(api.getCart(), api.getProducts());
           renderDialog(); refreshMenus();
           dialog.querySelector('[data-addon-status]').textContent = changed ? 'המחירים והזמינות עודכנו.' : '';
         }).catch(() => {
@@ -115,7 +128,7 @@ export function createAddonFlow(api) {
       return true;
     },
     menuMarkup() {
-      return categories().map(value => `<section class="menu-section addon-menu" aria-labelledby="addon-menu-${value}"><h2 id="addon-menu-${value}">${labels[value]}</h2><ul class="addon-list" data-addon-menu-items="${value}">${rows(value, false)}</ul></section>`).join('');
+      return categories().map(value => `<section class="menu-section addon-menu" aria-labelledby="addon-menu-${value}"><h2 id="addon-menu-${value}">${labels[value]}</h2><div data-addon-menu-items="${value}">${rows(value, false)}</div></section>`).join('');
     },
   };
   function action(event) {
@@ -127,10 +140,9 @@ export function createAddonFlow(api) {
     if (button.hasAttribute('data-addon-more')) { controller.close(); api.onMore(); return; }
     if (button.hasAttribute('data-addon-retry')) { controller.openStep({ line: source }); return; }
     if (button.dataset.addonCustom) { controller.close(); api.onProduct(button.dataset.addonCustom); return; }
-    if (button.dataset.addonAction) {
+    if (button.dataset.addonAction || button.hasAttribute('data-addon-pick')) {
       try {
-        (inDialog ? selected : menuSelected).set(button.dataset.addonProductId, button.dataset.addonVariant);
-        changeAddonQuantity(api, button.dataset.addonProductId, button.dataset.addonVariant, button.dataset.addonAction === 'plus' ? 1 : -1);
+        changeAddonQuantity(api, button.dataset.addonProductId, button.dataset.addonVariant, button.dataset.addonAction === 'minus' ? -1 : 1);
         const status = inDialog ? dialog.querySelector('[data-addon-status]') : document.querySelector('[data-addon-menu-status]');
         if (status) {
           const product = api.findProduct(button.dataset.addonProductId), variant = addonVariants(product).find(item => item.id === button.dataset.addonVariant), qty = addonQuantity(api.getCart(), product.id, variant.id);
